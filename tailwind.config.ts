@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,6 +62,17 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				// Healz colors
+				healz: {
+					cream: '#F8F6F1',
+					brown: '#3A2E1C',
+					orange: '#E48D58',
+					red: '#CD4631',
+					teal: '#5E8F8F',
+					blue: '#75C7D9',
+					yellow: '#ECBD4F',
+					green: '#86A676',
 				}
 			},
 			borderRadius: {

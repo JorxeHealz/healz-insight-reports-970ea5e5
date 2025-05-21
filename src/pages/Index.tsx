@@ -1,13 +1,32 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+
+import { Link } from 'react-router-dom';
+import { Layout } from '../components/Layout';
 
 const Index = () => {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-gray-600">Start building your amazing project here!</p>
+    <Layout>
+      <div className="max-w-2xl mx-auto text-center">
+        <h1 className="text-4xl font-bold mb-6 text-healz-brown">Welcome to Healz Reports</h1>
+        <p className="text-xl mb-8 text-healz-brown/80">
+          Generate comprehensive clinical reports based on patient biomarkers,
+          symptoms, and questionnaire responses.
+        </p>
+        <div className="flex justify-center space-x-4">
+          <Link 
+            to="/reports" 
+            className="bg-healz-teal text-white px-6 py-3 rounded-md hover:bg-opacity-90 transition-colors"
+          >
+            View Reports
+          </Link>
+          <Link 
+            to="/reports/new" 
+            className="bg-healz-red text-white px-6 py-3 rounded-md hover:bg-opacity-90 transition-colors"
+          >
+            Create New Report
+          </Link>
+        </div>
       </div>
-    </div>
+    </Layout>
   );
 };
 
