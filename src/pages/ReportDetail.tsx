@@ -14,7 +14,7 @@ const ReportDetail = () => {
         .from('reports')
         .select(`
           *,
-          patients:patient_id (name, email, age, gender)
+          patients:patient_id (first_name, last_name, email, age, gender)
         `)
         .eq('id', id)
         .single();
@@ -26,44 +26,44 @@ const ReportDetail = () => {
   });
 
   return (
-    <Layout title="Report Details">
+    <Layout title="Detalles del Informe">
       <div className="max-w-4xl mx-auto">
         {isLoading ? (
           <div className="text-center py-8">
             <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-healz-red border-r-transparent align-[-0.125em]" role="status">
-              <span className="!absolute !-m-px !h-px !w-px !overflow-hidden !whitespace-nowrap !border-0 !p-0 ![clip:rect(0,0,0,0)]">Loading...</span>
+              <span className="!absolute !-m-px !h-px !w-px !overflow-hidden !whitespace-nowrap !border-0 !p-0 ![clip:rect(0,0,0,0)]">Cargando...</span>
             </div>
-            <p className="mt-2 text-healz-brown/70">Loading report details...</p>
+            <p className="mt-2 text-healz-brown/70">Cargando detalles del informe...</p>
           </div>
         ) : error ? (
           <div className="text-center py-8 text-healz-red">
-            Error loading report. Please try again.
+            Error al cargar el informe. Por favor, inténtalo de nuevo.
           </div>
         ) : report ? (
           <div className="bg-white rounded-lg shadow overflow-hidden">
             <div className="p-6">
               <div className="flex justify-between items-start mb-6">
                 <h2 className="text-xl font-semibold text-healz-brown">
-                  Patient: {report.patients.name}
+                  Paciente: {report.patients.first_name} {report.patients.last_name}
                 </h2>
                 <div className="text-sm text-healz-brown/70">
-                  Report created on {new Date(report.created_at).toLocaleDateString()}
+                  Informe creado el {new Date(report.created_at).toLocaleDateString()}
                 </div>
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="bg-healz-cream/30 p-4 rounded-md">
-                  <h3 className="font-medium mb-2 text-healz-brown">Patient Information</h3>
+                  <h3 className="font-medium mb-2 text-healz-brown">Información del Paciente</h3>
                   <div className="text-sm space-y-1">
-                    <p><span className="font-medium">Name:</span> {report.patients.name}</p>
+                    <p><span className="font-medium">Nombre:</span> {report.patients.first_name} {report.patients.last_name}</p>
                     <p><span className="font-medium">Email:</span> {report.patients.email}</p>
-                    <p><span className="font-medium">Age:</span> {report.patients.age}</p>
-                    <p><span className="font-medium">Gender:</span> {report.patients.gender}</p>
+                    <p><span className="font-medium">Edad:</span> {report.patients.age}</p>
+                    <p><span className="font-medium">Género:</span> {report.patients.gender}</p>
                   </div>
                 </div>
                 
                 <div className="bg-healz-cream/30 p-4 rounded-md">
-                  <h3 className="font-medium mb-2 text-healz-brown">Risk Profile</h3>
+                  <h3 className="font-medium mb-2 text-healz-brown">Perfil de Riesgo</h3>
                   <div className="grid grid-cols-2 gap-2 text-sm">
                     <div className="p-2 bg-white rounded shadow-sm">
                       <div className="font-medium">Cardiovascular</div>
@@ -93,7 +93,7 @@ const ReportDetail = () => {
                       </div>
                     </div>
                     <div className="p-2 bg-white rounded shadow-sm">
-                      <div className="font-medium">Metabolic</div>
+                      <div className="font-medium">Metabólico</div>
                       <div className={`mt-1 text-xs px-1.5 py-0.5 rounded inline-block
                         ${report.diagnosis.riskProfile.metabolic === 'low' ? 'bg-healz-green/20 text-healz-green' : 
                           report.diagnosis.riskProfile.metabolic === 'medium' ? 'bg-healz-yellow/20 text-healz-yellow' : 
@@ -142,7 +142,7 @@ const ReportDetail = () => {
               </div>
               
               <div className="mt-6">
-                <h3 className="font-medium mb-3 text-healz-brown">Summary</h3>
+                <h3 className="font-medium mb-3 text-healz-brown">Resumen</h3>
                 <div className="bg-healz-cream/30 p-4 rounded-md text-healz-brown">
                   {report.diagnosis.summary.split('\n').map((line, i) => (
                     <p key={i} className="mb-2">{line}</p>
@@ -174,7 +174,7 @@ const ReportDetail = () => {
                       <path d="M4 14h16" />
                       <path d="M2 8v6h16V8" />
                     </svg>
-                    Download PDF
+                    Descargar PDF
                   </a>
                 </div>
               )}
@@ -182,7 +182,7 @@ const ReportDetail = () => {
           </div>
         ) : (
           <div className="text-center py-8 text-healz-brown/70">
-            Report not found.
+            Informe no encontrado.
           </div>
         )}
       </div>

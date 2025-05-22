@@ -5,6 +5,7 @@ import { Layout } from '../components/Layout';
 import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { Report } from '../types/supabase';
+import { Input } from '@/components/ui/input';
 
 const formatDate = (dateString: string) => {
   return new Date(dateString).toLocaleDateString();
@@ -20,7 +21,7 @@ const Reports = () => {
         .from('reports')
         .select(`
           *,
-          patients:patient_id (name, email)
+          patients:patient_id (first_name, last_name, email)
         `)
         .order('created_at', { ascending: false });
       
@@ -30,18 +31,18 @@ const Reports = () => {
   });
 
   const filteredReports = reports?.filter(report => 
-    report.patients.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    `${report.patients.first_name} ${report.patients.last_name}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
     report.patients.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
-    <Layout title="Reports">
+    <Layout title="Informes">
       <div className="mb-6 flex justify-between items-center">
         <div className="relative w-72">
-          <input
+          <Input
             type="text"
-            placeholder="Search patient..."
-            className="w-full p-2 pl-10 border border-healz-teal/30 rounded-md focus:outline-none focus:ring-2 focus:ring-healz-teal"
+            placeholder="Buscar paciente..."
+            className="w-full p-2 pl-10 border border-healz-teal/30 rounded-md"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -64,24 +65,24 @@ const Reports = () => {
           to="/reports/new" 
           className="bg-healz-red text-white px-4 py-2 rounded-md hover:bg-opacity-90 transition-colors"
         >
-          New Report
+          Nuevo Informe
         </Link>
       </div>
 
       {isLoading ? (
         <div className="text-center py-8">
           <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-healz-red border-r-transparent align-[-0.125em]" role="status">
-            <span className="!absolute !-m-px !h-px !w-px !overflow-hidden !whitespace-nowrap !border-0 !p-0 ![clip:rect(0,0,0,0)]">Loading...</span>
+            <span className="!absolute !-m-px !h-px !w-px !overflow-hidden !whitespace-nowrap !border-0 !p-0 ![clip:rect(0,0,0,0)]">Cargando...</span>
           </div>
-          <p className="mt-2 text-healz-brown/70">Loading reports...</p>
+          <p className="mt-2 text-healz-brown/70">Cargando informes...</p>
         </div>
       ) : error ? (
         <div className="text-center py-8 text-healz-red">
-          Error loading reports. Please try again.
+          Error al cargar los informes. Por favor, inténtalo de nuevo.
         </div>
       ) : filteredReports?.length === 0 ? (
         <div className="text-center py-8 text-healz-brown/70">
-          No reports found. Create your first report!
+          No se encontraron informes. ¡Crea tu primer informe!
         </div>
       ) : (
         <div className="bg-white shadow rounded-lg overflow-hidden">
@@ -89,10 +90,10 @@ const Reports = () => {
             <thead className="bg-healz-cream/50">
               <tr>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-healz-brown uppercase tracking-wider">
-                  Patient
+                  Paciente
                 </th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-healz-brown uppercase tracking-wider">
-                  Date
+                  Fecha
                 </th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-healz-brown uppercase tracking-wider">
                   Vitality Score
@@ -101,7 +102,7 @@ const Reports = () => {
                   Risk Score
                 </th>
                 <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-healz-brown uppercase tracking-wider">
-                  Actions
+                  Acciones
                 </th>
               </tr>
             </thead>
@@ -109,7 +110,7 @@ const Reports = () => {
               {filteredReports?.map((report: any) => (
                 <tr key={report.id} className="hover:bg-healz-cream/20">
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="font-medium text-healz-brown">{report.patients.name}</div>
+                    <div className="font-medium text-healz-brown">{report.patients.first_name} {report.patients.last_name}</div>
                     <div className="text-sm text-healz-brown/70">{report.patients.email}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-healz-brown/80">
@@ -130,7 +131,7 @@ const Reports = () => {
                       to={`/reports/${report.id}`}
                       className="text-healz-teal hover:text-healz-blue mr-4"
                     >
-                      View
+                      Ver
                     </Link>
                     {report.pdf_url && (
                       <a 

@@ -285,6 +285,76 @@ export type Database = {
         }
         Relationships: []
       }
+      questionnaire_answers: {
+        Row: {
+          answer: string | null
+          created_at: string
+          date: string
+          id: string
+          patient_id: string
+          question_id: string
+        }
+        Insert: {
+          answer?: string | null
+          created_at?: string
+          date?: string
+          id?: string
+          patient_id: string
+          question_id: string
+        }
+        Update: {
+          answer?: string | null
+          created_at?: string
+          date?: string
+          id?: string
+          patient_id?: string
+          question_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "questionnaire_answers_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reports: {
+        Row: {
+          created_at: string
+          diagnosis: Json
+          doctor_id: string | null
+          id: string
+          patient_id: string
+          pdf_url: string | null
+        }
+        Insert: {
+          created_at?: string
+          diagnosis: Json
+          doctor_id?: string | null
+          id?: string
+          patient_id: string
+          pdf_url?: string | null
+        }
+        Update: {
+          created_at?: string
+          diagnosis?: Json
+          doctor_id?: string | null
+          id?: string
+          patient_id?: string
+          pdf_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reports_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tasks: {
         Row: {
           assigned_to: string | null
@@ -381,7 +451,24 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      patient_snapshot: {
+        Row: {
+          biomarker_type: string | null
+          latest_date: string | null
+          latest_value: number | null
+          patient_id: string | null
+          unit: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patient_biomarkers_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       create_patient_biomarker: {
@@ -393,6 +480,10 @@ export type Database = {
           p_notes?: string
         }
         Returns: string
+      }
+      generate_diagnosis: {
+        Args: { patient_id: string }
+        Returns: Json
       }
       get_assigned_patients: {
         Args: Record<PropertyKey, never>
