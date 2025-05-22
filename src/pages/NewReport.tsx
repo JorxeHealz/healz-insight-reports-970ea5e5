@@ -9,6 +9,8 @@ import { DataReview } from '../components/reports/DataReview';
 import { DiagnosisGeneration } from '../components/reports/DiagnosisGeneration';
 import { ReportPreview } from '../components/reports/ReportPreview';
 import { Patient, Diagnosis } from '../types/supabase';
+import { pdf } from '@react-pdf/renderer';
+import { ReportPDF } from '../components/reports/ReportPDF';
 
 type Step = 'patient' | 'data' | 'diagnosis' | 'report';
 
@@ -55,31 +57,86 @@ const NewReport = () => {
     }
   };
 
+  const generateAndUploadPdf = async () => {
+    if (!selectedPatient || !diagnosis) return null;
+    
+    try {
+      // Generar blob del PDF
+      const pdfDoc = <ReportPDF 
+        patient={selectedPatient} 
+        diagnosis={diagnosis} 
+        date={new Date()} 
+      />;
+      
+      const pdfBlob = await pdf(pdfDoc).toBlob();
+      
+      // Crear nombre de archivo
+      const fileName = `reports/${selectedPatient.id}/${Date.now()}-report.pdf`;
+      
+      // Verificar si existe el bucket de storage
+      const { data: bucketData, error: bucketError } = await supabase
+        .storage
+        .getBucket('reports');
+      
+      if (bucketError && bucketError.message.includes('not found')) {
+        // Crear el bucket si no existe
+        await supabase.storage.createBucket('reports', {
+          public: false,
+        });
+      }
+      
+      // Subir archivo a Supabase Storage
+      const { data, error } = await supabase.storage
+        .from('reports')
+        .upload(fileName, pdfBlob, {
+          contentType: 'application/pdf',
+          upsert: true
+        });
+      
+      if (error) throw error;
+      
+      // Obtener URL pública
+      const { data: publicUrlData } = supabase.storage
+        .from('reports')
+        .getPublicUrl(fileName);
+
+      return publicUrlData.publicUrl;
+    } catch (error) {
+      console.error('Error uploading PDF:', error);
+      return null;
+    }
+  };
+
   const handleSaveReport = async () => {
     if (!selectedPatient || !diagnosis) return;
     
     setIsLoading(true);
     try {
-      // In a future version, we would generate and store the PDF
-      // For now, we'll just store the report data
+      // Generar y subir el PDF
+      const pdfUrl = await generateAndUploadPdf();
+      
+      // Guardar el informe en la base de datos
       const { data, error } = await supabase
         .from('reports')
         .insert({
           patient_id: selectedPatient.id,
           diagnosis: diagnosis,
-          // doctor_id would come from auth context in future versions
+          pdf_url: pdfUrl,
+          // doctor_id vendría del contexto de autenticación en versiones futuras
         })
         .select()
         .single();
 
       if (error) throw error;
       
+      setPdfUrl(pdfUrl);
+      
       toast({
         title: "Informe guardado",
         description: "El informe se ha guardado correctamente",
       });
       
-      // Navigate to the report detail page
+      // Navegar a la página de detalle del informe
       navigate(`/reports/${data.id}`);
     } catch (error) {
       console.error('Error saving report:', error);

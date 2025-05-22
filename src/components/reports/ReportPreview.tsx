@@ -1,6 +1,7 @@
 
 import { Patient, Diagnosis } from '../../types/supabase';
 import { Button } from '@/components/ui/button';
+import { PDFDownloadButton } from './ReportPDF';
 
 interface ReportPreviewProps {
   patient: Patient;
@@ -136,19 +137,27 @@ export const ReportPreview = ({
         </div>
       </div>
 
-      <div className="mt-6 flex justify-between">
+      <div className="mt-6 flex justify-between items-center">
         <Button
           variant="outline"
           onClick={onBack}
         >
           Atrás
         </Button>
-        <Button
-          onClick={onSave}
-          disabled={isLoading}
-        >
-          {isLoading ? 'Guardando...' : 'Guardar Informe'}
-        </Button>
+        
+        <div className="flex space-x-3">
+          <PDFDownloadButton 
+            patient={patient}
+            diagnosis={diagnosis}
+          />
+        
+          <Button
+            onClick={onSave}
+            disabled={isLoading}
+          >
+            {isLoading ? 'Guardando...' : 'Guardar Informe'}
+          </Button>
+        </div>
       </div>
     </div>
   );
