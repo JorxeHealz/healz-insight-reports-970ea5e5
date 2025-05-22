@@ -14,7 +14,8 @@ export interface Database {
         Row: {
           id: string
           created_at: string
-          name: string
+          first_name: string
+          last_name: string
           email: string
           age: number
           gender: string
@@ -22,7 +23,8 @@ export interface Database {
         Insert: {
           id?: string
           created_at?: string
-          name: string
+          first_name: string
+          last_name: string
           email: string
           age: number
           gender: string
@@ -30,7 +32,8 @@ export interface Database {
         Update: {
           id?: string
           created_at?: string
-          name?: string
+          first_name?: string
+          last_name?: string
           email?: string
           age?: number
           gender?: string
