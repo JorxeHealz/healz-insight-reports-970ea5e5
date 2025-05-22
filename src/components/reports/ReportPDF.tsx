@@ -2,13 +2,7 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet, PDFDownloadLink, Font } from '@react-pdf/renderer';
 import { Patient, Diagnosis } from '../../types/supabase';
-
-// Registrar fuentes si es necesario
-// Font.register({
-//   family: 'Nunito',
-//   src: 'https://fonts.gstatic.com/s/nunito/v16/XRXV3I6Li01BKofINeaE.ttf',
-//   fontWeight: 'normal',
-// });
+import { Button } from '@/components/ui/button';
 
 // Estilos para el PDF
 const styles = StyleSheet.create({
@@ -20,8 +14,13 @@ const styles = StyleSheet.create({
   header: {
     marginBottom: 20,
     padding: 10,
-    textAlign: 'center',
     borderBottom: '1px solid #E48D58',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  headerLeft: {
+    flexDirection: 'column',
   },
   title: {
     fontSize: 24,
@@ -32,6 +31,15 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 12,
     color: '#5E8F8F',
+  },
+  badge: {
+    padding: '4 8',
+    borderRadius: 4,
+    backgroundColor: '#F8F6F1',
+    borderColor: '#E48D58',
+    borderWidth: 1,
+    fontSize: 10,
+    color: '#3A2E1C',
   },
   section: {
     margin: 10,
@@ -125,6 +133,48 @@ const styles = StyleSheet.create({
   },
   paragraph: {
     marginBottom: 8,
+    fontSize: 11,
+  },
+  categoryGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginTop: 10,
+  },
+  categoryItem: {
+    width: '31%',
+    marginBottom: 8,
+    marginRight: '2%',
+    padding: 6,
+    backgroundColor: '#F8F6F1',
+    borderRadius: 4,
+    fontSize: 10,
+  },
+  recommendationTitle: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    marginBottom: 5,
+    marginTop: 10,
+  },
+  recommendationList: {
+    marginLeft: 15,
+  },
+  recommendationItem: {
+    fontSize: 11,
+    marginBottom: 4,
+  },
+  recommendationBullet: {
+    marginRight: 5,
+  },
+  recommendationBox: {
+    backgroundColor: '#F8F6F1',
+    padding: 10,
+    borderRadius: 5,
+    marginTop: 10,
+  },
+  riskDescription: {
+    fontSize: 10,
+    marginTop: 5,
+    color: '#666',
   }
 });
 
@@ -140,8 +190,13 @@ export const ReportPDF = ({ patient, diagnosis, date }: ReportPDFProps) => (
     <Page size="A4" style={styles.page}>
       {/* Encabezado */}
       <View style={styles.header}>
-        <Text style={styles.title}>Informe Clínico Healz</Text>
-        <Text style={styles.subtitle}>Generado el {date.toLocaleDateString()}</Text>
+        <View style={styles.headerLeft}>
+          <Text style={styles.title}>Informe Clínico Healz</Text>
+          <Text style={styles.subtitle}>Generado el {date.toLocaleDateString()}</Text>
+        </View>
+        <View>
+          <Text style={styles.badge}>Healz Reports</Text>
+        </View>
       </View>
 
       {/* Información del Paciente */}
@@ -190,6 +245,18 @@ export const ReportPDF = ({ patient, diagnosis, date }: ReportPDFProps) => (
             <View style={[styles.riskScoreBar, { width: `${diagnosis.riskScore}%` }]} />
           </View>
         </View>
+
+        {/* Categorías de Biomarcadores */}
+        <View style={{ marginTop: 15 }}>
+          <Text style={{ fontSize: 12, fontWeight: 'bold', marginBottom: 5 }}>Categorías de Biomarcadores</Text>
+          <View style={styles.categoryGrid}>
+            {["Metabolic", "Heart", "Thyroid", "Stress & Aging", "Nutrients", "Immune"].map((category) => (
+              <View key={category} style={styles.categoryItem}>
+                <Text>{category}</Text>
+              </View>
+            ))}
+          </View>
+        </View>
       </View>
 
       {/* Perfil de riesgo */}
@@ -207,6 +274,13 @@ export const ReportPDF = ({ patient, diagnosis, date }: ReportPDFProps) => (
             >
               {diagnosis.riskProfile.cardio.toUpperCase()}
             </Text>
+            <Text style={styles.riskDescription}>
+              {diagnosis.riskProfile.cardio === 'low' 
+                ? 'Riesgo cardiovascular bajo'
+                : diagnosis.riskProfile.cardio === 'medium'
+                ? 'Riesgo moderado'
+                : 'Riesgo elevado'}
+            </Text>
           </View>
           
           <View style={styles.riskItem}>
@@ -219,6 +293,13 @@ export const ReportPDF = ({ patient, diagnosis, date }: ReportPDFProps) => (
               ]}
             >
               {diagnosis.riskProfile.mental.toUpperCase()}
+            </Text>
+            <Text style={styles.riskDescription}>
+              {diagnosis.riskProfile.mental === 'low' 
+                ? 'Salud mental óptima'
+                : diagnosis.riskProfile.mental === 'medium'
+                ? 'Signos moderados de estrés'
+                : 'Signos importantes de desequilibrio'}
             </Text>
           </View>
           
@@ -233,6 +314,13 @@ export const ReportPDF = ({ patient, diagnosis, date }: ReportPDFProps) => (
             >
               {diagnosis.riskProfile.adrenal.toUpperCase()}
             </Text>
+            <Text style={styles.riskDescription}>
+              {diagnosis.riskProfile.adrenal === 'low' 
+                ? 'Función adrenal equilibrada'
+                : diagnosis.riskProfile.adrenal === 'medium'
+                ? 'Signos de adaptación al estrés'
+                : 'Desregulación significativa'}
+            </Text>
           </View>
           
           <View style={styles.riskItem}>
@@ -246,6 +334,13 @@ export const ReportPDF = ({ patient, diagnosis, date }: ReportPDFProps) => (
             >
               {diagnosis.riskProfile.metabolic.toUpperCase()}
             </Text>
+            <Text style={styles.riskDescription}>
+              {diagnosis.riskProfile.metabolic === 'low' 
+                ? 'Metabolismo óptimo'
+                : diagnosis.riskProfile.metabolic === 'medium'
+                ? 'Señales tempranas de desregulación'
+                : 'Desregulación significativa'}
+            </Text>
           </View>
         </View>
       </View>
@@ -253,16 +348,36 @@ export const ReportPDF = ({ patient, diagnosis, date }: ReportPDFProps) => (
       {/* Resumen y recomendaciones */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Resumen y Recomendaciones</Text>
-        <View style={styles.summary}>
+        <View style={styles.recommendationBox}>
           {diagnosis.summary.split('\n').map((paragraph, i) => (
             <Text key={i} style={styles.paragraph}>{paragraph}</Text>
           ))}
+        </View>
+        
+        <Text style={styles.recommendationTitle}>Recomendaciones Específicas:</Text>
+        <View style={styles.recommendationList}>
+          <View style={styles.row}>
+            <Text style={styles.recommendationBullet}>•</Text>
+            <Text style={styles.recommendationItem}>Análisis de seguimiento en 3-6 meses para biomarcadores principales</Text>
+          </View>
+          <View style={styles.row}>
+            <Text style={styles.recommendationBullet}>•</Text>
+            <Text style={styles.recommendationItem}>Evaluación de respuesta a intervenciones nutricionales</Text>
+          </View>
+          <View style={styles.row}>
+            <Text style={styles.recommendationBullet}>•</Text>
+            <Text style={styles.recommendationItem}>Monitoreo de patrones de estrés y calidad de sueño</Text>
+          </View>
+          <View style={styles.row}>
+            <Text style={styles.recommendationBullet}>•</Text>
+            <Text style={styles.recommendationItem}>Optimización de niveles hormonales según hallazgos actuales</Text>
+          </View>
         </View>
       </View>
 
       {/* Footer */}
       <View style={styles.footer} fixed>
-        <Text>© {new Date().getFullYear()} Healz Reports - Documento confidencial</Text>
+        <Text>© {new Date().getFullYear()} Healz Reports - Documento confidencial | Paciente: {patient.first_name} {patient.last_name}</Text>
       </View>
     </Page>
   </Document>
@@ -270,22 +385,25 @@ export const ReportPDF = ({ patient, diagnosis, date }: ReportPDFProps) => (
 
 // Componente para renderizar y descargar el PDF
 export const PDFDownloadButton = ({ patient, diagnosis }: { patient: Patient; diagnosis: Diagnosis }) => (
-  <PDFDownloadLink
-    document={<ReportPDF patient={patient} diagnosis={diagnosis} date={new Date()} />}
-    fileName={`healz-report-${patient.first_name.toLowerCase()}-${patient.last_name.toLowerCase()}-${new Date().toISOString().split('T')[0]}.pdf`}
-    style={{
-      textDecoration: 'none',
-      padding: '10px 15px',
-      color: '#fff',
-      backgroundColor: '#CD4631',
-      borderRadius: '0.375rem',
-      display: 'inline-block',
-      fontSize: '14px',
-      fontWeight: 'medium'
-    }}
+  <Button
+    variant="outline"
+    asChild
+    className="border-healz-red text-healz-red hover:bg-healz-red/10"
   >
-    {({ blob, url, loading, error }) =>
-      loading ? 'Generando PDF...' : 'Descargar PDF'
-    }
-  </PDFDownloadLink>
+    <PDFDownloadLink
+      document={<ReportPDF patient={patient} diagnosis={diagnosis} date={new Date()} />}
+      fileName={`healz-report-${patient.first_name.toLowerCase()}-${patient.last_name.toLowerCase()}-${new Date().toISOString().split('T')[0]}.pdf`}
+      style={{
+        width: '100%',
+        height: '100%',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
+      {({ blob, url, loading, error }) =>
+        loading ? 'Generando PDF...' : 'Descargar PDF'
+      }
+    </PDFDownloadLink>
+  </Button>
 );
