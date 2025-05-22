@@ -4,7 +4,6 @@ import { useQuery } from '@tanstack/react-query';
 import { Layout } from '../components/Layout';
 import { ReportHeader } from '../components/report/ReportHeader';
 import { ReportTabs } from '../components/report/ReportTabs';
-import { ReportSummary } from '../components/report/ReportSummary';
 import { supabase } from '../lib/supabase';
 import { mockReportData } from '../__mocks__/mockReport';
 
@@ -36,8 +35,7 @@ const ReportDetail = () => {
         ) : report ? (
           <div className="space-y-6">
             <ReportHeader />
-            <ReportTabs />
-            <ReportSummary report={report} />
+            <ReportTabs report={report} />
           </div>
         ) : (
           <div className="text-center py-8 text-healz-brown/70">
