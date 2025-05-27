@@ -1,4 +1,3 @@
-
 export * from './ReportHeader';
 export * from './ReportTabs';
 export * from './ReportSummary';
@@ -13,3 +12,7 @@ export * from './BiologicalAgeCard';
 export * from './BiomarkerStatus';
 export * from './SymptomsList';
 export * from './RecentBiomarkers';
+export * from './biomarkers/BiomarkerStatusBadge';
+export * from './biomarkers/BiomarkerInfo';
+export * from './biomarkers/BiomarkerItem';
+export * from './biomarkers/types';
