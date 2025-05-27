@@ -2,6 +2,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../ui/accordion';
+import { Badge } from '../ui/badge';
 import { BiomarkerStatus } from './BiomarkerStatus';
 
 type ReportPanelsProps = {
@@ -9,6 +10,37 @@ type ReportPanelsProps = {
 };
 
 export const ReportPanels: React.FC<ReportPanelsProps> = ({ report }) => {
+  // Función para calcular estadísticas de biomarcadores por panel
+  const calculatePanelStats = (panelBiomarkers: string[]) => {
+    const totalBiomarkers = panelBiomarkers.length;
+    let measuredCount = 0;
+    let outOfRangeCount = 0;
+    let cautionCount = 0;
+
+    panelBiomarkers.forEach(biomarker => {
+      const biomarkerData = report.recentBiomarkers?.find(
+        b => b.name === biomarker || b.name.includes(biomarker.split(' ')[0])
+      );
+      
+      if (biomarkerData) {
+        measuredCount++;
+        if (biomarkerData.status === 'outOfRange') {
+          outOfRangeCount++;
+        } else if (biomarkerData.status === 'caution') {
+          cautionCount++;
+        }
+      }
+    });
+
+    return {
+      total: totalBiomarkers,
+      measured: measuredCount,
+      outOfRange: outOfRangeCount,
+      caution: cautionCount,
+      alerts: outOfRangeCount + cautionCount
+    };
+  };
+
   // Definición de los 13 paneles específicos de biomarcadores
   const biomarkerPanels = [
     {
@@ -103,48 +135,70 @@ export const ReportPanels: React.FC<ReportPanelsProps> = ({ report }) => {
           </p>
           
           <Accordion type="single" collapsible className="w-full">
-            {biomarkerPanels.map(panel => (
-              <AccordionItem key={panel.id} value={panel.id}>
-                <AccordionTrigger className="hover:text-healz-brown text-healz-brown">
-                  {panel.name}
-                </AccordionTrigger>
-                <AccordionContent>
-                  <div className="p-2 text-sm">
-                    <p className="mb-4 text-healz-brown/70 text-xs leading-relaxed">{panel.description}</p>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                      {panel.biomarkers.map(biomarker => {
-                        // Buscar si existe este biomarcador en el reporte actual
-                        const biomarkerData = report.recentBiomarkers?.find(
-                          b => b.name === biomarker || b.name.includes(biomarker.split(' ')[0])
-                        );
-                        
-                        return (
-                          <div key={biomarker} className="flex justify-between items-center border-b pb-1 border-healz-brown/10">
-                            <span className="text-xs">{biomarker}</span>
-                            {biomarkerData ? (
-                              <div className="flex items-center gap-2">
-                                <span className="font-medium text-xs">{biomarkerData.valueWithUnit}</span>
-                                <span className={`px-1.5 py-0.5 text-xs rounded ${
-                                  biomarkerData.status === 'optimal' ? 'bg-healz-green/20 text-healz-green' :
-                                  biomarkerData.status === 'caution' ? 'bg-healz-yellow/20 text-healz-orange' :
-                                  'bg-healz-red/20 text-healz-red'
-                                }`}>
-                                  {biomarkerData.status === 'optimal' ? 'Óptimo' :
-                                   biomarkerData.status === 'caution' ? 'Precaución' :
-                                   'Fuera de rango'}
-                                </span>
-                              </div>
-                            ) : (
-                              <span className="text-healz-brown/40 text-xs">No medido</span>
-                            )}
-                          </div>
-                        );
-                      })}
+            {biomarkerPanels.map(panel => {
+              const stats = calculatePanelStats(panel.biomarkers);
+              
+              return (
+                <AccordionItem key={panel.id} value={panel.id}>
+                  <AccordionTrigger className="hover:text-healz-brown text-healz-brown">
+                    <div className="flex items-center justify-between w-full mr-4">
+                      <span className="text-left">{panel.name}</span>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <Badge 
+                          variant="outline" 
+                          className="text-xs bg-healz-teal/10 text-healz-teal border-healz-teal/30 hover:bg-healz-teal/20"
+                        >
+                          {stats.measured}/{stats.total} medidos
+                        </Badge>
+                        {stats.alerts > 0 && (
+                          <Badge 
+                            variant="outline" 
+                            className="text-xs bg-healz-red/10 text-healz-red border-healz-red/30 hover:bg-healz-red/20"
+                          >
+                            {stats.alerts} en alerta
+                          </Badge>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
-            ))}
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <div className="p-2 text-sm">
+                      <p className="mb-4 text-healz-brown/70 text-xs leading-relaxed">{panel.description}</p>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                        {panel.biomarkers.map(biomarker => {
+                          // Buscar si existe este biomarcador en el reporte actual
+                          const biomarkerData = report.recentBiomarkers?.find(
+                            b => b.name === biomarker || b.name.includes(biomarker.split(' ')[0])
+                          );
+                          
+                          return (
+                            <div key={biomarker} className="flex justify-between items-center border-b pb-1 border-healz-brown/10">
+                              <span className="text-xs">{biomarker}</span>
+                              {biomarkerData ? (
+                                <div className="flex items-center gap-2">
+                                  <span className="font-medium text-xs">{biomarkerData.valueWithUnit}</span>
+                                  <span className={`px-1.5 py-0.5 text-xs rounded ${
+                                    biomarkerData.status === 'optimal' ? 'bg-healz-green/20 text-healz-green' :
+                                    biomarkerData.status === 'caution' ? 'bg-healz-yellow/20 text-healz-orange' :
+                                    'bg-healz-red/20 text-healz-red'
+                                  }`}>
+                                    {biomarkerData.status === 'optimal' ? 'Óptimo' :
+                                     biomarkerData.status === 'caution' ? 'Precaución' :
+                                     'Fuera de rango'}
+                                  </span>
+                                </div>
+                              ) : (
+                                <span className="text-healz-brown/40 text-xs">No medido</span>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              );
+            })}
           </Accordion>
         </CardContent>
       </Card>
