@@ -17,6 +17,16 @@ interface RecentBiomarkersProps {
 export const RecentBiomarkers: React.FC<RecentBiomarkersProps> = ({ biomarkers }) => {
   const [expandedBiomarker, setExpandedBiomarker] = useState<string | null>(null);
 
+  // Sort biomarkers by status priority: outOfRange -> caution -> optimal
+  const sortedBiomarkers = [...biomarkers].sort((a, b) => {
+    const statusPriority = {
+      'outOfRange': 1,
+      'caution': 2,
+      'optimal': 3
+    };
+    return statusPriority[a.status] - statusPriority[b.status];
+  });
+
   const getStatusBadge = (status: 'optimal' | 'caution' | 'outOfRange') => {
     switch (status) {
       case 'optimal':
@@ -108,8 +118,8 @@ export const RecentBiomarkers: React.FC<RecentBiomarkersProps> = ({ biomarkers }
       </CardHeader>
       <CardContent>
         <div className="divide-y divide-healz-cream">
-          {biomarkers.length > 0 ? (
-            biomarkers.map((biomarker, index) => (
+          {sortedBiomarkers.length > 0 ? (
+            sortedBiomarkers.map((biomarker, index) => (
               <div key={index} className="py-2">
                 <div className="flex justify-between items-center">
                   <div className="flex flex-col">
