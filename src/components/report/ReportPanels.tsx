@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../ui/accordion';
@@ -146,14 +145,14 @@ export const ReportPanels: React.FC<ReportPanelsProps> = ({ report }) => {
                       <div className="flex items-center gap-2 flex-shrink-0">
                         <Badge 
                           variant="outline" 
-                          className="text-xs bg-healz-teal/10 text-healz-teal border-healz-teal/30 hover:bg-healz-teal/20"
+                          className="text-xs bg-healz-teal/10 text-healz-teal border-healz-teal/30 hover:bg-healz-teal/20 rounded-md px-3 py-1"
                         >
                           {stats.measured}/{stats.total} medidos
                         </Badge>
                         {stats.alerts > 0 && (
                           <Badge 
                             variant="outline" 
-                            className="text-xs bg-healz-red/10 text-healz-red border-healz-red/30 hover:bg-healz-red/20"
+                            className="text-xs bg-healz-red/10 text-healz-red border-healz-red/30 hover:bg-healz-red/20 rounded-md px-3 py-1"
                           >
                             {stats.alerts} en alerta
                           </Badge>
