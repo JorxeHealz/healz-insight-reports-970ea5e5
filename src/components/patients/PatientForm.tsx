@@ -56,9 +56,13 @@ export const PatientForm = ({ patient, onSuccess, onCancel }: PatientFormProps) 
       if (patient) {
         await updatePatient.mutateAsync({
           id: patient.id,
-          ...data,
+          first_name: data.first_name,
+          last_name: data.last_name,
+          email: data.email,
           phone: data.phone || null,
           date_of_birth: data.date_of_birth || null,
+          gender: data.gender,
+          status: data.status,
           notes: data.notes || null,
         });
         toast({
@@ -67,9 +71,13 @@ export const PatientForm = ({ patient, onSuccess, onCancel }: PatientFormProps) 
         });
       } else {
         await createPatient.mutateAsync({
-          ...data,
+          first_name: data.first_name,
+          last_name: data.last_name,
+          email: data.email,
           phone: data.phone || null,
           date_of_birth: data.date_of_birth || null,
+          gender: data.gender,
+          status: data.status,
           notes: data.notes || null,
           last_visit: null,
           next_visit: null,
