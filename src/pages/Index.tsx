@@ -4,7 +4,7 @@ import { Layout } from '../components/Layout';
 
 const Index = () => {
   return (
-    <Layout>
+    <Layout title="Healz Reports">
       <div className="max-w-2xl mx-auto text-center">
         <h1 className="text-4xl font-bold mb-6 text-healz-brown">Welcome to Healz Reports</h1>
         <p className="text-xl mb-8 text-healz-brown/80">
