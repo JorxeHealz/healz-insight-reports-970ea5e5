@@ -9,9 +9,10 @@ import { ActionPlan } from './ActionPlan';
 
 type ReportTabsProps = {
   report: any; // Idealmente crear un tipo adecuado
+  patientId?: string; // Add patientId for real data integration
 };
 
-export const ReportTabs: React.FC<ReportTabsProps> = ({ report }) => {
+export const ReportTabs: React.FC<ReportTabsProps> = ({ report, patientId }) => {
   return (
     <Tabs defaultValue="summary" className="w-full">
       <TabsList className="grid w-full grid-cols-5 mb-4">
@@ -23,7 +24,7 @@ export const ReportTabs: React.FC<ReportTabsProps> = ({ report }) => {
       </TabsList>
 
       <TabsContent value="summary">
-        <ReportSummary report={report} />
+        <ReportSummary report={report} patientId={patientId} />
       </TabsContent>
 
       <TabsContent value="panels">

@@ -4,23 +4,35 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '../ui/card
 import { Link } from 'react-router-dom';
 import { BiomarkerItem } from './biomarkers/BiomarkerItem';
 import { Biomarker } from './biomarkers/types';
+import { useBiomarkerData } from '../../hooks/useBiomarkerData';
 
 interface RecentBiomarkersProps {
-  biomarkers: Biomarker[];
+  patientId?: string;
+  biomarkers?: Biomarker[]; // Fallback for mock data
 }
 
-export const RecentBiomarkers: React.FC<RecentBiomarkersProps> = ({ biomarkers }) => {
+export const RecentBiomarkers: React.FC<RecentBiomarkersProps> = ({ 
+  patientId, 
+  biomarkers: mockBiomarkers 
+}) => {
   const [expandedBiomarker, setExpandedBiomarker] = useState<string | null>(null);
+  
+  // Use real data if patientId is provided, otherwise fall back to mock data
+  const { data: realBiomarkers, isLoading, error } = useBiomarkerData(patientId || '');
+  
+  const biomarkers = patientId ? realBiomarkers : mockBiomarkers;
+  const shouldShowLoading = patientId && isLoading;
+  const shouldShowError = patientId && error;
 
   // Sort biomarkers by status priority: outOfRange -> caution -> optimal
-  const sortedBiomarkers = [...biomarkers].sort((a, b) => {
+  const sortedBiomarkers = biomarkers ? [...biomarkers].sort((a, b) => {
     const statusPriority = {
       'outOfRange': 1,
       'caution': 2,
       'optimal': 3
     };
     return statusPriority[a.status] - statusPriority[b.status];
-  });
+  }) : [];
 
   const toggleBiomarker = (name: string) => {
     if (expandedBiomarker === name) {
@@ -36,22 +48,33 @@ export const RecentBiomarkers: React.FC<RecentBiomarkersProps> = ({ biomarkers }
         <CardTitle className="text-lg text-healz-brown">Biomarcadores Recientes</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="divide-y divide-healz-cream">
-          {sortedBiomarkers.length > 0 ? (
-            sortedBiomarkers.map((biomarker, index) => (
-              <BiomarkerItem
-                key={index}
-                biomarker={biomarker}
-                isExpanded={expandedBiomarker === biomarker.name}
-                onToggle={() => toggleBiomarker(biomarker.name)}
-              />
-            ))
-          ) : (
-            <p className="text-sm text-healz-brown/70 py-2 text-center">
-              No hay biomarcadores recientes.
-            </p>
-          )}
-        </div>
+        {shouldShowLoading ? (
+          <div className="text-center py-4">
+            <div className="inline-block h-6 w-6 animate-spin rounded-full border-4 border-solid border-healz-brown border-r-transparent"></div>
+            <p className="mt-2 text-sm text-healz-brown/70">Cargando biomarcadores...</p>
+          </div>
+        ) : shouldShowError ? (
+          <div className="text-center py-4 text-healz-red text-sm">
+            Error al cargar los biomarcadores
+          </div>
+        ) : (
+          <div className="divide-y divide-healz-cream">
+            {sortedBiomarkers.length > 0 ? (
+              sortedBiomarkers.map((biomarker, index) => (
+                <BiomarkerItem
+                  key={index}
+                  biomarker={biomarker}
+                  isExpanded={expandedBiomarker === biomarker.name}
+                  onToggle={() => toggleBiomarker(biomarker.name)}
+                />
+              ))
+            ) : (
+              <p className="text-sm text-healz-brown/70 py-2 text-center">
+                No hay biomarcadores recientes.
+              </p>
+            )}
+          </div>
+        )}
       </CardContent>
       <CardFooter className="pt-0">
         <Link 

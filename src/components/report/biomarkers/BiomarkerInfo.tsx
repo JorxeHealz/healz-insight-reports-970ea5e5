@@ -10,13 +10,14 @@ interface BiomarkerInfoProps {
 
 export const BiomarkerInfo: React.FC<BiomarkerInfoProps> = ({ biomarker }) => {
   const info = getBiomarkerInfo(biomarker.name);
+  const biomarkerData = biomarker.biomarkerData;
 
   return (
     <div className="mt-3 p-3 bg-healz-cream/30 rounded-md text-sm border border-healz-brown/10">
       <div className="space-y-3">
         {biomarker.status === 'outOfRange' && (
           <div className="text-healz-red text-xs font-medium">
-            • Sobre Rango: {biomarker.valueWithUnit}
+            • Fuera de rango: {biomarker.valueWithUnit}
           </div>
         )}
         
@@ -25,7 +26,7 @@ export const BiomarkerInfo: React.FC<BiomarkerInfoProps> = ({ biomarker }) => {
             <Info className="h-4 w-4 mr-1" /> ¿Qué es?
           </h4>
           <p className="text-xs text-healz-brown/80">
-            {info.description}
+            {biomarkerData?.description || info.description}
           </p>
         </div>
         
@@ -36,9 +37,35 @@ export const BiomarkerInfo: React.FC<BiomarkerInfoProps> = ({ biomarker }) => {
           </p>
         </div>
         
-        <div className="text-xs text-healz-brown/70">
-          {info.reference}
-        </div>
+        {biomarkerData && (
+          <div>
+            <h4 className="text-sm font-medium text-healz-brown mb-1">Rangos de referencia</h4>
+            <div className="text-xs text-healz-brown/70 space-y-1">
+              <div>
+                <span className="font-medium">Óptimo:</span> {biomarkerData.optimal_min} - {biomarkerData.optimal_max} {biomarkerData.unit}
+              </div>
+              <div>
+                <span className="font-medium">Convencional:</span> {biomarkerData.conventional_min} - {biomarkerData.conventional_max} {biomarkerData.unit}
+              </div>
+              {biomarkerData.Panel && (
+                <div>
+                  <span className="font-medium">Panel:</span> {biomarkerData.Panel}
+                </div>
+              )}
+              {biomarkerData.category && (
+                <div>
+                  <span className="font-medium">Categoría:</span> {biomarkerData.category}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+        
+        {!biomarkerData && (
+          <div className="text-xs text-healz-brown/70">
+            {info.reference}
+          </div>
+        )}
         
         {info.highLevels && (
           <div>

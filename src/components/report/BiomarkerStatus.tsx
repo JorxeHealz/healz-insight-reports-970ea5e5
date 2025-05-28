@@ -1,18 +1,55 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+import { useBiomarkerData } from '../../hooks/useBiomarkerData';
 
 interface BiomarkerStatusProps {
-  summary: {
+  patientId?: string;
+  summary?: {
     optimal: number;
     caution: number;
     outOfRange: number;
-  };
+  }; // Fallback for mock data
 }
 
-export const BiomarkerStatus: React.FC<BiomarkerStatusProps> = ({ summary }) => {
+export const BiomarkerStatus: React.FC<BiomarkerStatusProps> = ({ 
+  patientId, 
+  summary: mockSummary 
+}) => {
+  const { data: biomarkers, isLoading } = useBiomarkerData(patientId || '');
+  
+  // Calculate summary from real data or use mock data
+  const summary = React.useMemo(() => {
+    if (patientId && biomarkers) {
+      return biomarkers.reduce(
+        (acc, biomarker) => {
+          acc[biomarker.status]++;
+          return acc;
+        },
+        { optimal: 0, caution: 0, outOfRange: 0 }
+      );
+    }
+    return mockSummary || { optimal: 0, caution: 0, outOfRange: 0 };
+  }, [patientId, biomarkers, mockSummary]);
+
   const total = summary.optimal + summary.caution + summary.outOfRange;
   
+  if (patientId && isLoading) {
+    return (
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-lg text-healz-brown">Estado de Biomarcadores</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-4">
+            <div className="inline-block h-6 w-6 animate-spin rounded-full border-4 border-solid border-healz-brown border-r-transparent"></div>
+            <p className="mt-2 text-sm text-healz-brown/70">Calculando estado...</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card>
       <CardHeader className="pb-2">
@@ -40,17 +77,19 @@ export const BiomarkerStatus: React.FC<BiomarkerStatusProps> = ({ summary }) => 
           />
         </div>
         
-        <div className="mt-4 w-full h-1.5 bg-healz-cream rounded-full flex overflow-hidden">
-          <div className="bg-healz-green h-full" style={{ 
-            width: `${(summary.optimal / total) * 100}%` 
-          }} />
-          <div className="bg-healz-yellow h-full" style={{ 
-            width: `${(summary.caution / total) * 100}%` 
-          }} />
-          <div className="bg-healz-red h-full" style={{ 
-            width: `${(summary.outOfRange / total) * 100}%` 
-          }} />
-        </div>
+        {total > 0 && (
+          <div className="mt-4 w-full h-1.5 bg-healz-cream rounded-full flex overflow-hidden">
+            <div className="bg-healz-green h-full" style={{ 
+              width: `${(summary.optimal / total) * 100}%` 
+            }} />
+            <div className="bg-healz-yellow h-full" style={{ 
+              width: `${(summary.caution / total) * 100}%` 
+            }} />
+            <div className="bg-healz-red h-full" style={{ 
+              width: `${(summary.outOfRange / total) * 100}%` 
+            }} />
+          </div>
+        )}
       </CardContent>
     </Card>
   );

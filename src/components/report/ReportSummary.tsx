@@ -10,9 +10,10 @@ import { RecentBiomarkers } from './RecentBiomarkers';
 
 type ReportSummaryProps = {
   report: any; // We'd ideally create a proper type for this
+  patientId?: string; // Add patientId for real data integration
 };
 
-export const ReportSummary: React.FC<ReportSummaryProps> = ({ report }) => {
+export const ReportSummary: React.FC<ReportSummaryProps> = ({ report, patientId }) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       <div className="space-y-6">
@@ -26,9 +27,15 @@ export const ReportSummary: React.FC<ReportSummaryProps> = ({ report }) => {
           biologicalAge={report.biologicalAge} 
           chronologicalAge={report.chronologicalAge} 
         />
-        <BiomarkerStatus summary={report.biomarkerSummary} />
+        <BiomarkerStatus 
+          patientId={patientId}
+          summary={report.biomarkerSummary} 
+        />
         <SymptomsList symptoms={report.topSymptoms} />
-        <RecentBiomarkers biomarkers={report.recentBiomarkers} />
+        <RecentBiomarkers 
+          patientId={patientId}
+          biomarkers={report.recentBiomarkers} 
+        />
       </div>
     </div>
   );
