@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Patient } from '../../types/supabase';
+import type { Tables } from '../../integrations/supabase/types';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -11,6 +11,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '../ui/alert-dialog';
+
+type Patient = Tables<'patients'>;
 
 interface DeletePatientDialogProps {
   patient: Patient;

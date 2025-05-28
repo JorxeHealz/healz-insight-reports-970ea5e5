@@ -1,9 +1,11 @@
 
 import React, { useState } from 'react';
-import { Patient } from '../../types/supabase';
+import type { Tables } from '../../integrations/supabase/types';
 import { PatientCard } from './PatientCard';
 import { Input } from '../ui/input';
 import { Search } from 'lucide-react';
+
+type Patient = Tables<'patients'>;
 
 interface PatientListProps {
   patients: Patient[];

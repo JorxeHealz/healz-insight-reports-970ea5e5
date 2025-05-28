@@ -3,7 +3,7 @@ import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Patient } from '../../types/supabase';
+import type { Tables } from '../../integrations/supabase/types';
 import { useCreatePatient, useUpdatePatient } from '../../hooks/usePatients';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
@@ -11,6 +11,8 @@ import { Textarea } from '../ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '../ui/form';
 import { toast } from '../../hooks/use-toast';
+
+type Patient = Tables<'patients'>;
 
 const patientSchema = z.object({
   first_name: z.string().min(1, 'El nombre es requerido'),

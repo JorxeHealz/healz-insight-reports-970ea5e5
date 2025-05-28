@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Patient } from '../../types/supabase';
+import type { Tables } from '../../integrations/supabase/types';
 import { useDeletePatient } from '../../hooks/usePatients';
 import { Card, CardContent } from '../ui/card';
 import { Button } from '../ui/button';
@@ -10,6 +10,8 @@ import { toast } from '../../hooks/use-toast';
 import { Edit, Trash2, Mail, Calendar, User } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+
+type Patient = Tables<'patients'>;
 
 interface PatientCardProps {
   patient: Patient;

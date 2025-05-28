@@ -14,29 +14,47 @@ export interface Database {
         Row: {
           id: string
           created_at: string
+          updated_at: string
           first_name: string
           last_name: string
           email: string
-          age: number
-          gender: string
+          phone: string | null
+          date_of_birth: string | null
+          gender: 'male' | 'female' | 'other'
+          status: 'active' | 'inactive' | 'pending'
+          notes: string | null
+          last_visit: string | null
+          next_visit: string | null
         }
         Insert: {
           id?: string
           created_at?: string
+          updated_at?: string
           first_name: string
           last_name: string
           email: string
-          age: number
-          gender: string
+          phone?: string | null
+          date_of_birth?: string | null
+          gender: 'male' | 'female' | 'other'
+          status?: 'active' | 'inactive' | 'pending'
+          notes?: string | null
+          last_visit?: string | null
+          next_visit?: string | null
         }
         Update: {
           id?: string
           created_at?: string
+          updated_at?: string
           first_name?: string
           last_name?: string
           email?: string
-          age?: number
-          gender?: string
+          phone?: string | null
+          date_of_birth?: string | null
+          gender?: 'male' | 'female' | 'other'
+          status?: 'active' | 'inactive' | 'pending'
+          notes?: string | null
+          last_visit?: string | null
+          next_visit?: string | null
         }
       }
       biomarkers: {

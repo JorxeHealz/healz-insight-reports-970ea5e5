@@ -1,7 +1,9 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../integrations/supabase/client';
-import { Patient } from '../types/supabase';
+import type { Tables } from '../integrations/supabase/types';
+
+type Patient = Tables<'patients'>;
 
 // Hook para obtener todos los pacientes
 export const usePatients = () => {

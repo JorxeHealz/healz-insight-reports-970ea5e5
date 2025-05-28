@@ -4,10 +4,12 @@ import { Layout } from '../components/Layout';
 import { PatientList } from '../components/patients/PatientList';
 import { PatientForm } from '../components/patients/PatientForm';
 import { usePatients } from '../hooks/usePatients';
-import { Patient } from '../types/supabase';
+import type { Tables } from '../integrations/supabase/types';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Plus } from 'lucide-react';
+
+type Patient = Tables<'patients'>;
 
 const Patients = () => {
   const [showCreateForm, setShowCreateForm] = useState(false);
