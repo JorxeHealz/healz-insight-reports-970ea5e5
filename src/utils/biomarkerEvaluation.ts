@@ -1,7 +1,5 @@
 
-import { Database } from '../types/supabase';
-
-type BiomarkerRow = Database['public']['Tables']['biomarkers']['Row'];
+import { BiomarkerRow } from '../components/report/biomarkers/types';
 
 export type BiomarkerStatus = 'optimal' | 'caution' | 'outOfRange';
 
@@ -27,7 +25,7 @@ export function evaluateBiomarkerStatus(
     };
   }
 
-  const numericValue = typeof value === 'number' ? value : parseFloat(value.toString());
+  const numericValue = typeof value === 'number' ? value : parseFloat(String(value));
   
   if (isNaN(numericValue)) {
     return {

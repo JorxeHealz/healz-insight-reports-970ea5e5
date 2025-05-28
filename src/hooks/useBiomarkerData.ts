@@ -2,7 +2,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import { evaluateBiomarkerStatus, formatBiomarkerValue } from '../utils/biomarkerEvaluation';
-import { Biomarker, PatientBiomarkerData } from '../components/report/biomarkers/types';
+import { Biomarker, PatientBiomarkerData, BiomarkerRow } from '../components/report/biomarkers/types';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
 
@@ -31,7 +31,9 @@ export const useBiomarkerData = (patientId: string) => {
             conventional_min,
             conventional_max,
             optimal_min,
-            optimal_max
+            optimal_max,
+            created_at,
+            updated_at
           )
         `)
         .eq('patient_id', patientId)
@@ -62,7 +64,7 @@ export const useBiomarkerData = (patientId: string) => {
               biomarker_id: pb.biomarker_id,
               value: pb.value,
               date: pb.date,
-              biomarker: pb.biomarkers
+              biomarker: pb.biomarkers as BiomarkerRow
             });
           }
         }
