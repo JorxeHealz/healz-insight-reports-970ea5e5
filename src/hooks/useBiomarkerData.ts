@@ -53,7 +53,10 @@ export const useBiomarkerData = (patientId: string) => {
       const latestBiomarkers = new Map<string, PatientBiomarkerData>();
       
       patientBiomarkers.forEach((pb) => {
-        if (pb.biomarkers) {
+        // pb.biomarkers is an array from the join, get the first element
+        const biomarkerData = Array.isArray(pb.biomarkers) ? pb.biomarkers[0] : pb.biomarkers;
+        
+        if (biomarkerData) {
           const key = pb.biomarker_id;
           const existing = latestBiomarkers.get(key);
           
@@ -64,7 +67,7 @@ export const useBiomarkerData = (patientId: string) => {
               biomarker_id: pb.biomarker_id,
               value: pb.value,
               date: pb.date,
-              biomarker: pb.biomarkers as BiomarkerRow
+              biomarker: biomarkerData as BiomarkerRow
             });
           }
         }
