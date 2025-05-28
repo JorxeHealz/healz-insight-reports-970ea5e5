@@ -25,6 +25,16 @@ export const Layout = ({ children, title }: LayoutProps) => {
               </Link>
               <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
                 <Link
+                  to="/patients"
+                  className={`inline-flex items-center px-1 pt-1 text-sm font-medium ${
+                    isActive('/patients')
+                      ? 'border-b-2 border-healz-orange text-healz-brown'
+                      : 'text-healz-brown/70 hover:text-healz-brown hover:border-b-2 hover:border-healz-orange/50'
+                  }`}
+                >
+                  Pacientes
+                </Link>
+                <Link
                   to="/reports"
                   className={`inline-flex items-center px-1 pt-1 text-sm font-medium ${
                     isActive('/reports')
