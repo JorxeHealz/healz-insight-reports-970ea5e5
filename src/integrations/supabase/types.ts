@@ -137,6 +137,90 @@ export type Database = {
           },
         ]
       }
+      form_files: {
+        Row: {
+          file_name: string
+          file_size: number | null
+          file_type: string
+          file_url: string
+          form_id: string
+          id: string
+          patient_id: string
+          upload_date: string
+        }
+        Insert: {
+          file_name: string
+          file_size?: number | null
+          file_type: string
+          file_url: string
+          form_id: string
+          id?: string
+          patient_id: string
+          upload_date?: string
+        }
+        Update: {
+          file_name?: string
+          file_size?: number | null
+          file_type?: string
+          file_url?: string
+          form_id?: string
+          id?: string
+          patient_id?: string
+          upload_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "form_files_form_id_fkey"
+            columns: ["form_id"]
+            isOneToOne: false
+            referencedRelation: "patient_forms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "form_files_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      form_questions: {
+        Row: {
+          category: string
+          created_at: string
+          id: string
+          is_active: boolean
+          options: Json | null
+          order_number: number
+          question_text: string
+          question_type: string
+          required: boolean
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          options?: Json | null
+          order_number: number
+          question_text: string
+          question_type: string
+          required?: boolean
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          options?: Json | null
+          order_number?: number
+          question_text?: string
+          question_type?: string
+          required?: boolean
+        }
+        Relationships: []
+      }
       patient_assignments: {
         Row: {
           created_at: string
@@ -234,6 +318,57 @@ export type Database = {
           },
         ]
       }
+      patient_forms: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          created_by: string | null
+          expires_at: string
+          form_token: string
+          id: string
+          notes: string | null
+          patient_id: string
+          status: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string
+          form_token: string
+          id?: string
+          notes?: string | null
+          patient_id: string
+          status?: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string
+          form_token?: string
+          id?: string
+          notes?: string | null
+          patient_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patient_forms_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_forms_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       patients: {
         Row: {
           created_at: string
@@ -282,32 +417,105 @@ export type Database = {
         }
         Relationships: []
       }
+      processing_queue: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          error_message: string | null
+          form_id: string
+          id: string
+          n8n_execution_id: string | null
+          patient_id: string
+          retry_count: number | null
+          started_at: string | null
+          status: string
+          webhook_url: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          form_id: string
+          id?: string
+          n8n_execution_id?: string | null
+          patient_id: string
+          retry_count?: number | null
+          started_at?: string | null
+          status?: string
+          webhook_url?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          form_id?: string
+          id?: string
+          n8n_execution_id?: string | null
+          patient_id?: string
+          retry_count?: number | null
+          started_at?: string | null
+          status?: string
+          webhook_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "processing_queue_form_id_fkey"
+            columns: ["form_id"]
+            isOneToOne: false
+            referencedRelation: "patient_forms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "processing_queue_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       questionnaire_answers: {
         Row: {
           answer: string | null
+          answer_type: string | null
           created_at: string
           date: string
+          file_url: string | null
+          form_id: string | null
           id: string
           patient_id: string
           question_id: string
         }
         Insert: {
           answer?: string | null
+          answer_type?: string | null
           created_at?: string
           date?: string
+          file_url?: string | null
+          form_id?: string | null
           id?: string
           patient_id: string
           question_id: string
         }
         Update: {
           answer?: string | null
+          answer_type?: string | null
           created_at?: string
           date?: string
+          file_url?: string | null
+          form_id?: string | null
           id?: string
           patient_id?: string
           question_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "questionnaire_answers_form_id_fkey"
+            columns: ["form_id"]
+            isOneToOne: false
+            referencedRelation: "patient_forms"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "questionnaire_answers_patient_id_fkey"
             columns: ["patient_id"]
@@ -319,35 +527,64 @@ export type Database = {
       }
       reports: {
         Row: {
+          action_plan: Json | null
           created_at: string
           diagnosis: Json
           doctor_id: string | null
+          form_id: string | null
           id: string
+          manual_notes: string | null
+          n8n_generated_at: string | null
           patient_id: string
           pdf_url: string | null
+          processing_queue_id: string | null
         }
         Insert: {
+          action_plan?: Json | null
           created_at?: string
           diagnosis: Json
           doctor_id?: string | null
+          form_id?: string | null
           id?: string
+          manual_notes?: string | null
+          n8n_generated_at?: string | null
           patient_id: string
           pdf_url?: string | null
+          processing_queue_id?: string | null
         }
         Update: {
+          action_plan?: Json | null
           created_at?: string
           diagnosis?: Json
           doctor_id?: string | null
+          form_id?: string | null
           id?: string
+          manual_notes?: string | null
+          n8n_generated_at?: string | null
           patient_id?: string
           pdf_url?: string | null
+          processing_queue_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "reports_form_id_fkey"
+            columns: ["form_id"]
+            isOneToOne: false
+            referencedRelation: "patient_forms"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "reports_patient_id_fkey"
             columns: ["patient_id"]
             isOneToOne: false
             referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reports_processing_queue_id_fkey"
+            columns: ["processing_queue_id"]
+            isOneToOne: false
+            referencedRelation: "processing_queue"
             referencedColumns: ["id"]
           },
         ]
