@@ -1,0 +1,382 @@
+
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { useFormByToken } from '../hooks/usePatientForms';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '../lib/supabase';
+import { FormQuestion, FormSubmissionData } from '../types/forms';
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
+import { Button } from '../components/ui/button';
+import { Input } from '../components/ui/input';
+import { Textarea } from '../components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
+import { Checkbox } from '../components/ui/checkbox';
+import { toast } from '../hooks/use-toast';
+import { Progress } from '../components/ui/progress';
+
+const PublicForm = () => {
+  const { token } = useParams<{ token: string }>();
+  const navigate = useNavigate();
+  const [answers, setAnswers] = useState<Record<string, any>>({});
+  const [files, setFiles] = useState<Record<string, File>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [currentStep, setCurrentStep] = useState(0);
+
+  // Obtener datos del formulario
+  const { data: formData, isLoading: formLoading, error: formError } = useFormByToken(token || '');
+
+  // Obtener preguntas del formulario
+  const { data: questions, isLoading: questionsLoading } = useQuery({
+    queryKey: ['form-questions'],
+    queryFn: async (): Promise<FormQuestion[]> => {
+      const { data, error } = await supabase
+        .from('form_questions')
+        .select('*')
+        .eq('is_active', true)
+        .order('order_number');
+
+      if (error) throw error;
+      return data || [];
+    }
+  });
+
+  // Agrupar preguntas por categoría
+  const questionsByCategory = questions?.reduce((acc, question) => {
+    if (!acc[question.category]) {
+      acc[question.category] = [];
+    }
+    acc[question.category].push(question);
+    return acc;
+  }, {} as Record<string, FormQuestion[]>) || {};
+
+  const categories = Object.keys(questionsByCategory);
+  const categoryTitles = {
+    symptoms: 'Síntomas',
+    lifestyle: 'Estilo de Vida',
+    medical_history: 'Historia Médica',
+    files: 'Archivos Médicos'
+  };
+
+  const handleAnswerChange = (questionId: string, value: any) => {
+    setAnswers(prev => ({
+      ...prev,
+      [questionId]: value
+    }));
+  };
+
+  const handleFileChange = (questionId: string, file: File | null) => {
+    if (file) {
+      setFiles(prev => ({
+        ...prev,
+        [questionId]: file
+      }));
+      handleAnswerChange(questionId, file.name);
+    }
+  };
+
+  const uploadFile = async (file: File, formId: string): Promise<string> => {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Date.now()}.${fileExt}`;
+    const filePath = `${formId}/${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('patient-files')
+      .upload(filePath, file);
+
+    if (uploadError) throw uploadError;
+
+    const { data: { publicUrl } } = supabase.storage
+      .from('patient-files')
+      .getPublicUrl(filePath);
+
+    return publicUrl;
+  };
+
+  const validateCurrentStep = () => {
+    if (!categories[currentStep]) return true;
+    
+    const currentCategory = categories[currentStep];
+    const currentQuestions = questionsByCategory[currentCategory];
+    
+    return currentQuestions.every(question => {
+      if (!question.required) return true;
+      const answer = answers[question.id];
+      return answer !== undefined && answer !== '' && answer !== null;
+    });
+  };
+
+  const handleSubmit = async () => {
+    if (!formData || !token) return;
+
+    setIsSubmitting(true);
+    try {
+      // Subir archivos y obtener URLs
+      const uploadedFiles: FormSubmissionData['files'] = [];
+      
+      for (const [questionId, file] of Object.entries(files)) {
+        try {
+          const fileUrl = await uploadFile(file, formData.id);
+          uploadedFiles.push({
+            name: file.name,
+            url: fileUrl,
+            type: file.type,
+            size: file.size
+          });
+          
+          // Actualizar la respuesta con la URL del archivo
+          setAnswers(prev => ({
+            ...prev,
+            [questionId]: fileUrl
+          }));
+        } catch (error) {
+          console.error('Error uploading file:', error);
+          toast({
+            title: "Error",
+            description: `No se pudo subir el archivo ${file.name}`,
+            variant: "destructive"
+          });
+          return;
+        }
+      }
+
+      // Enviar datos del formulario
+      const submissionData: FormSubmissionData = {
+        form_token: token,
+        answers,
+        files: uploadedFiles
+      };
+
+      const { error: submitError } = await supabase.functions.invoke('submit-patient-form', {
+        body: submissionData
+      });
+
+      if (submitError) throw submitError;
+
+      toast({
+        title: "Formulario enviado",
+        description: "Su formulario ha sido enviado correctamente. Gracias por completarlo."
+      });
+
+      // Redirect to success page or show success message
+      setTimeout(() => {
+        navigate('/');
+      }, 2000);
+
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      toast({
+        title: "Error",
+        description: "No se pudo enviar el formulario. Por favor, inténtelo de nuevo.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const renderQuestion = (question: FormQuestion) => {
+    const value = answers[question.id] || '';
+
+    switch (question.question_type) {
+      case 'text':
+        return (
+          <Input
+            value={value}
+            onChange={(e) => handleAnswerChange(question.id, e.target.value)}
+            placeholder="Escriba su respuesta..."
+          />
+        );
+
+      case 'number':
+        return (
+          <Input
+            type="number"
+            value={value}
+            onChange={(e) => handleAnswerChange(question.id, Number(e.target.value))}
+            placeholder="Ingrese un número..."
+          />
+        );
+
+      case 'textarea':
+        return (
+          <Textarea
+            value={value}
+            onChange={(e) => handleAnswerChange(question.id, e.target.value)}
+            placeholder="Escriba su respuesta detallada..."
+            rows={4}
+          />
+        );
+
+      case 'select':
+        return (
+          <Select value={value} onValueChange={(val) => handleAnswerChange(question.id, val)}>
+            <SelectTrigger>
+              <SelectValue placeholder="Seleccione una opción..." />
+            </SelectTrigger>
+            <SelectContent>
+              {question.options?.map((option: string) => (
+                <SelectItem key={option} value={option}>{option}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        );
+
+      case 'boolean':
+        return (
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              checked={value === true}
+              onCheckedChange={(checked) => handleAnswerChange(question.id, checked)}
+            />
+            <span>Sí</span>
+          </div>
+        );
+
+      case 'file':
+        return (
+          <div className="space-y-2">
+            <Input
+              type="file"
+              accept=".pdf,.jpg,.jpeg,.png"
+              onChange={(e) => {
+                const file = e.target.files?.[0] || null;
+                handleFileChange(question.id, file);
+              }}
+            />
+            {files[question.id] && (
+              <p className="text-sm text-healz-green">
+                Archivo seleccionado: {files[question.id].name}
+              </p>
+            )}
+          </div>
+        );
+
+      default:
+        return <Input value={value} onChange={(e) => handleAnswerChange(question.id, e.target.value)} />;
+    }
+  };
+
+  if (formLoading || questionsLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-healz-cream">
+        <div className="text-center">
+          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-healz-brown border-r-transparent"></div>
+          <p className="mt-2 text-healz-brown">Cargando formulario...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (formError || !formData) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-healz-cream">
+        <Card className="w-full max-w-md">
+          <CardContent className="text-center p-6">
+            <h2 className="text-xl font-semibold text-healz-red mb-2">Formulario no encontrado</h2>
+            <p className="text-healz-brown/70">
+              El formulario que está buscando no existe o ha expirado.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (formData.status === 'completed') {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-healz-cream">
+        <Card className="w-full max-w-md">
+          <CardContent className="text-center p-6">
+            <h2 className="text-xl font-semibold text-healz-green mb-2">Formulario ya completado</h2>
+            <p className="text-healz-brown/70">
+              Este formulario ya ha sido completado anteriormente.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (formData.status === 'expired') {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-healz-cream">
+        <Card className="w-full max-w-md">
+          <CardContent className="text-center p-6">
+            <h2 className="text-xl font-semibold text-healz-red mb-2">Formulario expirado</h2>
+            <p className="text-healz-brown/70">
+              Este formulario ha expirado y ya no puede ser completado.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  const currentCategory = categories[currentStep];
+  const currentQuestions = questionsByCategory[currentCategory] || [];
+  const progress = categories.length > 0 ? ((currentStep + 1) / categories.length) * 100 : 0;
+  const isLastStep = currentStep === categories.length - 1;
+  const canProceed = validateCurrentStep();
+
+  return (
+    <div className="min-h-screen bg-healz-cream py-8">
+      <div className="max-w-2xl mx-auto px-4">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-center">
+              Formulario de Salud - {formData.patient.first_name} {formData.patient.last_name}
+            </CardTitle>
+            <div className="space-y-2">
+              <Progress value={progress} className="w-full" />
+              <p className="text-center text-sm text-healz-brown/70">
+                Paso {currentStep + 1} de {categories.length}: {categoryTitles[currentCategory as keyof typeof categoryTitles]}
+              </p>
+            </div>
+          </CardHeader>
+
+          <CardContent className="space-y-6">
+            {currentQuestions.map((question) => (
+              <div key={question.id} className="space-y-2">
+                <label className="block text-sm font-medium text-healz-brown">
+                  {question.question_text}
+                  {question.required && <span className="text-healz-red ml-1">*</span>}
+                </label>
+                {renderQuestion(question)}
+              </div>
+            ))}
+
+            <div className="flex justify-between pt-6">
+              <Button
+                variant="outline"
+                onClick={() => setCurrentStep(prev => Math.max(0, prev - 1))}
+                disabled={currentStep === 0}
+              >
+                Anterior
+              </Button>
+
+              {isLastStep ? (
+                <Button
+                  onClick={handleSubmit}
+                  disabled={!canProceed || isSubmitting}
+                  className="bg-healz-green hover:bg-healz-green/90"
+                >
+                  {isSubmitting ? 'Enviando...' : 'Enviar Formulario'}
+                </Button>
+              ) : (
+                <Button
+                  onClick={() => setCurrentStep(prev => prev + 1)}
+                  disabled={!canProceed}
+                  className="bg-healz-teal hover:bg-healz-teal/90"
+                >
+                  Siguiente
+                </Button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+};
+
+export default PublicForm;
