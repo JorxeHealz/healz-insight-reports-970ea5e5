@@ -1,8 +1,8 @@
-
 import React, { useState } from 'react';
 import { Layout } from '../components/Layout';
 import { PatientSelector } from '../components/reports/PatientSelector';
-import { usePatientForms, useCreatePatientForm } from '../hooks/usePatientForms';
+import { ProcessingStatus } from '../components/ProcessingStatus';
+import { usePatientForms, useCreatePatientForm, useProcessFormWithN8N } from '../hooks/usePatientForms';
 import { useProcessingQueue } from '../hooks/useProcessingQueue';
 import { Patient } from '../types/supabase';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
@@ -13,15 +13,19 @@ import { Textarea } from '../components/ui/textarea';
 import { toast } from '../hooks/use-toast';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { Settings, ExternalLink, PlayCircle } from 'lucide-react';
 
 const PatientForms = () => {
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [notes, setNotes] = useState('');
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [customWebhookUrl, setCustomWebhookUrl] = useState('');
+  const [showWebhookSettings, setShowWebhookSettings] = useState<string | null>(null);
 
   const { data: forms, isLoading: formsLoading } = usePatientForms();
   const { data: processingQueue } = useProcessingQueue();
   const createForm = useCreatePatientForm();
+  const processWithN8N = useProcessFormWithN8N();
 
   const handleCreateForm = async () => {
     if (!selectedPatient) return;
@@ -73,6 +77,44 @@ const PatientForms = () => {
       title: "URL copiada",
       description: "La URL del formulario se ha copiado al portapapeles"
     });
+  };
+
+  const handleProcessWithN8N = async (formId: string, webhookUrl?: string) => {
+    try {
+      await processWithN8N.mutateAsync({
+        form_id: formId,
+        n8n_webhook_url: webhookUrl
+      });
+      
+      toast({
+        title: "Procesamiento iniciado",
+        description: "El formulario se ha enviado a n8n para procesamiento"
+      });
+      
+      setShowWebhookSettings(null);
+      setCustomWebhookUrl('');
+    } catch (error) {
+      console.error('Error processing with n8n:', error);
+      toast({
+        title: "Error",
+        description: "No se pudo iniciar el procesamiento con n8n",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const isFormInProcessing = (formId: string) => {
+    return processingQueue?.some(entry => 
+      entry.form_id === formId && 
+      ['pending', 'processing'].includes(entry.status)
+    );
+  };
+
+  const isFormProcessed = (formId: string) => {
+    return processingQueue?.some(entry => 
+      entry.form_id === formId && 
+      entry.status === 'completed'
+    );
   };
 
   return (
@@ -187,7 +229,47 @@ const PatientForms = () => {
                       </div>
                     )}
 
-                    <div className="flex gap-2">
+                    {/* Estado de procesamiento */}
+                    {(isFormInProcessing(form.id) || isFormProcessed(form.id)) && (
+                      <div className="mb-3">
+                        <ProcessingStatus formId={form.id} />
+                      </div>
+                    )}
+
+                    {/* Configuración de webhook personalizado */}
+                    {showWebhookSettings === form.id && (
+                      <div className="mb-3 p-3 bg-healz-blue/10 rounded-md border border-healz-blue/20">
+                        <h4 className="text-sm font-medium mb-2 text-healz-brown">
+                          Configuración de Webhook n8n
+                        </h4>
+                        <div className="space-y-2">
+                          <Input
+                            placeholder="https://tu-instancia.n8n.io/webhook/..."
+                            value={customWebhookUrl}
+                            onChange={(e) => setCustomWebhookUrl(e.target.value)}
+                          />
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              onClick={() => handleProcessWithN8N(form.id, customWebhookUrl)}
+                              disabled={processWithN8N.isPending}
+                              className="bg-healz-orange hover:bg-healz-orange/90"
+                            >
+                              {processWithN8N.isPending ? 'Procesando...' : 'Procesar'}
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => setShowWebhookSettings(null)}
+                            >
+                              Cancelar
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="flex gap-2 flex-wrap">
                       <Button
                         size="sm"
                         variant="outline"
@@ -200,21 +282,45 @@ const PatientForms = () => {
                         variant="outline"
                         onClick={() => window.open(getFormUrl(form.form_token), '_blank')}
                       >
+                        <ExternalLink className="h-4 w-4 mr-1" />
                         Ver Formulario
                       </Button>
-                      {form.status === 'completed' && (
+                      
+                      {form.status === 'completed' && !isFormInProcessing(form.id) && !isFormProcessed(form.id) && (
+                        <>
+                          <Button
+                            size="sm"
+                            className="bg-healz-orange hover:bg-healz-orange/90"
+                            onClick={() => handleProcessWithN8N(form.id)}
+                            disabled={processWithN8N.isPending}
+                          >
+                            <PlayCircle className="h-4 w-4 mr-1" />
+                            Procesar con n8n
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setShowWebhookSettings(form.id)}
+                          >
+                            <Settings className="h-4 w-4 mr-1" />
+                            Webhook Custom
+                          </Button>
+                        </>
+                      )}
+                      
+                      {isFormProcessed(form.id) && (
                         <Button
                           size="sm"
-                          className="bg-healz-orange hover:bg-healz-orange/90"
+                          className="bg-healz-green hover:bg-healz-green/90"
                           onClick={() => {
-                            // TODO: Implementar procesamiento con n8n
+                            // TODO: Navegar al reporte generado
                             toast({
                               title: "Próximamente",
-                              description: "Funcionalidad de procesamiento con n8n"
+                              description: "Navegación al reporte generado"
                             });
                           }}
                         >
-                          Procesar con n8n
+                          Ver Reporte
                         </Button>
                       )}
                     </div>
