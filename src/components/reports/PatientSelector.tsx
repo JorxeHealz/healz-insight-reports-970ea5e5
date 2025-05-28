@@ -7,6 +7,7 @@ import {
   Card,
   CardContent,
 } from '@/components/ui/card';
+import { calculateAge } from '../../utils/dateUtils';
 
 interface PatientSelectorProps {
   onSelectPatient: (patient: Patient) => void;
@@ -90,26 +91,30 @@ export const PatientSelector = ({ onSelectPatient }: PatientSelectorProps) => {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-          {filteredPatients.map((patient) => (
-            <Card 
-              key={patient.id} 
-              className="cursor-pointer hover:border-healz-teal transition-colors"
-              onClick={() => onSelectPatient(patient)}
-            >
-              <CardContent className="p-4">
-                <h4 className="font-medium text-healz-brown">
-                  {patient.first_name} {patient.last_name}
-                </h4>
-                <div className="text-sm text-healz-brown/70 mt-1">
-                  <div>{patient.email}</div>
-                  <div className="flex justify-between mt-1">
-                    <span>{patient.gender}</span>
-                    <span>{patient.age} años</span>
+          {filteredPatients.map((patient) => {
+            const patientAge = calculateAge(patient.date_of_birth);
+            
+            return (
+              <Card 
+                key={patient.id} 
+                className="cursor-pointer hover:border-healz-teal transition-colors"
+                onClick={() => onSelectPatient(patient)}
+              >
+                <CardContent className="p-4">
+                  <h4 className="font-medium text-healz-brown">
+                    {patient.first_name} {patient.last_name}
+                  </h4>
+                  <div className="text-sm text-healz-brown/70 mt-1">
+                    <div>{patient.email}</div>
+                    <div className="flex justify-between mt-1">
+                      <span>{patient.gender}</span>
+                      <span>{patientAge} años</span>
+                    </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
       )}
     </div>

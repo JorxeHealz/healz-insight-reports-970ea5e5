@@ -1,10 +1,10 @@
-
 import { Patient, Diagnosis } from '../../types/supabase';
 import { Button } from '@/components/ui/button';
 import { PDFDownloadButton } from './ReportPDF';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
+import { calculateAge } from '../../utils/dateUtils';
 
 interface ReportPreviewProps {
   patient: Patient;
@@ -23,6 +23,8 @@ export const ReportPreview = ({
   onSave, 
   isLoading 
 }: ReportPreviewProps) => {
+  const patientAge = calculateAge(patient.date_of_birth);
+
   return (
     <div className="space-y-6">
       <h3 className="text-lg font-medium">Vista previa del informe</h3>
@@ -55,7 +57,7 @@ export const ReportPreview = ({
                 <p><span className="font-medium">Email:</span> {patient.email}</p>
               </div>
               <div>
-                <p><span className="font-medium">Edad:</span> {patient.age} años</p>
+                <p><span className="font-medium">Edad:</span> {patientAge} años</p>
                 <p><span className="font-medium">Género:</span> {patient.gender}</p>
               </div>
             </div>
@@ -111,7 +113,6 @@ export const ReportPreview = ({
             </TabsContent>
             
             <TabsContent value="riskProfile" className="space-y-4">
-              {/* Risk Profile */}
               <div className="grid grid-cols-2 gap-3">
                 <div className="p-4 bg-healz-cream/10 rounded shadow-sm">
                   <p className="font-medium">Cardiovascular</p>
@@ -181,7 +182,6 @@ export const ReportPreview = ({
             </TabsContent>
             
             <TabsContent value="recommendations" className="space-y-4">
-              {/* Summary with formatted recommendations */}
               <div className="space-y-4">
                 <div className="bg-healz-cream/30 p-4 rounded-md border border-healz-brown/10">
                   <h3 className="font-semibold text-healz-brown mb-2">Resumen General</h3>
@@ -232,4 +232,3 @@ export const ReportPreview = ({
     </div>
   );
 };
-

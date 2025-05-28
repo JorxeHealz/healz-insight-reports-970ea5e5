@@ -5,6 +5,7 @@ import { Patient, PatientSnapshot } from '../../types/supabase';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { calculateAge } from '../../utils/dateUtils';
 
 interface DataReviewProps {
   patient: Patient;
@@ -93,6 +94,8 @@ export const DataReview = ({ patient, onBack, onNext, isLoading }: DataReviewPro
     );
   };
 
+  const patientAge = calculateAge(patient.date_of_birth);
+
   return (
     <div className="space-y-6">
       <h3 className="text-lg font-medium">Revisar datos del paciente</h3>
@@ -112,7 +115,7 @@ export const DataReview = ({ patient, onBack, onNext, isLoading }: DataReviewPro
           <div>
             <span className="text-sm font-medium text-healz-brown/70">Detalles</span>
             <div className="text-healz-brown">
-              {patient.age} años · {patient.gender}
+              {patientAge} años · {patient.gender}
             </div>
           </div>
         </div>

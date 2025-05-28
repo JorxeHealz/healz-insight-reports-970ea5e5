@@ -71,6 +71,8 @@ export const PatientForm = ({ patient, onSuccess, onCancel }: PatientFormProps) 
           phone: data.phone || null,
           date_of_birth: data.date_of_birth || null,
           notes: data.notes || null,
+          last_visit: null,
+          next_visit: null,
         });
         toast({
           title: "Paciente creado",
