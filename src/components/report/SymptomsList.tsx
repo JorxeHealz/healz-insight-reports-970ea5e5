@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 
@@ -14,19 +13,19 @@ export const SymptomsList: React.FC<SymptomsListProps> = ({ symptoms }) => {
     switch (severity) {
       case 'high':
         return (
-          <span className="px-2 py-1 text-xs bg-healz-red/20 text-healz-red rounded-full">
+          <span className="px-3 py-1 text-xs bg-healz-red/20 text-healz-red rounded-md">
             Alto
           </span>
         );
       case 'med':
         return (
-          <span className="px-2 py-1 text-xs bg-healz-orange/20 text-healz-orange rounded-full">
+          <span className="px-3 py-1 text-xs bg-healz-orange/20 text-healz-orange rounded-md">
             Medio
           </span>
         );
       case 'low':
         return (
-          <span className="px-2 py-1 text-xs bg-healz-yellow/20 text-healz-yellow rounded-full">
+          <span className="px-3 py-1 text-xs bg-healz-yellow/20 text-healz-yellow rounded-md">
             Bajo
           </span>
         );
