@@ -91,37 +91,22 @@ export const useFormByToken = (token: string) => {
 
       console.log('Fetching form by token:', token);
 
-      // Usar GET request con query parameter en lugar de POST
-      const { data, error } = await supabase.functions.invoke('get-form-data', {
+      // Use direct fetch with the correct anon key
+      const response = await fetch(`https://tbsanaoztdwgljuukiaa.supabase.co/functions/v1/get-form-data?token=${token}`, {
         method: 'GET',
-        body: null,
         headers: {
+          'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRic2FuYW96dGR3Z2xqdXVraWFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcwNTYzMjksImV4cCI6MjA2MjYzMjMyOX0.Efxu-IuiFwZdXSBcJ35NdaFoCyZ9ZzQ0m0t1n5ZdPRI`,
           'Content-Type': 'application/json'
         }
       });
 
-      // Si el invoke no funciona correctamente, usar fetch directo
-      if (error) {
-        console.error('Error with invoke, trying direct fetch:', error);
-        
-        const response = await fetch(`https://tbsanaoztdwgljuukiaa.supabase.co/functions/v1/get-form-data?token=${token}`, {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${supabase.supabaseKey}`,
-            'Content-Type': 'application/json'
-          }
-        });
-
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || 'Failed to fetch form data');
-        }
-
-        const result = await response.json();
-        return result;
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to fetch form data');
       }
 
-      return data;
+      const result = await response.json();
+      return result;
     },
     enabled: !!token,
     retry: 1
