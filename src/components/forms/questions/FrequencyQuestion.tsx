@@ -1,17 +1,11 @@
 
 import React from 'react';
-import { FormQuestion } from '../../../types/forms';
+import { BaseQuestionComponentProps } from './types';
+import { BaseQuestion } from './BaseQuestion';
 import { RadioGroup, RadioGroupItem } from '../../ui/radio-group';
 import { Label } from '../../ui/label';
 
-interface FrequencyQuestionProps {
-  question: FormQuestion;
-  value: string;
-  onChange: (value: string) => void;
-  error?: string;
-}
-
-export const FrequencyQuestion = ({ question, value, onChange, error }: FrequencyQuestionProps) => {
+export const FrequencyQuestion = ({ question, value, onChange, error }: BaseQuestionComponentProps<string>) => {
   const options = Array.isArray(question.options) ? question.options : [];
 
   const getFrequencyColor = (option: string, isSelected: boolean) => {
@@ -28,13 +22,8 @@ export const FrequencyQuestion = ({ question, value, onChange, error }: Frequenc
   };
 
   return (
-    <div className="space-y-3">
-      <Label className="text-healz-brown font-medium">
-        {question.question_text}
-        {question.required && <span className="text-healz-red ml-1">*</span>}
-      </Label>
-      
-      <RadioGroup value={value} onValueChange={onChange} className="grid grid-cols-1 sm:grid-cols-5 gap-2">
+    <BaseQuestion question={question} error={error}>
+      <RadioGroup value={value || ''} onValueChange={onChange} className="grid grid-cols-1 sm:grid-cols-5 gap-2">
         {options.map((option) => (
           <div key={option} className="flex items-center space-x-2 p-2 border rounded-md hover:bg-healz-cream/20 transition-colors">
             <RadioGroupItem value={option} id={`${question.id}-${option}`} />
@@ -47,8 +36,6 @@ export const FrequencyQuestion = ({ question, value, onChange, error }: Frequenc
           </div>
         ))}
       </RadioGroup>
-      
-      {error && <p className="text-healz-red text-sm">{error}</p>}
-    </div>
+    </BaseQuestion>
   );
 };
