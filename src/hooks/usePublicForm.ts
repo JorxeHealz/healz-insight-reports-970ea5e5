@@ -44,30 +44,106 @@ export function usePublicForm(token: string) {
 
   const handleFileChange = (questionId: string, file: File | null) => {
     if (file) {
+      // Validate file type and size
+      const allowedTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
+      const maxSize = 10 * 1024 * 1024; // 10MB
+
+      if (!allowedTypes.includes(file.type)) {
+        toast({
+          title: "Tipo de archivo no válido",
+          description: "Solo se permiten archivos PDF, JPEG y PNG",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      if (file.size > maxSize) {
+        toast({
+          title: "Archivo demasiado grande",
+          description: "El archivo debe ser menor a 10MB",
+          variant: "destructive"
+        });
+        return;
+      }
+
       setFiles(prev => ({
         ...prev,
         [questionId]: file
       }));
       handleAnswerChange(questionId, file.name);
+    } else {
+      // Remove file if null
+      setFiles(prev => {
+        const updated = { ...prev };
+        delete updated[questionId];
+        return updated;
+      });
+      handleAnswerChange(questionId, '');
     }
   };
 
-  const uploadFile = async (file: File, formId: string): Promise<string> => {
+  const uploadFile = async (file: File, formId: string, retries = 3): Promise<string> => {
     const fileExt = file.name.split('.').pop();
-    const fileName = `${Date.now()}.${fileExt}`;
+    const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
     const filePath = `${formId}/${fileName}`;
 
-    const { error: uploadError } = await supabase.storage
-      .from('patient-files')
-      .upload(filePath, file);
+    console.log('Attempting to upload file:', { fileName, filePath, size: file.size, type: file.type });
 
-    if (uploadError) throw uploadError;
+    for (let attempt = 1; attempt <= retries; attempt++) {
+      try {
+        const { error: uploadError } = await supabase.storage
+          .from('patient-files')
+          .upload(filePath, file, {
+            cacheControl: '3600',
+            upsert: false
+          });
 
-    const { data: { publicUrl } } = supabase.storage
-      .from('patient-files')
-      .getPublicUrl(filePath);
+        if (uploadError) {
+          console.error(`Upload attempt ${attempt} failed:`, uploadError);
+          
+          if (attempt === retries) {
+            throw new Error(`Error al subir archivo después de ${retries} intentos: ${uploadError.message}`);
+          }
+          
+          // Wait before retry
+          await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+          continue;
+        }
 
-    return publicUrl;
+        // Verify upload by checking if file exists
+        const { data: fileData, error: checkError } = await supabase.storage
+          .from('patient-files')
+          .list(formId, {
+            search: fileName
+          });
+
+        if (checkError || !fileData?.length) {
+          console.error('File verification failed:', checkError);
+          if (attempt === retries) {
+            throw new Error('Error al verificar la subida del archivo');
+          }
+          continue;
+        }
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('patient-files')
+          .getPublicUrl(filePath);
+
+        console.log('File uploaded successfully:', { filePath, publicUrl });
+        return publicUrl;
+
+      } catch (error) {
+        console.error(`Upload attempt ${attempt} error:`, error);
+        
+        if (attempt === retries) {
+          throw error;
+        }
+        
+        await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+      }
+    }
+
+    throw new Error('Error inesperado al subir archivo');
   };
 
   const validateCurrentStep = () => {
@@ -84,16 +160,30 @@ export function usePublicForm(token: string) {
   };
 
   const handleSubmit = async () => {
-    if (!formData || !token) return;
+    if (!formData || !token) {
+      toast({
+        title: "Error",
+        description: "No se pudo encontrar la información del formulario",
+        variant: "destructive"
+      });
+      return;
+    }
 
     setIsSubmitting(true);
+    
     try {
+      console.log('Starting form submission with files:', Object.keys(files));
+      
       // Upload files and get URLs
       const uploadedFiles: FormSubmissionData['files'] = [];
+      const updatedAnswers = { ...answers };
       
       for (const [questionId, file] of Object.entries(files)) {
         try {
+          console.log(`Uploading file for question ${questionId}:`, file.name);
+          
           const fileUrl = await uploadFile(file, formData.form.id);
+          
           uploadedFiles.push({
             name: file.name,
             url: fileUrl,
@@ -102,25 +192,27 @@ export function usePublicForm(token: string) {
           });
           
           // Update answer with file URL
-          setAnswers(prev => ({
-            ...prev,
-            [questionId]: fileUrl
-          }));
+          updatedAnswers[questionId] = fileUrl;
+          
+          console.log(`File uploaded successfully for question ${questionId}`);
+          
         } catch (error) {
-          console.error('Error uploading file:', error);
+          console.error(`Error uploading file for question ${questionId}:`, error);
           toast({
-            title: "Error",
-            description: `No se pudo subir el archivo ${file.name}`,
+            title: "Error al subir archivo",
+            description: `No se pudo subir el archivo ${file.name}: ${error instanceof Error ? error.message : 'Error desconocido'}`,
             variant: "destructive"
           });
           return;
         }
       }
 
+      console.log('All files uploaded, submitting form data');
+
       // Submit form data
       const submissionData: FormSubmissionData = {
         form_token: token,
-        answers,
+        answers: updatedAnswers,
         files: uploadedFiles
       };
 
@@ -128,7 +220,12 @@ export function usePublicForm(token: string) {
         body: submissionData
       });
 
-      if (submitError) throw submitError;
+      if (submitError) {
+        console.error('Form submission error:', submitError);
+        throw new Error(submitError.message || 'Error al enviar formulario');
+      }
+
+      console.log('Form submitted successfully');
 
       toast({
         title: "Formulario enviado",
@@ -144,7 +241,7 @@ export function usePublicForm(token: string) {
       console.error('Error submitting form:', error);
       toast({
         title: "Error",
-        description: "No se pudo enviar el formulario. Por favor, inténtelo de nuevo.",
+        description: `No se pudo enviar el formulario: ${error instanceof Error ? error.message : 'Error desconocido'}`,
         variant: "destructive"
       });
     } finally {

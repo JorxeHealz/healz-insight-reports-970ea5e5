@@ -6,6 +6,8 @@ import { Input } from '../../ui/input';
 import { Textarea } from '../../ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../ui/select';
 import { Checkbox } from '../../ui/checkbox';
+import { Button } from '../../ui/button';
+import { X } from 'lucide-react';
 
 interface BasicInputQuestionProps extends BaseQuestionComponentProps {
   files?: Record<string, File>;
@@ -79,8 +81,9 @@ export const BasicInputQuestion = ({
         );
 
       case 'file':
+        const currentFile = files?.[question.id];
         return (
-          <div className="space-y-2">
+          <div className="space-y-3">
             <Input
               type="file"
               accept=".pdf,.jpg,.jpeg,.png"
@@ -90,11 +93,37 @@ export const BasicInputQuestion = ({
                   onFileChange(question.id, file);
                 }
               }}
+              className="cursor-pointer"
             />
-            {files?.[question.id] && (
-              <p className="text-sm text-healz-green">
-                Archivo seleccionado: {files[question.id].name}
-              </p>
+            
+            <div className="text-xs text-healz-brown/70">
+              Formatos permitidos: PDF, JPEG, PNG (máximo 10MB)
+            </div>
+            
+            {currentFile && (
+              <div className="flex items-center justify-between p-3 bg-healz-cream/30 rounded-md border">
+                <div className="flex flex-col">
+                  <span className="text-sm font-medium text-healz-green">
+                    ✓ Archivo seleccionado
+                  </span>
+                  <span className="text-xs text-healz-brown/70">
+                    {currentFile.name} ({(currentFile.size / (1024 * 1024)).toFixed(2)} MB)
+                  </span>
+                </div>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    if (onFileChange) {
+                      onFileChange(question.id, null);
+                    }
+                  }}
+                  className="text-healz-red hover:text-healz-red/80"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
             )}
           </div>
         );
