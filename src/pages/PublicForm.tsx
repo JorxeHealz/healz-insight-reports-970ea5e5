@@ -213,62 +213,96 @@ const PublicForm = () => {
 
       case 'text':
         return (
-          <Input
-            value={value}
-            onChange={(e) => handleAnswerChange(question.id, e.target.value)}
-            placeholder="Escriba su respuesta..."
-          />
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-healz-brown">
+              {question.question_text}
+              {question.required && <span className="text-healz-red ml-1">*</span>}
+            </label>
+            <Input
+              value={value}
+              onChange={(e) => handleAnswerChange(question.id, e.target.value)}
+              placeholder="Escriba su respuesta..."
+            />
+          </div>
         );
 
       case 'number':
         return (
-          <Input
-            type="number"
-            value={value}
-            onChange={(e) => handleAnswerChange(question.id, Number(e.target.value))}
-            placeholder="Ingrese un número..."
-          />
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-healz-brown">
+              {question.question_text}
+              {question.required && <span className="text-healz-red ml-1">*</span>}
+            </label>
+            <Input
+              type="number"
+              value={value}
+              onChange={(e) => handleAnswerChange(question.id, Number(e.target.value))}
+              placeholder="Ingrese un número..."
+            />
+          </div>
         );
 
       case 'textarea':
         return (
-          <Textarea
-            value={value}
-            onChange={(e) => handleAnswerChange(question.id, e.target.value)}
-            placeholder="Escriba su respuesta detallada..."
-            rows={4}
-          />
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-healz-brown">
+              {question.question_text}
+              {question.required && <span className="text-healz-red ml-1">*</span>}
+            </label>
+            <Textarea
+              value={value}
+              onChange={(e) => handleAnswerChange(question.id, e.target.value)}
+              placeholder="Escriba su respuesta detallada..."
+              rows={4}
+            />
+          </div>
         );
 
       case 'select':
         const selectOptions = Array.isArray(question.options) ? question.options : [];
         return (
-          <Select value={value} onValueChange={(val) => handleAnswerChange(question.id, val)}>
-            <SelectTrigger>
-              <SelectValue placeholder="Seleccione una opción..." />
-            </SelectTrigger>
-            <SelectContent>
-              {selectOptions.map((option: string) => (
-                <SelectItem key={option} value={option}>{option}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-healz-brown">
+              {question.question_text}
+              {question.required && <span className="text-healz-red ml-1">*</span>}
+            </label>
+            <Select value={value} onValueChange={(val) => handleAnswerChange(question.id, val)}>
+              <SelectTrigger>
+                <SelectValue placeholder="Seleccione una opción..." />
+              </SelectTrigger>
+              <SelectContent>
+                {selectOptions.map((option: string) => (
+                  <SelectItem key={option} value={option}>{option}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         );
 
       case 'boolean':
         return (
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              checked={value === true}
-              onCheckedChange={(checked) => handleAnswerChange(question.id, checked)}
-            />
-            <span>Sí</span>
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-healz-brown">
+              {question.question_text}
+              {question.required && <span className="text-healz-red ml-1">*</span>}
+            </label>
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                checked={value === true}
+                onCheckedChange={(checked) => handleAnswerChange(question.id, checked)}
+              />
+              <span>Sí</span>
+            </div>
           </div>
         );
 
       case 'file':
         return (
           <div className="space-y-2">
+            <label className="block text-sm font-medium text-healz-brown">
+              {question.question_text}
+              {question.required && <span className="text-healz-red ml-1">*</span>}
+            </label>
             <Input
               type="file"
               accept=".pdf,.jpg,.jpeg,.png"
@@ -286,7 +320,15 @@ const PublicForm = () => {
         );
 
       default:
-        return <Input value={value} onChange={(e) => handleAnswerChange(question.id, e.target.value)} />;
+        return (
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-healz-brown">
+              {question.question_text}
+              {question.required && <span className="text-healz-red ml-1">*</span>}
+            </label>
+            <Input value={value} onChange={(e) => handleAnswerChange(question.id, e.target.value)} />
+          </div>
+        );
     }
   };
 
@@ -407,11 +449,7 @@ const PublicForm = () => {
 
           <CardContent className="space-y-6">
             {currentQuestions.map((question) => (
-              <div key={question.id} className="space-y-2">
-                <label className="block text-sm font-medium text-healz-brown">
-                  {question.question_text}
-                  {question.required && <span className="text-healz-red ml-1">*</span>}
-                </label>
+              <div key={question.id}>
                 {renderQuestion(question)}
               </div>
             ))}
