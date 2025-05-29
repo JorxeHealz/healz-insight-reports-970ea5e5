@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useFormByToken } from '../hooks/usePatientForms';
@@ -13,6 +12,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Checkbox } from '../components/ui/checkbox';
 import { toast } from '../hooks/use-toast';
 import { Progress } from '../components/ui/progress';
+import { RadioQuestion } from '../components/forms/questions/RadioQuestion';
+import { CheckboxMultipleQuestion } from '../components/forms/questions/CheckboxMultipleQuestion';
+import { ScaleQuestion } from '../components/forms/questions/ScaleQuestion';
+import { FrequencyQuestion } from '../components/forms/questions/FrequencyQuestion';
 
 const PublicForm = () => {
   const { token } = useParams<{ token: string }>();
@@ -42,10 +45,13 @@ const PublicForm = () => {
 
   const categories = Object.keys(questionsByCategory);
   const categoryTitles = {
-    symptoms: 'Síntomas',
-    lifestyle: 'Estilo de Vida',
+    general_info: 'Información General',
     medical_history: 'Historia Médica',
-    files: 'Archivos Médicos'
+    current_symptoms: 'Síntomas Actuales',
+    lifestyle: 'Estilo de Vida',
+    goals: 'Objetivos de Salud',
+    files: 'Archivos Médicos',
+    consent: 'Consentimiento'
   };
 
   const handleAnswerChange = (questionId: string, value: any) => {
@@ -169,6 +175,42 @@ const PublicForm = () => {
     const value = answers[question.id] || '';
 
     switch (question.question_type) {
+      case 'radio':
+        return (
+          <RadioQuestion
+            question={question}
+            value={value}
+            onChange={(val) => handleAnswerChange(question.id, val)}
+          />
+        );
+
+      case 'checkbox_multiple':
+        return (
+          <CheckboxMultipleQuestion
+            question={question}
+            value={Array.isArray(value) ? value : []}
+            onChange={(val) => handleAnswerChange(question.id, val)}
+          />
+        );
+
+      case 'scale':
+        return (
+          <ScaleQuestion
+            question={question}
+            value={typeof value === 'number' ? value : 0}
+            onChange={(val) => handleAnswerChange(question.id, val)}
+          />
+        );
+
+      case 'frequency':
+        return (
+          <FrequencyQuestion
+            question={question}
+            value={value}
+            onChange={(val) => handleAnswerChange(question.id, val)}
+          />
+        );
+
       case 'text':
         return (
           <Input
@@ -199,13 +241,14 @@ const PublicForm = () => {
         );
 
       case 'select':
+        const selectOptions = Array.isArray(question.options) ? question.options : [];
         return (
           <Select value={value} onValueChange={(val) => handleAnswerChange(question.id, val)}>
             <SelectTrigger>
               <SelectValue placeholder="Seleccione una opción..." />
             </SelectTrigger>
             <SelectContent>
-              {question.options?.map((option: string) => (
+              {selectOptions.map((option: string) => (
                 <SelectItem key={option} value={option}>{option}</SelectItem>
               ))}
             </SelectContent>
