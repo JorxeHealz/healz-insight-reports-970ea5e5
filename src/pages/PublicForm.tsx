@@ -22,32 +22,23 @@ const PublicForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
 
+  console.log('PublicForm component loaded, token:', token);
+
   // Obtener datos del formulario
   const { data: formData, isLoading: formLoading, error: formError } = useFormByToken(token || '');
 
-  // Obtener preguntas del formulario
-  const { data: questions, isLoading: questionsLoading } = useQuery({
-    queryKey: ['form-questions'],
-    queryFn: async (): Promise<FormQuestion[]> => {
-      const { data, error } = await supabase
-        .from('form_questions')
-        .select('*')
-        .eq('is_active', true)
-        .order('order_number');
-
-      if (error) throw error;
-      return data || [];
-    }
-  });
+  console.log('Form data:', formData);
+  console.log('Form loading:', formLoading);
+  console.log('Form error:', formError);
 
   // Agrupar preguntas por categoría
-  const questionsByCategory = questions?.reduce((acc, question) => {
+  const questionsByCategory = formData?.questions?.reduce((acc: Record<string, FormQuestion[]>, question: FormQuestion) => {
     if (!acc[question.category]) {
       acc[question.category] = [];
     }
     acc[question.category].push(question);
     return acc;
-  }, {} as Record<string, FormQuestion[]>) || {};
+  }, {}) || {};
 
   const categories = Object.keys(questionsByCategory);
   const categoryTitles = {
@@ -115,7 +106,7 @@ const PublicForm = () => {
       
       for (const [questionId, file] of Object.entries(files)) {
         try {
-          const fileUrl = await uploadFile(file, formData.id);
+          const fileUrl = await uploadFile(file, formData.form.id);
           uploadedFiles.push({
             name: file.name,
             url: fileUrl,
@@ -256,7 +247,7 @@ const PublicForm = () => {
     }
   };
 
-  if (formLoading || questionsLoading) {
+  if (formLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-healz-cream">
         <div className="text-center">
@@ -267,7 +258,26 @@ const PublicForm = () => {
     );
   }
 
-  if (formError || !formData) {
+  if (formError) {
+    console.error('Form error details:', formError);
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-healz-cream">
+        <Card className="w-full max-w-md">
+          <CardContent className="text-center p-6">
+            <h2 className="text-xl font-semibold text-healz-red mb-2">Error al cargar formulario</h2>
+            <p className="text-healz-brown/70 mb-4">
+              {formError.message || 'Ocurrió un error al cargar el formulario.'}
+            </p>
+            <p className="text-sm text-healz-brown/50">
+              Token: {token}
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (!formData || !formData.success) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-healz-cream">
         <Card className="w-full max-w-md">
@@ -282,7 +292,9 @@ const PublicForm = () => {
     );
   }
 
-  if (formData.status === 'completed') {
+  const form = formData.form;
+
+  if (form.status === 'completed') {
     return (
       <div className="min-h-screen flex items-center justify-center bg-healz-cream">
         <Card className="w-full max-w-md">
@@ -297,7 +309,7 @@ const PublicForm = () => {
     );
   }
 
-  if (formData.status === 'expired') {
+  if (form.status === 'expired') {
     return (
       <div className="min-h-screen flex items-center justify-center bg-healz-cream">
         <Card className="w-full max-w-md">
@@ -305,6 +317,22 @@ const PublicForm = () => {
             <h2 className="text-xl font-semibold text-healz-red mb-2">Formulario expirado</h2>
             <p className="text-healz-brown/70">
               Este formulario ha expirado y ya no puede ser completado.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Si no hay preguntas, mostrar mensaje
+  if (!formData.questions || formData.questions.length === 0) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-healz-cream">
+        <Card className="w-full max-w-md">
+          <CardContent className="text-center p-6">
+            <h2 className="text-xl font-semibold text-healz-orange mb-2">Formulario en configuración</h2>
+            <p className="text-healz-brown/70">
+              Este formulario aún no tiene preguntas configuradas. Por favor, contacte con el administrador.
             </p>
           </CardContent>
         </Card>
@@ -324,7 +352,7 @@ const PublicForm = () => {
         <Card>
           <CardHeader>
             <CardTitle className="text-center">
-              Formulario de Salud - {formData.patient.first_name} {formData.patient.last_name}
+              Formulario de Salud - {form.patient.first_name} {form.patient.last_name}
             </CardTitle>
             <div className="space-y-2">
               <Progress value={progress} className="w-full" />

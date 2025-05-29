@@ -85,19 +85,45 @@ export const useFormByToken = (token: string) => {
   return useQuery({
     queryKey: ['form-by-token', token],
     queryFn: async () => {
+      if (!token) {
+        throw new Error('Token is required');
+      }
+
       console.log('Fetching form by token:', token);
 
+      // Usar GET request con query parameter en lugar de POST
       const { data, error } = await supabase.functions.invoke('get-form-data', {
-        body: { token }
+        method: 'GET',
+        body: null,
+        headers: {
+          'Content-Type': 'application/json'
+        }
       });
 
+      // Si el invoke no funciona correctamente, usar fetch directo
       if (error) {
-        console.error('Error fetching form by token:', error);
-        throw error;
+        console.error('Error with invoke, trying direct fetch:', error);
+        
+        const response = await fetch(`https://tbsanaoztdwgljuukiaa.supabase.co/functions/v1/get-form-data?token=${token}`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${supabase.supabaseKey}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Failed to fetch form data');
+        }
+
+        const result = await response.json();
+        return result;
       }
 
       return data;
     },
-    enabled: !!token
+    enabled: !!token,
+    retry: 1
   });
 };
