@@ -20,13 +20,19 @@ export interface PatientForm {
 export interface FormQuestion {
   id: string;
   question_text: string;
-  question_type: 'text' | 'number' | 'select' | 'textarea' | 'file' | 'boolean';
+  question_type: 'text' | 'number' | 'select' | 'textarea' | 'file' | 'boolean' | 'radio' | 'checkbox_multiple' | 'scale' | 'frequency';
   required: boolean;
   order_number: number;
-  options?: string[];
-  category: 'symptoms' | 'lifestyle' | 'medical_history' | 'files';
+  options?: string[] | ScaleOptions;
+  category: 'general_info' | 'medical_history' | 'current_symptoms' | 'lifestyle' | 'goals' | 'files' | 'consent';
   created_at: string;
   is_active: boolean;
+}
+
+export interface ScaleOptions {
+  min: number;
+  max: number;
+  label: string;
 }
 
 export interface FormAnswer {
@@ -75,3 +81,28 @@ export interface FormSubmissionData {
     size?: number;
   }[];
 }
+
+export interface FormSection {
+  id: string;
+  title: string;
+  description?: string;
+  questions: FormQuestion[];
+}
+
+export const FORM_SECTIONS = {
+  general_info: 'Información General',
+  medical_history: 'Historial Médico',
+  current_symptoms: 'Síntomas Actuales',
+  lifestyle: 'Estilo de Vida',
+  goals: 'Objetivos de Salud',
+  files: 'Documentos Médicos',
+  consent: 'Consentimiento'
+} as const;
+
+export const FREQUENCY_OPTIONS = [
+  'Nunca',
+  'Rara vez', 
+  'A veces',
+  'Frecuentemente',
+  'Siempre'
+] as const;
