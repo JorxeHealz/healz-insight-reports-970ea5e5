@@ -1,8 +1,11 @@
-
 import { Link } from 'react-router-dom';
 import { Layout } from '../components/Layout';
+import { useCleanupRunner } from '../hooks/useCleanupRunner';
 
 const Index = () => {
+  // Auto-run cleanup on app load
+  useCleanupRunner();
+
   return (
     <Layout title="Healz Reports">
       <div className="max-w-2xl mx-auto text-center">
