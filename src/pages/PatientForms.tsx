@@ -23,6 +23,16 @@ const PatientForms = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
 
+  const formatPatientName = (patient: any) => {
+    if (!patient) return 'Paciente sin datos';
+    
+    const firstName = patient.first_name || '';
+    const lastName = patient.last_name || '';
+    
+    const fullName = [firstName, lastName].filter(Boolean).join(' ');
+    return fullName || 'Sin nombre';
+  };
+
   const handleProcessForm = async (formId: string) => {
     try {
       await processForm.mutateAsync({ form_id: formId });
@@ -84,9 +94,10 @@ const PatientForms = () => {
     if (!forms) return [];
     
     return forms.filter(form => {
+      const patientName = formatPatientName(form.patient);
       const matchesSearch = searchTerm === '' || 
-        `${form.patient?.first_name} ${form.patient?.last_name}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        form.patient?.email?.toLowerCase().includes(searchTerm.toLowerCase());
+        patientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (form.patient?.email && form.patient.email.toLowerCase().includes(searchTerm.toLowerCase()));
       
       const matchesStatus = statusFilter === 'all' || form.status === statusFilter;
       
@@ -165,7 +176,7 @@ const PatientForms = () => {
                 <TableBody>
                   {filteredForms.map((form) => {
                     const timeToExpiry = getTimeUntilExpiry(form.expires_at);
-                    const patientName = `${form.patient?.first_name} ${form.patient?.last_name}`;
+                    const patientName = formatPatientName(form.patient);
                     
                     return (
                       <TableRow key={form.id}>
@@ -173,7 +184,7 @@ const PatientForms = () => {
                           {patientName}
                         </TableCell>
                         <TableCell className="text-gray-600">
-                          {form.patient?.email}
+                          {form.patient?.email || 'Sin email'}
                         </TableCell>
                         <TableCell>
                           {getStatusBadge(form.status)}
