@@ -1,7 +1,8 @@
 
 import React from 'react';
-import { Progress } from '../../ui/progress';
 import { Button } from '../../ui/button';
+import { ChevronLeft, ChevronRight, Send } from 'lucide-react';
+import { Progress } from '../../ui/progress';
 
 interface FormStepNavigationProps {
   currentStep: number;
@@ -24,43 +25,75 @@ export const FormStepNavigation = ({
   isLastStep,
   onPrevious,
   onNext,
-  onSubmit,
+  onSubmit
 }: FormStepNavigationProps) => {
-  const progress = totalSteps > 0 ? ((currentStep + 1) / totalSteps) * 100 : 0;
+  const progressValue = ((currentStep + 1) / totalSteps) * 100;
 
   return (
-    <div className="space-y-4">
-      <div className="space-y-2">
-        <Progress value={progress} className="w-full" />
-        <p className="text-center text-sm text-healz-brown/70">
-          Paso {currentStep + 1} de {totalSteps}: {stepTitle}
-        </p>
+    <div className="space-y-6 pt-4 border-t border-healz-brown/10">
+      {/* Progress Section */}
+      <div className="space-y-3">
+        <div className="flex justify-between items-center text-sm">
+          <span className="font-medium text-healz-brown">
+            Progreso del formulario
+          </span>
+          <span className="text-healz-brown/70">
+            {currentStep + 1} de {totalSteps}
+          </span>
+        </div>
+        
+        <div className="space-y-2">
+          <Progress 
+            value={progressValue} 
+            className="h-3 bg-healz-brown/10 rounded-full overflow-hidden"
+          />
+          <p className="text-sm font-medium text-healz-teal text-center">
+            {stepTitle}
+          </p>
+        </div>
       </div>
 
-      <div className="flex justify-between pt-4">
+      {/* Navigation Buttons */}
+      <div className="flex justify-between items-center">
         <Button
+          type="button"
           variant="outline"
           onClick={onPrevious}
           disabled={currentStep === 0}
+          className="flex items-center gap-2"
         >
+          <ChevronLeft className="w-4 h-4" />
           Anterior
         </Button>
 
         {isLastStep ? (
           <Button
+            type="button"
             onClick={onSubmit}
             disabled={!canProceed || isSubmitting}
-            className="bg-healz-green hover:bg-healz-green/90"
+            className="flex items-center gap-2 bg-healz-teal hover:bg-healz-teal/90"
           >
-            {isSubmitting ? 'Enviando...' : 'Enviar Formulario'}
+            {isSubmitting ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                Enviando...
+              </>
+            ) : (
+              <>
+                <Send className="w-4 h-4" />
+                Enviar Formulario
+              </>
+            )}
           </Button>
         ) : (
           <Button
+            type="button"
             onClick={onNext}
             disabled={!canProceed}
-            className="bg-healz-teal hover:bg-healz-teal/90"
+            className="flex items-center gap-2"
           >
             Siguiente
+            <ChevronRight className="w-4 h-4" />
           </Button>
         )}
       </div>

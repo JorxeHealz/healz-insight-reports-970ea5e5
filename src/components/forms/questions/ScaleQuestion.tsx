@@ -18,51 +18,68 @@ export const ScaleQuestion = ({ question, value, onChange, error }: BaseQuestion
 
   const currentValue = typeof value === 'number' ? value : options.min;
 
-  // Función para obtener el color basado en el valor
+  // Detect if this is a "negative" question (higher values = worse)
+  const isNegativeQuestion = (questionText: string) => {
+    const negativeKeywords = [
+      'estrés', 'estres', 'stress',
+      'dolor', 'pain',
+      'fatiga', 'cansancio', 'tiredness',
+      'ansiedad', 'anxiety',
+      'irritación', 'irritation',
+      'molestia', 'discomfort',
+      'malestar', 'unwell',
+      'síntoma', 'sintoma', 'symptom'
+    ];
+    
+    return negativeKeywords.some(keyword => 
+      questionText.toLowerCase().includes(keyword)
+    );
+  };
+
+  // Function to get color based on value and question type
   const getValueColor = (val: number) => {
     const range = options.max - options.min;
     const normalizedValue = (val - options.min) / range;
+    const isNegative = isNegativeQuestion(question.question_text);
     
-    if (normalizedValue <= 0.3) {
-      return 'bg-healz-red text-white';
-    } else if (normalizedValue <= 0.7) {
-      return 'bg-healz-yellow text-healz-brown';
+    if (isNegative) {
+      // For negative questions: low = good (green), high = bad (red)
+      if (normalizedValue <= 0.3) {
+        return 'bg-healz-green text-white';
+      } else if (normalizedValue <= 0.7) {
+        return 'bg-healz-yellow text-healz-brown';
+      } else {
+        return 'bg-healz-red text-white';
+      }
     } else {
-      return 'bg-healz-green text-white';
+      // For positive questions: low = bad (red), high = good (green)
+      if (normalizedValue <= 0.3) {
+        return 'bg-healz-red text-white';
+      } else if (normalizedValue <= 0.7) {
+        return 'bg-healz-yellow text-healz-brown';
+      } else {
+        return 'bg-healz-green text-white';
+      }
     }
-  };
-
-  // Crear gradiente para el slider
-  const getSliderGradient = () => {
-    return {
-      background: `linear-gradient(to right, 
-        #CD4631 0%, 
-        #CD4631 30%, 
-        #ECBD4F 30%, 
-        #ECBD4F 70%, 
-        #86A676 70%, 
-        #86A676 100%)`
-    };
   };
 
   return (
     <BaseQuestion question={question} error={error}>
-      <div className="space-y-3">
+      <div className="space-y-4">
         <div className="flex justify-between text-sm text-healz-brown/70">
           <span>{options.min}</span>
           <span className="font-medium">{options.label}</span>
           <span>{options.max}</span>
         </div>
         
-        <div className="relative">
+        <div className="relative px-2">
           <Slider
             value={[currentValue]}
             onValueChange={handleValueChange}
             min={options.min}
             max={options.max}
             step={1}
-            className="w-full"
-            style={getSliderGradient()}
+            className="w-full scale-slider"
           />
         </div>
         
@@ -70,6 +87,10 @@ export const ScaleQuestion = ({ question, value, onChange, error }: BaseQuestion
           <span className={`inline-flex items-center justify-center w-12 h-12 rounded-full font-bold text-lg ${getValueColor(currentValue)}`}>
             {currentValue}
           </span>
+        </div>
+        
+        <div className="text-xs text-healz-brown/60 text-center">
+          Tu respuesta en la escala
         </div>
       </div>
     </BaseQuestion>
