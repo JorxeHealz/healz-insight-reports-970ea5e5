@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
 import { FormStepNavigation } from '../components/forms/public/FormStepNavigation';
 import { QuestionRenderer } from '../components/forms/public/QuestionRenderer';
 import { FormStatusDisplay } from '../components/forms/public/FormStatusDisplay';
+import { PatientInfoHeader } from '../components/forms/public/PatientInfoHeader';
 import { usePublicForm } from '../hooks/usePublicForm';
 import { categoryTitles } from '../utils/formCategoryTitles';
 
@@ -74,12 +75,15 @@ const PublicForm = () => {
       <div className="max-w-2xl mx-auto px-4">
         <Card>
           <CardHeader>
-            <CardTitle className="text-center">
-              Formulario de Salud - {form.patient.first_name} {form.patient.last_name}
+            <CardTitle className="text-center text-healz-brown">
+              Formulario de Salud
             </CardTitle>
           </CardHeader>
 
           <CardContent className="space-y-6">
+            {/* Show patient information header */}
+            <PatientInfoHeader patient={form.patient} />
+
             {currentQuestions.map((question) => (
               <div key={question.id}>
                 <QuestionRenderer
