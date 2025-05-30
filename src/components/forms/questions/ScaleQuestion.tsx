@@ -20,19 +20,42 @@ export const ScaleQuestion = ({ question, value, onChange, error }: BaseQuestion
 
   // Detect if this is a "negative" question (higher values = worse)
   const isNegativeQuestion = (questionText: string) => {
+    const lowerText = questionText.toLowerCase();
+    
+    // First check for positive keywords that should override negative detection
+    const positiveKeywords = [
+      'calidad', 'quality',
+      'satisfacción', 'satisfaccion', 'satisfaction',
+      'bienestar', 'wellbeing', 'well-being',
+      'energía', 'energia', 'energy',
+      'motivación', 'motivacion', 'motivation',
+      'ánimo', 'animo', 'mood' // when asking about good mood
+    ];
+    
+    const hasPositiveKeyword = positiveKeywords.some(keyword => 
+      lowerText.includes(keyword)
+    );
+    
+    // If it has positive keywords, it's definitely a positive question
+    if (hasPositiveKeyword) {
+      return false;
+    }
+    
+    // Check for negative keywords only if no positive keywords found
     const negativeKeywords = [
       'estrés', 'estres', 'stress',
       'dolor', 'pain',
       'fatiga', 'cansancio', 'tiredness',
       'ansiedad', 'anxiety',
-      'irritación', 'irritation',
+      'irritación', 'irritacion', 'irritation',
       'molestia', 'discomfort',
       'malestar', 'unwell',
-      'síntoma', 'sintoma', 'symptom'
+      'síntoma', 'sintoma', 'symptom',
+      'preocupación', 'preocupacion', 'worry'
     ];
     
     return negativeKeywords.some(keyword => 
-      questionText.toLowerCase().includes(keyword)
+      lowerText.includes(keyword)
     );
   };
 
