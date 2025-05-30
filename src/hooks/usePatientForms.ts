@@ -13,7 +13,7 @@ export const usePatientForms = () => {
         .from('patient_forms')
         .select(`
           *,
-          patients!inner(
+          patient:patients!inner(
             id,
             first_name,
             last_name,
