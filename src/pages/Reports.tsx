@@ -1,7 +1,6 @@
 
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Layout } from '../components/Layout';
 import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { Report } from '../types/supabase';
@@ -36,7 +35,7 @@ const Reports = () => {
   );
 
   return (
-    <Layout title="Informes">
+    <div>
       <div className="mb-6 flex justify-between items-center">
         <div className="relative w-72">
           <Input
@@ -150,7 +149,7 @@ const Reports = () => {
           </table>
         </div>
       )}
-    </Layout>
+    </div>
   );
 };
 

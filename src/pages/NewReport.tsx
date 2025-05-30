@@ -2,7 +2,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
-import { Layout } from '../components/Layout';
 import { supabase } from '../lib/supabase';
 import { PatientSelector } from '../components/reports/PatientSelector';
 import { DataReview } from '../components/reports/DataReview';
@@ -190,46 +189,44 @@ const NewReport = () => {
   };
 
   return (
-    <Layout title="Crear Nuevo Informe">
-      <div className="max-w-4xl mx-auto">
-        {/* Stepper */}
-        <div className="mb-8">
-          <ol className="flex items-center w-full">
-            <li className={`flex w-full items-center ${currentStep === 'patient' ? 'text-healz-red' : 'text-healz-brown/70'} after:content-[''] after:w-full after:h-1 after:border-b ${currentStep === 'patient' ? 'after:border-healz-red' : 'after:border-healz-brown/30'} after:border-4 after:inline-block`}>
-              <span className={`flex items-center justify-center w-10 h-10 rounded-full lg:h-12 lg:w-12 shrink-0 ${currentStep === 'patient' ? 'bg-healz-red text-white' : 'bg-healz-brown/20'}`}>
-                1
-              </span>
-            </li>
-            <li className={`flex w-full items-center ${currentStep === 'data' ? 'text-healz-red' : 'text-healz-brown/70'} after:content-[''] after:w-full after:h-1 after:border-b ${currentStep === 'data' ? 'after:border-healz-red' : 'after:border-healz-brown/30'} after:border-4 after:inline-block`}>
-              <span className={`flex items-center justify-center w-10 h-10 rounded-full lg:h-12 lg:w-12 shrink-0 ${currentStep === 'data' ? 'bg-healz-red text-white' : 'bg-healz-brown/20'}`}>
-                2
-              </span>
-            </li>
-            <li className={`flex w-full items-center ${currentStep === 'diagnosis' ? 'text-healz-red' : 'text-healz-brown/70'} after:content-[''] after:w-full after:h-1 after:border-b ${currentStep === 'diagnosis' ? 'after:border-healz-red' : 'after:border-healz-brown/30'} after:border-4 after:inline-block`}>
-              <span className={`flex items-center justify-center w-10 h-10 rounded-full lg:h-12 lg:w-12 shrink-0 ${currentStep === 'diagnosis' ? 'bg-healz-red text-white' : 'bg-healz-brown/20'}`}>
-                3
-              </span>
-            </li>
-            <li className={`flex items-center ${currentStep === 'report' ? 'text-healz-red' : 'text-healz-brown/70'}`}>
-              <span className={`flex items-center justify-center w-10 h-10 rounded-full lg:h-12 lg:w-12 shrink-0 ${currentStep === 'report' ? 'bg-healz-red text-white' : 'bg-healz-brown/20'}`}>
-                4
-              </span>
-            </li>
-          </ol>
-          <div className="flex justify-between mt-2 px-2">
-            <span className="text-sm font-medium">Seleccionar Paciente</span>
-            <span className="text-sm font-medium">Revisar Datos</span>
-            <span className="text-sm font-medium">Generar Diagnóstico</span>
-            <span className="text-sm font-medium">Vista Previa</span>
-          </div>
-        </div>
-
-        {/* Content */}
-        <div className="bg-white p-6 rounded-lg shadow">
-          {renderStepContent()}
+    <div className="max-w-4xl mx-auto">
+      {/* Stepper */}
+      <div className="mb-8">
+        <ol className="flex items-center w-full">
+          <li className={`flex w-full items-center ${currentStep === 'patient' ? 'text-healz-red' : 'text-healz-brown/70'} after:content-[''] after:w-full after:h-1 after:border-b ${currentStep === 'patient' ? 'after:border-healz-red' : 'after:border-healz-brown/30'} after:border-4 after:inline-block`}>
+            <span className={`flex items-center justify-center w-10 h-10 rounded-full lg:h-12 lg:w-12 shrink-0 ${currentStep === 'patient' ? 'bg-healz-red text-white' : 'bg-healz-brown/20'}`}>
+              1
+            </span>
+          </li>
+          <li className={`flex w-full items-center ${currentStep === 'data' ? 'text-healz-red' : 'text-healz-brown/70'} after:content-[''] after:w-full after:h-1 after:border-b ${currentStep === 'data' ? 'after:border-healz-red' : 'after:border-healz-brown/30'} after:border-4 after:inline-block`}>
+            <span className={`flex items-center justify-center w-10 h-10 rounded-full lg:h-12 lg:w-12 shrink-0 ${currentStep === 'data' ? 'bg-healz-red text-white' : 'bg-healz-brown/20'}`}>
+              2
+            </span>
+          </li>
+          <li className={`flex w-full items-center ${currentStep === 'diagnosis' ? 'text-healz-red' : 'text-healz-brown/70'} after:content-[''] after:w-full after:h-1 after:border-b ${currentStep === 'diagnosis' ? 'after:border-healz-red' : 'after:border-healz-brown/30'} after:border-4 after:inline-block`}>
+            <span className={`flex items-center justify-center w-10 h-10 rounded-full lg:h-12 lg:w-12 shrink-0 ${currentStep === 'diagnosis' ? 'bg-healz-red text-white' : 'bg-healz-brown/20'}`}>
+              3
+            </span>
+          </li>
+          <li className={`flex items-center ${currentStep === 'report' ? 'text-healz-red' : 'text-healz-brown/70'}`}>
+            <span className={`flex items-center justify-center w-10 h-10 rounded-full lg:h-12 lg:w-12 shrink-0 ${currentStep === 'report' ? 'bg-healz-red text-white' : 'bg-healz-brown/20'}`}>
+              4
+            </span>
+          </li>
+        </ol>
+        <div className="flex justify-between mt-2 px-2">
+          <span className="text-sm font-medium">Seleccionar Paciente</span>
+          <span className="text-sm font-medium">Revisar Datos</span>
+          <span className="text-sm font-medium">Generar Diagnóstico</span>
+          <span className="text-sm font-medium">Vista Previa</span>
         </div>
       </div>
-    </Layout>
+
+      {/* Content */}
+      <div className="bg-white p-6 rounded-lg shadow">
+        {renderStepContent()}
+      </div>
+    </div>
   );
 };
 
