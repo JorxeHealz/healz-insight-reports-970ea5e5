@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
 import { Badge } from '../ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Loader2, FileText, Calendar, User } from 'lucide-react';
-import { PatientForm } from '../../types/forms';
+import { PatientForm, FormQuestion } from '../../types/forms';
 import { FORM_SECTIONS } from '../../types/forms';
 
 interface FormResultsModalProps {
@@ -35,37 +35,70 @@ export const FormResultsModal = ({ open, onOpenChange, form }: FormResultsModalP
     queryFn: async (): Promise<FormAnswerWithQuestion[]> => {
       if (!form?.id) return [];
 
-      const { data, error } = await supabase
-        .from('questionnaire_answers')
-        .select(`
-          id,
-          question_id,
-          answer,
-          answer_type,
-          file_url,
-          form_questions!inner(
-            question_text,
-            question_type,
-            category,
-            options
-          )
-        `)
-        .eq('form_id', form.id)
-        .order('question_id');
+      console.log('Fetching answers for form:', form.id);
 
-      if (error) {
-        console.error('Error fetching form answers:', error);
-        throw error;
+      // First, get all answers for this form
+      const { data: answersData, error: answersError } = await supabase
+        .from('questionnaire_answers')
+        .select('id, question_id, answer, answer_type, file_url')
+        .eq('form_id', form.id);
+
+      if (answersError) {
+        console.error('Error fetching answers:', answersError);
+        throw answersError;
       }
 
-      return data?.map(item => ({
-        id: item.id,
-        question_id: item.question_id,
-        answer: item.answer,
-        answer_type: item.answer_type,
-        file_url: item.file_url,
-        question: Array.isArray(item.form_questions) ? item.form_questions[0] : item.form_questions
-      })) || [];
+      console.log('Raw answers data:', answersData);
+
+      if (!answersData || answersData.length === 0) {
+        console.log('No answers found for form');
+        return [];
+      }
+
+      // Get all question IDs from the answers
+      const questionIds = answersData.map(answer => answer.question_id);
+      console.log('Question IDs from answers:', questionIds);
+
+      // Second, get all questions that match these IDs
+      const { data: questionsData, error: questionsError } = await supabase
+        .from('form_questions')
+        .select('id, question_text, question_type, category, options')
+        .in('id', questionIds);
+
+      if (questionsError) {
+        console.error('Error fetching questions:', questionsError);
+        throw questionsError;
+      }
+
+      console.log('Questions data:', questionsData);
+
+      // Combine answers with their corresponding questions
+      const combinedData = answersData.map(answer => {
+        const question = questionsData?.find(q => q.id === answer.question_id);
+        console.log(`Matching question for ${answer.question_id}:`, question);
+        
+        return {
+          id: answer.id,
+          question_id: answer.question_id,
+          answer: answer.answer,
+          answer_type: answer.answer_type,
+          file_url: answer.file_url,
+          question: question ? {
+            question_text: question.question_text,
+            question_type: question.question_type,
+            category: question.category,
+            options: question.options
+          } : {
+            question_text: `Pregunta no encontrada (ID: ${answer.question_id})`,
+            question_type: 'text',
+            category: 'general_info',
+            options: null
+          }
+        };
+      });
+
+      console.log('Combined data:', combinedData);
+      return combinedData;
     },
     enabled: !!form?.id && open
   });
@@ -149,7 +182,7 @@ export const FormResultsModal = ({ open, onOpenChange, form }: FormResultsModalP
           </div>
         ) : error ? (
           <div className="text-center py-8 text-red-600">
-            Error al cargar las respuestas del formulario
+            Error al cargar las respuestas del formulario: {error.message}
           </div>
         ) : !answers || answers.length === 0 ? (
           <div className="text-center py-8 text-healz-brown/70">
