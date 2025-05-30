@@ -21,6 +21,8 @@ serve(async (req) => {
 
     const { form_token, answers, files } = await req.json();
 
+    console.log('Received form submission:', { form_token, answersCount: Object.keys(answers || {}).length, filesCount: files?.length || 0 });
+
     if (!form_token || !answers) {
       return new Response(
         JSON.stringify({ error: 'form_token and answers are required' }),
@@ -37,6 +39,7 @@ serve(async (req) => {
       .single();
 
     if (formError || !form) {
+      console.error('Form not found:', formError);
       return new Response(
         JSON.stringify({ error: 'Form not found or already completed' }),
         { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -45,6 +48,7 @@ serve(async (req) => {
 
     // Verificar que el formulario no ha expirado
     if (new Date(form.expires_at) < new Date()) {
+      console.log('Form expired, updating status');
       // Marcar como expirado
       await supabaseClient
         .from('patient_forms')
@@ -72,12 +76,15 @@ serve(async (req) => {
       );
     }
 
+    console.log('Found questions:', questions?.length);
+
     // Validar respuestas requeridas
     const missingRequired = questions
       .filter(q => q.required && q.question_type !== 'file')
       .filter(q => !answers[q.id] || answers[q.id].toString().trim() === '');
 
     if (missingRequired.length > 0) {
+      console.log('Missing required answers:', missingRequired.map(q => q.question_text));
       return new Response(
         JSON.stringify({ 
           error: 'Missing required answers',
@@ -87,18 +94,52 @@ serve(async (req) => {
       );
     }
 
+    // Mapear question_type a answer_type válido
+    const mapQuestionTypeToAnswerType = (questionType: string): string => {
+      switch (questionType) {
+        case 'radio':
+        case 'select':
+        case 'frequency':
+          return 'text';
+        case 'checkbox_multiple':
+          return 'text'; // Array will be stringified
+        case 'number':
+        case 'scale':
+          return 'number';
+        case 'textarea':
+          return 'textarea';
+        case 'file':
+          return 'file';
+        case 'boolean':
+          return 'boolean';
+        case 'text':
+        default:
+          return 'text';
+      }
+    };
+
     // Insertar respuestas
     const answersToInsert = Object.entries(answers).map(([questionId, answer]) => {
       const question = questions.find(q => q.id === questionId);
+      const answerType = question ? mapQuestionTypeToAnswerType(question.question_type) : 'text';
+      
+      // Convertir arrays a string para checkbox_multiple
+      let processedAnswer = answer;
+      if (Array.isArray(answer)) {
+        processedAnswer = answer.join(', ');
+      }
+      
       return {
         form_id: form.id,
         patient_id: form.patient_id,
         question_id: questionId,
-        answer: typeof answer === 'string' ? answer : JSON.stringify(answer),
-        answer_type: question?.question_type || 'text',
+        answer: typeof processedAnswer === 'string' ? processedAnswer : JSON.stringify(processedAnswer),
+        answer_type: answerType,
         date: new Date().toISOString()
       };
     });
+
+    console.log('Inserting answers:', answersToInsert.length);
 
     const { error: answersError } = await supabaseClient
       .from('questionnaire_answers')
@@ -112,8 +153,11 @@ serve(async (req) => {
       );
     }
 
+    console.log('Answers inserted successfully');
+
     // Procesar archivos si los hay
     if (files && files.length > 0) {
+      console.log('Processing files:', files.length);
       const filesToInsert = files.map((file: any) => ({
         form_id: form.id,
         patient_id: form.patient_id,
@@ -130,6 +174,8 @@ serve(async (req) => {
       if (filesError) {
         console.error('Error inserting files:', filesError);
         // No fallar por errores de archivos, pero loggear
+      } else {
+        console.log('Files processed successfully');
       }
     }
 
