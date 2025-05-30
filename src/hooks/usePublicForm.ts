@@ -91,6 +91,29 @@ export function usePublicForm(token: string) {
 
     for (let attempt = 1; attempt <= retries; attempt++) {
       try {
+        // Check if bucket exists, create if it doesn't
+        const { data: buckets, error: listError } = await supabase.storage.listBuckets();
+        
+        if (listError) {
+          console.error('Error listing buckets:', listError);
+        }
+        
+        const bucketExists = buckets?.find(bucket => bucket.id === 'patient-files');
+        
+        if (!bucketExists) {
+          console.log('Creating patient-files bucket...');
+          const { error: createError } = await supabase.storage.createBucket('patient-files', {
+            public: false,
+            fileSizeLimit: 10485760, // 10MB
+            allowedMimeTypes: ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png']
+          });
+          
+          if (createError) {
+            console.error('Error creating bucket:', createError);
+            // Continue anyway, bucket might exist but not be visible
+          }
+        }
+
         const { error: uploadError } = await supabase.storage
           .from('patient-files')
           .upload(filePath, file, {
@@ -101,6 +124,10 @@ export function usePublicForm(token: string) {
         if (uploadError) {
           console.error(`Upload attempt ${attempt} failed:`, uploadError);
           
+          if (uploadError.message?.includes('row-level security')) {
+            throw new Error('Los permisos de almacenamiento no están configurados correctamente. Por favor, contacte al administrador del sistema.');
+          }
+          
           if (attempt === retries) {
             throw new Error(`Error al subir archivo después de ${retries} intentos: ${uploadError.message}`);
           }
@@ -110,27 +137,13 @@ export function usePublicForm(token: string) {
           continue;
         }
 
-        // Verify upload by checking if file exists
-        const { data: fileData, error: checkError } = await supabase.storage
-          .from('patient-files')
-          .list(formId, {
-            search: fileName
-          });
-
-        if (checkError || !fileData?.length) {
-          console.error('File verification failed:', checkError);
-          if (attempt === retries) {
-            throw new Error('Error al verificar la subida del archivo');
-          }
-          continue;
-        }
-
+        // Get public URL (this might not work if bucket is private, but we'll store the path)
         const { data: { publicUrl } } = supabase.storage
           .from('patient-files')
           .getPublicUrl(filePath);
 
         console.log('File uploaded successfully:', { filePath, publicUrl });
-        return publicUrl;
+        return publicUrl || filePath; // Return path if public URL is not available
 
       } catch (error) {
         console.error(`Upload attempt ${attempt} error:`, error);
@@ -178,36 +191,43 @@ export function usePublicForm(token: string) {
       const uploadedFiles: FormSubmissionData['files'] = [];
       const updatedAnswers = { ...answers };
       
-      for (const [questionId, file] of Object.entries(files)) {
-        try {
-          console.log(`Uploading file for question ${questionId}:`, file.name);
-          
-          const fileUrl = await uploadFile(file, formData.form.id);
-          
-          uploadedFiles.push({
-            name: file.name,
-            url: fileUrl,
-            type: file.type,
-            size: file.size
-          });
-          
-          // Update answer with file URL
-          updatedAnswers[questionId] = fileUrl;
-          
-          console.log(`File uploaded successfully for question ${questionId}`);
-          
-        } catch (error) {
-          console.error(`Error uploading file for question ${questionId}:`, error);
-          toast({
-            title: "Error al subir archivo",
-            description: `No se pudo subir el archivo ${file.name}: ${error instanceof Error ? error.message : 'Error desconocido'}`,
-            variant: "destructive"
-          });
-          return;
+      // If there are files, try to upload them
+      if (Object.keys(files).length > 0) {
+        for (const [questionId, file] of Object.entries(files)) {
+          try {
+            console.log(`Uploading file for question ${questionId}:`, file.name);
+            
+            const fileUrl = await uploadFile(file, formData.form.id);
+            
+            uploadedFiles.push({
+              name: file.name,
+              url: fileUrl,
+              type: file.type,
+              size: file.size
+            });
+            
+            // Update answer with file URL
+            updatedAnswers[questionId] = fileUrl;
+            
+            console.log(`File uploaded successfully for question ${questionId}`);
+            
+          } catch (error) {
+            console.error(`Error uploading file for question ${questionId}:`, error);
+            
+            // Show warning but continue with form submission
+            toast({
+              title: "Advertencia",
+              description: `No se pudo subir el archivo ${file.name}. El formulario se enviará sin este archivo.`,
+              variant: "default"
+            });
+            
+            // Remove the file from answers if upload failed
+            updatedAnswers[questionId] = `Error al subir: ${file.name}`;
+          }
         }
       }
 
-      console.log('All files uploaded, submitting form data');
+      console.log('Submitting form data (with or without files)');
 
       // Submit form data
       const submissionData: FormSubmissionData = {
