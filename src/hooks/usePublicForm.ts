@@ -20,8 +20,11 @@ export function usePublicForm(token: string) {
     error: formError 
   } = useFormByToken(token || '');
 
+  // Ensure questions is properly typed as FormQuestion[]
+  const questions = Array.isArray(formData?.questions) ? formData.questions as FormQuestion[] : [];
+
   // Group questions by category
-  const questionsByCategory = formData?.questions?.reduce(
+  const questionsByCategory = questions.reduce(
     (acc: Record<string, FormQuestion[]>, question: FormQuestion) => {
       if (!acc[question.category]) {
         acc[question.category] = [];
@@ -30,15 +33,15 @@ export function usePublicForm(token: string) {
       return acc;
     }, 
     {}
-  ) || {};
+  );
 
   // Use conditional questions logic
-  const { getVisibleQuestions } = useConditionalQuestions(formData?.questions || [], answers);
+  const { getVisibleQuestions } = useConditionalQuestions(questions, answers);
 
   // Filter visible questions for each category
   const visibleQuestionsByCategory = Object.entries(questionsByCategory).reduce(
-    (acc, [category, questions]) => {
-      acc[category] = getVisibleQuestions(questions);
+    (acc, [category, categoryQuestions]) => {
+      acc[category] = getVisibleQuestions(categoryQuestions);
       return acc;
     },
     {} as Record<string, FormQuestion[]>
