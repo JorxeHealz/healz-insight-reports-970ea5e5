@@ -1,9 +1,12 @@
+
 import React, { useState } from 'react';
 import { Button } from '../ui/button';
 import { supabase } from '../../lib/supabase';
 import { toast } from '../../hooks/use-toast';
+
 export const QuestionsSeed = () => {
   const [isSeeding, setIsSeeding] = useState(false);
+
   const seedQuestions = async () => {
     setIsSeeding(true);
     try {
@@ -11,6 +14,7 @@ export const QuestionsSeed = () => {
       const {
         data: existingQuestions
       } = await supabase.from('form_questions').select('id').eq('is_active', true).limit(1);
+
       if (existingQuestions && existingQuestions.length > 0) {
         toast({
           title: "Las preguntas ya existen",
@@ -18,6 +22,7 @@ export const QuestionsSeed = () => {
         });
         return;
       }
+
       toast({
         title: "Preguntas ya insertadas",
         description: "El formulario completo de diagnóstico inicial Healz ya está disponible con 47 preguntas organizadas en 6 secciones: Información General, Historial Médico, Síntomas Actuales, Estilo de Vida, Objetivos de Salud y Consentimiento."
@@ -33,5 +38,17 @@ export const QuestionsSeed = () => {
       setIsSeeding(false);
     }
   };
-  return;
+
+  return (
+    <div className="mb-4">
+      <Button 
+        onClick={seedQuestions}
+        disabled={isSeeding}
+        variant="outline"
+        className="border-healz-green text-healz-green hover:bg-healz-green hover:text-white"
+      >
+        {isSeeding ? "Verificando..." : "Verificar Preguntas del Formulario"}
+      </Button>
+    </div>
+  );
 };
