@@ -1,4 +1,3 @@
-
 import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { ReportHeader } from '../components/report/ReportHeader';
@@ -48,15 +47,18 @@ const ReportDetail = () => {
 
       console.log('Raw report data:', reportData);
 
+      // Extract patient data (it comes as an object, not array)
+      const patient = reportData.patients;
+
       // Transform the data to match the expected format
       const transformedReport = {
         id: reportData.id,
-        patient: reportData.patients,
+        patient: patient,
         createdAt: reportData.created_at,
         vitalityScore: reportData.diagnosis?.vitalityScore || 0,
         qualityOfLife: Math.min(5, Math.max(1, Math.round((reportData.diagnosis?.vitalityScore || 0) / 20))) as 1 | 2 | 3 | 4 | 5,
-        biologicalAge: calculateBiologicalAge(reportData.patients?.date_of_birth, reportData.diagnosis?.vitalityScore || 0),
-        chronologicalAge: calculateChronologicalAge(reportData.patients?.date_of_birth),
+        biologicalAge: calculateBiologicalAge(patient?.date_of_birth, reportData.diagnosis?.vitalityScore || 0),
+        chronologicalAge: calculateChronologicalAge(patient?.date_of_birth),
         risks: {
           cardio: getRiskPercentage(reportData.diagnosis?.riskProfile?.cardio),
           mental: getRiskPercentage(reportData.diagnosis?.riskProfile?.mental),
@@ -72,7 +74,7 @@ const ReportDetail = () => {
         },
         topSymptoms: generateSymptomsFromRisk(reportData.diagnosis?.riskProfile),
         recentBiomarkers: [], // Will be loaded by the RecentBiomarkers component
-        clinicalNotes: generateClinicalNotes(reportData),
+        clinicalNotes: generateClinicalNotes(reportData, patient),
         summary: reportData.diagnosis?.summary || 'No hay resumen disponible para este paciente.',
         manualNotes: reportData.manual_notes,
         actionPlan: reportData.action_plan
@@ -147,8 +149,8 @@ const ReportDetail = () => {
   };
 
   // Helper function to generate clinical notes
-  const generateClinicalNotes = (reportData: any) => {
-    const patientName = `${reportData.patients?.first_name || ''} ${reportData.patients?.last_name || ''}`.trim();
+  const generateClinicalNotes = (reportData: any, patient: any) => {
+    const patientName = `${patient?.first_name || ''} ${patient?.last_name || ''}`.trim();
     
     return [
       {
