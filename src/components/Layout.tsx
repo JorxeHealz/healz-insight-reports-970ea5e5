@@ -1,13 +1,7 @@
 
-import { ReactNode } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Outlet, Link, useLocation } from 'react-router-dom';
 
-interface LayoutProps {
-  children: ReactNode;
-  title: string;
-}
-
-export const Layout = ({ children, title }: LayoutProps) => {
+export const Layout = () => {
   const location = useLocation();
 
   const isActive = (path: string) => {
@@ -61,7 +55,7 @@ export const Layout = ({ children, title }: LayoutProps) => {
       </nav>
 
       <main className="py-6 px-4 sm:px-6 lg:px-8">
-        {children}
+        <Outlet />
       </main>
     </div>
   );
