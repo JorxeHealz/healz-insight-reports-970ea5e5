@@ -1,7 +1,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { usePatientForms, useCreatePatientForm, useProcessFormWithN8N } from '../hooks/usePatientForms';
-import { Plus, Copy, Search, Filter, Clock, AlertTriangle } from 'lucide-react';
+import { Plus, Copy, Search, Filter, Clock, AlertTriangle, Eye } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/card';
 import { Input } from '../components/ui/input';
@@ -13,6 +13,7 @@ import { toast } from '../hooks/use-toast';
 import { CreatePatientFormDialog } from '../components/forms/CreatePatientFormDialog';
 import { ProcessingStatus } from '../components/forms/ProcessingStatus';
 import { QuestionsSeed } from '../components/forms/QuestionsSeed';
+import { FormResultsModal } from '../components/forms/FormResultsModal';
 import { PatientForm } from '../types/forms';
 
 const PatientForms = () => {
@@ -20,6 +21,8 @@ const PatientForms = () => {
   const createPatientForm = useCreatePatientForm();
   const processForm = useProcessFormWithN8N();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [selectedForm, setSelectedForm] = useState<PatientForm | null>(null);
+  const [isResultsModalOpen, setIsResultsModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
 
@@ -57,6 +60,11 @@ const PatientForms = () => {
       title: "URL copiada",
       description: `La URL del formulario para ${patientName} se ha copiado al portapapeles`
     });
+  };
+
+  const handleViewResults = (form: PatientForm) => {
+    setSelectedForm(form);
+    setIsResultsModalOpen(true);
   };
 
   const getStatusBadge = (status: string) => {
@@ -179,7 +187,11 @@ const PatientForms = () => {
                     const patientName = formatPatientName(form.patient);
                     
                     return (
-                      <TableRow key={form.id}>
+                      <TableRow 
+                        key={form.id}
+                        className="cursor-pointer hover:bg-healz-cream/20"
+                        onClick={() => form.status === 'completed' && handleViewResults(form)}
+                      >
                         <TableCell className="font-medium">
                           {patientName}
                         </TableCell>
@@ -213,6 +225,28 @@ const PatientForms = () => {
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-2">
+                            {form.status === 'completed' && (
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleViewResults(form);
+                                      }}
+                                    >
+                                      <Eye className="h-4 w-4" />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>Ver resultados del formulario</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            )}
+
                             {form.status === 'pending' && (
                               <TooltipProvider>
                                 <Tooltip>
@@ -220,7 +254,10 @@ const PatientForms = () => {
                                     <Button
                                       variant="outline"
                                       size="sm"
-                                      onClick={() => handleCopyLink(form.form_token, patientName)}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleCopyLink(form.form_token, patientName);
+                                      }}
                                     >
                                       <Copy className="h-4 w-4" />
                                     </Button>
@@ -239,7 +276,10 @@ const PatientForms = () => {
                                     <Button
                                       variant="outline"
                                       size="sm"
-                                      onClick={() => handleProcessForm(form.id)}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleProcessForm(form.id);
+                                      }}
                                       disabled={processForm.isPending}
                                     >
                                       {processForm.isPending ? (
@@ -291,6 +331,12 @@ const PatientForms = () => {
             variant: "destructive"
           });
         }}
+      />
+
+      <FormResultsModal
+        open={isResultsModalOpen}
+        onOpenChange={setIsResultsModalOpen}
+        form={selectedForm}
       />
     </div>
   );
