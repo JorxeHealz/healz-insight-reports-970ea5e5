@@ -15,7 +15,7 @@ interface FormResultsModalProps {
   form: PatientForm | null;
 }
 
-interface FormAnswer {
+interface FormAnswerWithQuestion {
   id: string;
   question_id: string;
   answer: string;
@@ -32,7 +32,7 @@ interface FormAnswer {
 export const FormResultsModal = ({ open, onOpenChange, form }: FormResultsModalProps) => {
   const { data: answers, isLoading, error } = useQuery({
     queryKey: ['form-answers', form?.id],
-    queryFn: async (): Promise<FormAnswer[]> => {
+    queryFn: async (): Promise<FormAnswerWithQuestion[]> => {
       if (!form?.id) return [];
 
       const { data, error } = await supabase
@@ -58,19 +58,19 @@ export const FormResultsModal = ({ open, onOpenChange, form }: FormResultsModalP
         throw error;
       }
 
-      return data.map(item => ({
+      return data?.map(item => ({
         id: item.id,
         question_id: item.question_id,
         answer: item.answer,
         answer_type: item.answer_type,
         file_url: item.file_url,
-        question: item.form_questions
+        question: Array.isArray(item.form_questions) ? item.form_questions[0] : item.form_questions
       })) || [];
     },
     enabled: !!form?.id && open
   });
 
-  const formatAnswer = (answer: FormAnswer) => {
+  const formatAnswer = (answer: FormAnswerWithQuestion) => {
     const { answer: value, answer_type, file_url, question } = answer;
 
     if (answer_type === 'file' && file_url) {
@@ -112,7 +112,7 @@ export const FormResultsModal = ({ open, onOpenChange, form }: FormResultsModalP
     }
     acc[category].push(answer);
     return acc;
-  }, {} as Record<string, FormAnswer[]>) || {};
+  }, {} as Record<string, FormAnswerWithQuestion[]>) || {};
 
   if (!form) return null;
 
