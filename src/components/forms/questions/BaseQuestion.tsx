@@ -12,7 +12,7 @@ interface BaseQuestionProps {
 export const BaseQuestion = ({ question, error, children }: BaseQuestionProps) => {
   return (
     <div className="space-y-3">
-      <Label className="text-healz-brown font-medium">
+      <Label className="text-healz-brown font-medium text-left block">
         {question.question_text}
         {question.required && <span className="text-healz-red ml-1">*</span>}
       </Label>

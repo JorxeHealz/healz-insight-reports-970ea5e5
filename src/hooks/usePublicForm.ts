@@ -1,6 +1,6 @@
-
 import { useState } from 'react';
 import { useFormByToken } from './usePatientForms';
+import { useConditionalQuestions } from './useConditionalQuestions';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { toast } from './use-toast';
@@ -32,7 +32,21 @@ export function usePublicForm(token: string) {
     {}
   ) || {};
 
-  const categories = Object.keys(questionsByCategory);
+  // Use conditional questions logic
+  const { getVisibleQuestions } = useConditionalQuestions(formData?.questions || [], answers);
+
+  // Filter visible questions for each category
+  const visibleQuestionsByCategory = Object.entries(questionsByCategory).reduce(
+    (acc, [category, questions]) => {
+      acc[category] = getVisibleQuestions(questions);
+      return acc;
+    },
+    {} as Record<string, FormQuestion[]>
+  );
+
+  const categories = Object.keys(visibleQuestionsByCategory).filter(
+    category => visibleQuestionsByCategory[category].length > 0
+  );
   const isLastStep = currentStep === categories.length - 1;
 
   const handleAnswerChange = (questionId: string, value: any) => {
@@ -163,7 +177,7 @@ export function usePublicForm(token: string) {
     if (!categories[currentStep]) return true;
     
     const currentCategory = categories[currentStep];
-    const currentQuestions = questionsByCategory[currentCategory];
+    const currentQuestions = visibleQuestionsByCategory[currentCategory];
     
     return currentQuestions.every(question => {
       if (!question.required) return true;
@@ -290,7 +304,7 @@ export function usePublicForm(token: string) {
     isSubmitting,
     currentStep,
     categories,
-    questionsByCategory,
+    questionsByCategory: visibleQuestionsByCategory,
     isLastStep,
     validateCurrentStep,
     handleAnswerChange,
