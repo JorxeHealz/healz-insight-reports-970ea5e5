@@ -1,10 +1,10 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { useDemoBiomarkers } from '../../hooks/useDemoBiomarkers';
+import { useReportBiomarkers } from '../../hooks/useReportBiomarkers';
 
 interface BiomarkerStatusProps {
-  patientId?: string;
+  formId?: string; // Use formId instead of patientId
   summary?: {
     optimal: number;
     caution: number;
@@ -13,14 +13,14 @@ interface BiomarkerStatusProps {
 }
 
 export const BiomarkerStatus: React.FC<BiomarkerStatusProps> = ({ 
-  patientId, 
+  formId, 
   summary: mockSummary 
 }) => {
-  const { data: biomarkers, isLoading } = useDemoBiomarkers(patientId || '');
+  const { data: biomarkers, isLoading } = useReportBiomarkers(formId || '');
   
-  // Calculate summary from demo data or use mock data
+  // Calculate summary from report biomarkers or use mock data
   const summary = React.useMemo(() => {
-    if (patientId && biomarkers) {
+    if (formId && biomarkers) {
       return biomarkers.reduce(
         (acc, biomarker) => {
           acc[biomarker.status]++;
@@ -30,11 +30,11 @@ export const BiomarkerStatus: React.FC<BiomarkerStatusProps> = ({
       );
     }
     return mockSummary || { optimal: 0, caution: 0, outOfRange: 0 };
-  }, [patientId, biomarkers, mockSummary]);
+  }, [formId, biomarkers, mockSummary]);
 
   const total = summary.optimal + summary.caution + summary.outOfRange;
   
-  if (patientId && isLoading) {
+  if (formId && isLoading) {
     return (
       <Card>
         <CardHeader className="pb-2">

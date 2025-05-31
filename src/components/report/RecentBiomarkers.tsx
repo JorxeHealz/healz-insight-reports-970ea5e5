@@ -4,25 +4,25 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '../ui/card
 import { Link } from 'react-router-dom';
 import { BiomarkerItem } from './biomarkers/BiomarkerItem';
 import { Biomarker } from './biomarkers/types';
-import { useDemoBiomarkers } from '../../hooks/useDemoBiomarkers';
+import { useReportBiomarkers } from '../../hooks/useReportBiomarkers';
 
 interface RecentBiomarkersProps {
-  patientId?: string;
+  formId?: string; // Use formId instead of patientId
   biomarkers?: Biomarker[]; // Fallback for mock data
 }
 
 export const RecentBiomarkers: React.FC<RecentBiomarkersProps> = ({ 
-  patientId, 
+  formId, 
   biomarkers: mockBiomarkers 
 }) => {
   const [expandedBiomarker, setExpandedBiomarker] = useState<string | null>(null);
   
-  // Use demo data if patientId is provided, otherwise fall back to mock data
-  const { data: demoBiomarkers, isLoading, error } = useDemoBiomarkers(patientId || '');
+  // Use report-specific data if formId is provided, otherwise fall back to mock data
+  const { data: reportBiomarkers, isLoading, error } = useReportBiomarkers(formId || '');
   
-  const biomarkers = patientId ? demoBiomarkers : mockBiomarkers;
-  const shouldShowLoading = patientId && isLoading;
-  const shouldShowError = patientId && error;
+  const biomarkers = formId ? reportBiomarkers : mockBiomarkers;
+  const shouldShowLoading = formId && isLoading;
+  const shouldShowError = formId && error;
 
   // Sort biomarkers by status priority: outOfRange -> caution -> optimal
   const sortedBiomarkers = biomarkers ? [...biomarkers].sort((a, b) => {
@@ -45,7 +45,7 @@ export const RecentBiomarkers: React.FC<RecentBiomarkersProps> = ({
   return (
     <Card>
       <CardHeader className="pb-2">
-        <CardTitle className="text-lg text-healz-brown">Biomarcadores Recientes</CardTitle>
+        <CardTitle className="text-lg text-healz-brown">Biomarcadores del Informe</CardTitle>
       </CardHeader>
       <CardContent>
         {shouldShowLoading ? (
@@ -70,7 +70,7 @@ export const RecentBiomarkers: React.FC<RecentBiomarkersProps> = ({
               ))
             ) : (
               <p className="text-sm text-healz-brown/70 py-2 text-center">
-                No hay biomarcadores recientes.
+                No hay biomarcadores disponibles para este informe.
               </p>
             )}
           </div>

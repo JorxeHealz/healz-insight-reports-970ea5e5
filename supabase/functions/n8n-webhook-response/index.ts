@@ -27,7 +27,10 @@ serve(async (req) => {
       risk_profile, 
       action_plan, 
       summary,
-      execution_id 
+      execution_id,
+      biomarkers,
+      symptoms,
+      clinical_notes
     } = await req.json();
 
     if (!queue_id) {
@@ -90,6 +93,81 @@ serve(async (req) => {
         JSON.stringify({ error: 'Failed to create report' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
+    }
+
+    // Guardar biomarcadores del informe si están presentes
+    if (biomarkers && Array.isArray(biomarkers)) {
+      for (const biomarker of biomarkers) {
+        await supabaseClient
+          .from('patient_biomarkers')
+          .insert({
+            patient_id: queueEntry.patient_id,
+            form_id: queueEntry.form_id,
+            biomarker_id: biomarker.biomarker_id,
+            value: biomarker.value,
+            date: biomarker.date || new Date().toISOString(),
+            is_out_of_range: biomarker.is_out_of_range || false,
+            notes: biomarker.notes
+          });
+      }
+    }
+
+    // Guardar perfil de riesgo detallado
+    if (risk_profile && typeof risk_profile === 'object') {
+      for (const [category, data] of Object.entries(risk_profile)) {
+        if (typeof data === 'object' && data !== null) {
+          await supabaseClient
+            .from('report_risk_profiles')
+            .insert({
+              report_id: report.id,
+              form_id: queueEntry.form_id,
+              category: category,
+              risk_level: data.level || 'medium',
+              percentage: data.percentage || null,
+              description: data.description || null,
+              recommendations: data.recommendations || null
+            });
+        }
+      }
+    }
+
+    // Guardar planes de acción específicos
+    if (action_plan && typeof action_plan === 'object') {
+      for (const [category, plans] of Object.entries(action_plan)) {
+        if (Array.isArray(plans)) {
+          for (const plan of plans) {
+            await supabaseClient
+              .from('report_action_plans')
+              .insert({
+                report_id: report.id,
+                form_id: queueEntry.form_id,
+                category: category,
+                title: plan.title || '',
+                description: plan.description || '',
+                dosage: plan.dosage || null,
+                duration: plan.duration || null,
+                priority: plan.priority || 'medium'
+              });
+          }
+        }
+      }
+    }
+
+    // Guardar notas clínicas
+    if (clinical_notes && Array.isArray(clinical_notes)) {
+      for (const note of clinical_notes) {
+        await supabaseClient
+          .from('report_comments')
+          .insert({
+            report_id: report.id,
+            form_id: queueEntry.form_id,
+            title: note.title || 'Nota clínica',
+            content: note.content || '',
+            author: note.author || 'Sistema',
+            category: note.category || 'general',
+            priority: note.priority || 'medium'
+          });
+      }
     }
 
     // Marcar cola como completada

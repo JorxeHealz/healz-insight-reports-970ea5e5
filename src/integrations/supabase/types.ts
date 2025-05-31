@@ -263,6 +263,7 @@ export type Database = {
           created_at: string
           created_by: string | null
           date: string
+          form_id: string | null
           id: string
           is_out_of_range: boolean
           notes: string | null
@@ -275,6 +276,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           date?: string
+          form_id?: string | null
           id?: string
           is_out_of_range?: boolean
           notes?: string | null
@@ -287,6 +289,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           date?: string
+          form_id?: string | null
           id?: string
           is_out_of_range?: boolean
           notes?: string | null
@@ -307,6 +310,13 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_biomarkers_form_id_fkey"
+            columns: ["form_id"]
+            isOneToOne: false
+            referencedRelation: "patient_forms"
             referencedColumns: ["id"]
           },
           {
@@ -521,6 +531,165 @@ export type Database = {
             columns: ["patient_id"]
             isOneToOne: false
             referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      report_action_plans: {
+        Row: {
+          category: string
+          created_at: string
+          description: string
+          dosage: string | null
+          duration: string | null
+          form_id: string
+          id: string
+          priority: string
+          report_id: string
+          title: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          description: string
+          dosage?: string | null
+          duration?: string | null
+          form_id: string
+          id?: string
+          priority?: string
+          report_id: string
+          title: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string
+          dosage?: string | null
+          duration?: string | null
+          form_id?: string
+          id?: string
+          priority?: string
+          report_id?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "report_action_plans_form_id_fkey"
+            columns: ["form_id"]
+            isOneToOne: false
+            referencedRelation: "patient_forms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "report_action_plans_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      report_comments: {
+        Row: {
+          author: string | null
+          category: string
+          content: string
+          created_at: string
+          date: string
+          form_id: string
+          id: string
+          priority: string
+          report_id: string
+          title: string
+        }
+        Insert: {
+          author?: string | null
+          category?: string
+          content: string
+          created_at?: string
+          date?: string
+          form_id: string
+          id?: string
+          priority?: string
+          report_id: string
+          title: string
+        }
+        Update: {
+          author?: string | null
+          category?: string
+          content?: string
+          created_at?: string
+          date?: string
+          form_id?: string
+          id?: string
+          priority?: string
+          report_id?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "report_comments_form_id_fkey"
+            columns: ["form_id"]
+            isOneToOne: false
+            referencedRelation: "patient_forms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "report_comments_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      report_risk_profiles: {
+        Row: {
+          category: string
+          created_at: string
+          description: string | null
+          form_id: string
+          id: string
+          percentage: number | null
+          recommendations: Json | null
+          report_id: string
+          risk_level: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          description?: string | null
+          form_id: string
+          id?: string
+          percentage?: number | null
+          recommendations?: Json | null
+          report_id: string
+          risk_level: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          form_id?: string
+          id?: string
+          percentage?: number | null
+          recommendations?: Json | null
+          report_id?: string
+          risk_level?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "report_risk_profiles_form_id_fkey"
+            columns: ["form_id"]
+            isOneToOne: false
+            referencedRelation: "patient_forms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "report_risk_profiles_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "reports"
             referencedColumns: ["id"]
           },
         ]

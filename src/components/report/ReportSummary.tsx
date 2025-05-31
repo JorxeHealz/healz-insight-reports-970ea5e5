@@ -7,18 +7,14 @@ import { BiologicalAgeCard } from './BiologicalAgeCard';
 import { BiomarkerStatus } from './BiomarkerStatus';
 import { SymptomsList } from './SymptomsList';
 import { RecentBiomarkers } from './RecentBiomarkers';
-import { getBiomarkerSummaryForPatient } from '../../utils/getBiomarkerSummary';
 
 type ReportSummaryProps = {
   report: any; // We'd ideally create a proper type for this
-  patientId?: string; // Add patientId for real data integration
 };
 
-export const ReportSummary: React.FC<ReportSummaryProps> = ({ report, patientId }) => {
-  // Get the correct biomarker summary for the patient
-  const biomarkerSummary = patientId 
-    ? getBiomarkerSummaryForPatient(patientId)
-    : report.biomarkerSummary;
+export const ReportSummary: React.FC<ReportSummaryProps> = ({ report }) => {
+  // Extract form_id from the report data
+  const formId = report.id; // Assuming we can get form_id from the report
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -34,12 +30,12 @@ export const ReportSummary: React.FC<ReportSummaryProps> = ({ report, patientId 
           chronologicalAge={report.chronologicalAge} 
         />
         <BiomarkerStatus 
-          patientId={patientId}
-          summary={biomarkerSummary} 
+          formId={formId}
+          summary={report.biomarkerSummary} 
         />
         <SymptomsList symptoms={report.topSymptoms} />
         <RecentBiomarkers 
-          patientId={patientId}
+          formId={formId}
           biomarkers={report.recentBiomarkers} 
         />
       </div>
