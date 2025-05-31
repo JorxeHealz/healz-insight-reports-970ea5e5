@@ -1,3 +1,4 @@
+
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import { useRealBiomarkers } from './useRealBiomarkers';
@@ -175,7 +176,7 @@ export const useReportData = (reportId: string | undefined) => {
         vitalityScore: reportData.diagnosis?.vitalityScore || 0,
         qualityOfLife: Math.min(5, Math.max(1, Math.round((reportData.diagnosis?.vitalityScore || 0) / 20))) as 1 | 2 | 3 | 4 | 5,
         biologicalAge: calculateBiologicalAge(patient?.date_of_birth, reportData.diagnosis?.vitalityScore || 0),
-        chronologicalAge: calculateChronologicalAge(patient?.date_of_birth),
+        chronologicalAge: calculateChronologicalAge(patient?.date_of_birth, new Date()),
         risks: { ...defaultRisks, ...risks },
         biomarkerSummary,
         topSymptoms,
@@ -283,7 +284,7 @@ async function generateAnaReport() {
     vitalityScore: 45, // Low due to multiple issues
     qualityOfLife: 2 as 1 | 2 | 3 | 4 | 5, // Poor quality of life
     biologicalAge: calculateBiologicalAge(patientData?.date_of_birth, 45),
-    chronologicalAge: calculateChronologicalAge(patientData?.date_of_birth),
+    chronologicalAge: calculateChronologicalAge(patientData?.date_of_birth, new Date()),
     risks,
     biomarkerSummary,
     topSymptoms,
