@@ -9,12 +9,13 @@ import { SymptomsList } from './SymptomsList';
 import { RecentBiomarkers } from './RecentBiomarkers';
 
 type ReportSummaryProps = {
-  report: any; // We'd ideally create a proper type for this
+  report: any;
 };
 
 export const ReportSummary: React.FC<ReportSummaryProps> = ({ report }) => {
-  // Extract form_id from the report data
-  const formId = report.id; // Assuming we can get form_id from the report
+  // Extract form_id and patient_id from the report data
+  const formId = report.id;
+  const patientId = report.patient?.id;
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -31,11 +32,13 @@ export const ReportSummary: React.FC<ReportSummaryProps> = ({ report }) => {
         />
         <BiomarkerStatus 
           formId={formId}
+          patientId={patientId}
           summary={report.biomarkerSummary} 
         />
         <SymptomsList symptoms={report.topSymptoms} />
         <RecentBiomarkers 
           formId={formId}
+          patientId={patientId}
           biomarkers={report.recentBiomarkers} 
         />
       </div>

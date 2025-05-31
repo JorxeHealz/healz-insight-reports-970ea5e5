@@ -2,25 +2,41 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { useReportBiomarkers } from '../../hooks/useReportBiomarkers';
+import { useRealBiomarkers } from '../../hooks/useRealBiomarkers';
 
 interface BiomarkerStatusProps {
-  formId?: string; // Use formId instead of patientId
+  formId?: string;
   summary?: {
     optimal: number;
     caution: number;
     outOfRange: number;
-  }; // Fallback for mock data
+  };
+  patientId?: string; // Add patientId for real data
 }
 
 export const BiomarkerStatus: React.FC<BiomarkerStatusProps> = ({ 
   formId, 
-  summary: mockSummary 
+  summary: mockSummary,
+  patientId 
 }) => {
-  const { data: biomarkers, isLoading } = useReportBiomarkers(formId || '');
+  // Use real data if patientId is Ana's ID
+  const shouldUseRealData = patientId === '550e8400-e29b-41d4-a716-446655440003';
   
-  // Calculate summary from report biomarkers or use mock data
+  const { data: realBiomarkers, isLoading: realLoading } = useRealBiomarkers(
+    shouldUseRealData ? patientId : ''
+  );
+  
+  const { data: reportBiomarkers, isLoading: reportLoading } = useReportBiomarkers(
+    !shouldUseRealData && formId ? formId : ''
+  );
+  
+  // Determine which data to use
+  const biomarkers = shouldUseRealData ? realBiomarkers : reportBiomarkers;
+  const isLoading = shouldUseRealData ? realLoading : reportLoading;
+  
+  // Calculate summary from biomarkers or use mock data
   const summary = React.useMemo(() => {
-    if (formId && biomarkers) {
+    if (biomarkers) {
       return biomarkers.reduce(
         (acc, biomarker) => {
           acc[biomarker.status]++;
@@ -30,11 +46,11 @@ export const BiomarkerStatus: React.FC<BiomarkerStatusProps> = ({
       );
     }
     return mockSummary || { optimal: 0, caution: 0, outOfRange: 0 };
-  }, [formId, biomarkers, mockSummary]);
+  }, [biomarkers, mockSummary]);
 
   const total = summary.optimal + summary.caution + summary.outOfRange;
   
-  if (formId && isLoading) {
+  if (isLoading) {
     return (
       <Card>
         <CardHeader className="pb-2">

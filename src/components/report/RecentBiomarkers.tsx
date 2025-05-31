@@ -5,24 +5,50 @@ import { Link } from 'react-router-dom';
 import { BiomarkerItem } from './biomarkers/BiomarkerItem';
 import { Biomarker } from './biomarkers/types';
 import { useReportBiomarkers } from '../../hooks/useReportBiomarkers';
+import { useRealBiomarkers } from '../../hooks/useRealBiomarkers';
 
 interface RecentBiomarkersProps {
-  formId?: string; // Use formId instead of patientId
-  biomarkers?: Biomarker[]; // Fallback for mock data
+  formId?: string;
+  biomarkers?: Biomarker[];
+  patientId?: string; // Add patientId for real data
 }
 
 export const RecentBiomarkers: React.FC<RecentBiomarkersProps> = ({ 
   formId, 
-  biomarkers: mockBiomarkers 
+  biomarkers: mockBiomarkers,
+  patientId 
 }) => {
   const [expandedBiomarker, setExpandedBiomarker] = useState<string | null>(null);
   
-  // Use report-specific data if formId is provided, otherwise fall back to mock data
-  const { data: reportBiomarkers, isLoading, error } = useReportBiomarkers(formId || '');
+  // Use real data if patientId is Ana's ID, otherwise use report-specific data or mock data
+  const shouldUseRealData = patientId === '550e8400-e29b-41d4-a716-446655440003';
   
-  const biomarkers = formId ? reportBiomarkers : mockBiomarkers;
-  const shouldShowLoading = formId && isLoading;
-  const shouldShowError = formId && error;
+  const { data: realBiomarkers, isLoading: realLoading, error: realError } = useRealBiomarkers(
+    shouldUseRealData ? patientId : ''
+  );
+  
+  const { data: reportBiomarkers, isLoading: reportLoading, error: reportError } = useReportBiomarkers(
+    !shouldUseRealData && formId ? formId : ''
+  );
+  
+  // Determine which data to use
+  let biomarkers: Biomarker[] | undefined;
+  let isLoading: boolean;
+  let error: Error | null = null;
+
+  if (shouldUseRealData) {
+    biomarkers = realBiomarkers;
+    isLoading = realLoading;
+    error = realError;
+  } else if (formId) {
+    biomarkers = reportBiomarkers;
+    isLoading = reportLoading;
+    error = reportError;
+  } else {
+    biomarkers = mockBiomarkers;
+    isLoading = false;
+    error = null;
+  }
 
   // Sort biomarkers by status priority: outOfRange -> caution -> optimal
   const sortedBiomarkers = biomarkers ? [...biomarkers].sort((a, b) => {
@@ -48,12 +74,12 @@ export const RecentBiomarkers: React.FC<RecentBiomarkersProps> = ({
         <CardTitle className="text-lg text-healz-brown">Biomarcadores del Informe</CardTitle>
       </CardHeader>
       <CardContent>
-        {shouldShowLoading ? (
+        {isLoading ? (
           <div className="text-center py-4">
             <div className="inline-block h-6 w-6 animate-spin rounded-full border-4 border-solid border-healz-brown border-r-transparent"></div>
             <p className="mt-2 text-sm text-healz-brown/70">Cargando biomarcadores...</p>
           </div>
-        ) : shouldShowError ? (
+        ) : error ? (
           <div className="text-center py-4 text-healz-red text-sm">
             Error al cargar los biomarcadores
           </div>
