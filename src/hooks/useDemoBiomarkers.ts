@@ -30,18 +30,58 @@ export const useDemoBiomarkers = (patientId: string) => {
         }
       };
 
-      // Mock biomarker definitions
+      // Mock biomarker definitions with all required BiomarkerRow properties
       const availableBiomarkers = [
-        { name: 'Glucose', unit: 'mg/dL', optimal_min: 70, optimal_max: 100 },
-        { name: 'Cholesterol', unit: 'mg/dL', optimal_min: 120, optimal_max: 200 },
-        { name: 'Vitamin D', unit: 'ng/mL', optimal_min: 30, optimal_max: 60 },
-        { name: 'Cortisol', unit: 'μg/dL', optimal_min: 6.2, optimal_max: 19.4 },
-        { name: 'TSH', unit: 'μIU/mL', optimal_min: 0.4, optimal_max: 4.0 },
-        { name: 'CRP', unit: 'mg/L', optimal_min: 0, optimal_max: 3.0 },
-        { name: 'HbA1c', unit: '%', optimal_min: 4.0, optimal_max: 5.6 },
-        { name: 'Testosterone', unit: 'ng/dL', optimal_min: 300, optimal_max: 1000 },
-        { name: 'Estradiol', unit: 'pg/mL', optimal_min: 30, optimal_max: 400 },
-        { name: 'DHEA-S', unit: 'μg/dL', optimal_min: 85, optimal_max: 475 }
+        { 
+          id: '1', name: 'Glucose', unit: 'mg/dL', optimal_min: 70, optimal_max: 100, 
+          description: 'Blood glucose level', category: 'metabolic', Panel: 'Basic Metabolic',
+          conventional_min: 65, conventional_max: 110, created_at: new Date().toISOString(), updated_at: new Date().toISOString()
+        },
+        { 
+          id: '2', name: 'Cholesterol', unit: 'mg/dL', optimal_min: 120, optimal_max: 200,
+          description: 'Total cholesterol', category: 'cardiovascular', Panel: 'Lipid',
+          conventional_min: 100, conventional_max: 240, created_at: new Date().toISOString(), updated_at: new Date().toISOString()
+        },
+        { 
+          id: '3', name: 'Vitamin D', unit: 'ng/mL', optimal_min: 30, optimal_max: 60,
+          description: 'Vitamin D 25-OH', category: 'nutrients', Panel: 'Vitamins',
+          conventional_min: 20, conventional_max: 100, created_at: new Date().toISOString(), updated_at: new Date().toISOString()
+        },
+        { 
+          id: '4', name: 'Cortisol', unit: 'μg/dL', optimal_min: 6.2, optimal_max: 19.4,
+          description: 'Morning cortisol', category: 'hormones', Panel: 'Stress',
+          conventional_min: 4.0, conventional_max: 25.0, created_at: new Date().toISOString(), updated_at: new Date().toISOString()
+        },
+        { 
+          id: '5', name: 'TSH', unit: 'μIU/mL', optimal_min: 0.4, optimal_max: 4.0,
+          description: 'Thyroid stimulating hormone', category: 'hormones', Panel: 'Thyroid',
+          conventional_min: 0.3, conventional_max: 5.0, created_at: new Date().toISOString(), updated_at: new Date().toISOString()
+        },
+        { 
+          id: '6', name: 'CRP', unit: 'mg/L', optimal_min: 0, optimal_max: 3.0,
+          description: 'C-reactive protein', category: 'inflammation', Panel: 'Inflammatory',
+          conventional_min: 0, conventional_max: 10.0, created_at: new Date().toISOString(), updated_at: new Date().toISOString()
+        },
+        { 
+          id: '7', name: 'HbA1c', unit: '%', optimal_min: 4.0, optimal_max: 5.6,
+          description: 'Hemoglobin A1c', category: 'metabolic', Panel: 'Diabetes',
+          conventional_min: 4.0, conventional_max: 6.5, created_at: new Date().toISOString(), updated_at: new Date().toISOString()
+        },
+        { 
+          id: '8', name: 'Testosterone', unit: 'ng/dL', optimal_min: 300, optimal_max: 1000,
+          description: 'Total testosterone', category: 'hormones', Panel: 'Male Hormones',
+          conventional_min: 200, conventional_max: 1200, created_at: new Date().toISOString(), updated_at: new Date().toISOString()
+        },
+        { 
+          id: '9', name: 'Estradiol', unit: 'pg/mL', optimal_min: 30, optimal_max: 400,
+          description: 'Estradiol hormone', category: 'hormones', Panel: 'Female Hormones',
+          conventional_min: 15, conventional_max: 500, created_at: new Date().toISOString(), updated_at: new Date().toISOString()
+        },
+        { 
+          id: '10', name: 'DHEA-S', unit: 'μg/dL', optimal_min: 85, optimal_max: 475,
+          description: 'DHEA sulfate', category: 'hormones', Panel: 'Adrenal',
+          conventional_min: 50, conventional_max: 600, created_at: new Date().toISOString(), updated_at: new Date().toISOString()
+        }
       ];
 
       // Mock biomarker values based on patient condition with proper typing
