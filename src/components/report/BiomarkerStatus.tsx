@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { useBiomarkerData } from '../../hooks/useBiomarkerData';
+import { useDemoBiomarkers } from '../../hooks/useDemoBiomarkers';
 
 interface BiomarkerStatusProps {
   patientId?: string;
@@ -16,9 +16,9 @@ export const BiomarkerStatus: React.FC<BiomarkerStatusProps> = ({
   patientId, 
   summary: mockSummary 
 }) => {
-  const { data: biomarkers, isLoading } = useBiomarkerData(patientId || '');
+  const { data: biomarkers, isLoading } = useDemoBiomarkers(patientId || '');
   
-  // Calculate summary from real data or use mock data
+  // Calculate summary from demo data or use mock data
   const summary = React.useMemo(() => {
     if (patientId && biomarkers) {
       return biomarkers.reduce(

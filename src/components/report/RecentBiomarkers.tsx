@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '../ui/card
 import { Link } from 'react-router-dom';
 import { BiomarkerItem } from './biomarkers/BiomarkerItem';
 import { Biomarker } from './biomarkers/types';
-import { useBiomarkerData } from '../../hooks/useBiomarkerData';
+import { useDemoBiomarkers } from '../../hooks/useDemoBiomarkers';
 
 interface RecentBiomarkersProps {
   patientId?: string;
@@ -17,10 +17,10 @@ export const RecentBiomarkers: React.FC<RecentBiomarkersProps> = ({
 }) => {
   const [expandedBiomarker, setExpandedBiomarker] = useState<string | null>(null);
   
-  // Use real data if patientId is provided, otherwise fall back to mock data
-  const { data: realBiomarkers, isLoading, error } = useBiomarkerData(patientId || '');
+  // Use demo data if patientId is provided, otherwise fall back to mock data
+  const { data: demoBiomarkers, isLoading, error } = useDemoBiomarkers(patientId || '');
   
-  const biomarkers = patientId ? realBiomarkers : mockBiomarkers;
+  const biomarkers = patientId ? demoBiomarkers : mockBiomarkers;
   const shouldShowLoading = patientId && isLoading;
   const shouldShowError = patientId && error;
 
