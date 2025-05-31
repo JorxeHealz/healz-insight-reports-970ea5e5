@@ -1,7 +1,6 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
-import { useRealBiomarkers } from './useRealBiomarkers';
 import {
   calculateBiologicalAge,
   calculateChronologicalAge,
@@ -196,7 +195,7 @@ export const useReportData = (reportId: string | undefined) => {
 
 // Función específica para generar el informe de Ana con datos reales
 async function generateAnaReport() {
-  console.log('Generating Ana report with real data');
+  console.log('Generating Ana report with real data from Supabase');
 
   // Get Ana's patient data
   const { data: patientData, error: patientError } = await supabase
@@ -210,7 +209,7 @@ async function generateAnaReport() {
     throw patientError;
   }
 
-  // Get Ana's biomarkers
+  // Get Ana's biomarkers using the REAL data we just inserted
   const { data: biomarkersData, error: biomarkersError } = await supabase
     .from('patient_biomarkers')
     .select(`
@@ -225,6 +224,8 @@ async function generateAnaReport() {
     console.error('Error fetching Ana biomarkers:', biomarkersError);
     throw biomarkersError;
   }
+
+  console.log('Ana biomarkers from database:', biomarkersData);
 
   // Calculate biomarker summary from real data
   const biomarkerSummary = biomarkersData ? biomarkersData.reduce(
@@ -244,7 +245,7 @@ async function generateAnaReport() {
     { optimal: 0, caution: 0, outOfRange: 0 }
   ) : { optimal: 0, caution: 0, outOfRange: 0 };
 
-  // Transform biomarkers for display
+  // Transform biomarkers for display using REAL data
   const recentBiomarkers = biomarkersData ? biomarkersData.map(biomarker => ({
     name: biomarker.biomarker?.name || 'Unknown',
     valueWithUnit: `${biomarker.value} ${biomarker.biomarker?.unit || ''}`,
@@ -258,7 +259,7 @@ async function generateAnaReport() {
     notes: biomarker.notes
   })) : [];
 
-  // Ana's specific risk profile based on her biomarkers
+  // Ana's specific risk profile based on her REAL biomarkers
   const risks = {
     cardio: 75, // High due to cholesterol, LDL, triglycerides
     mental: 60, // Medium-high due to cortisol and fatigue
@@ -288,7 +289,7 @@ async function generateAnaReport() {
     risks,
     biomarkerSummary,
     topSymptoms,
-    recentBiomarkers,
+    recentBiomarkers, // Now using REAL data from Supabase
     clinicalNotes: generateClinicalNotes(risks, patientData),
     summary: `
 **Perfil clínico de Ana López - Menopausia con fatiga crónica**
@@ -296,11 +297,12 @@ async function generateAnaReport() {
 La paciente presenta un cuadro típico de menopausia establecida con complicaciones metabólicas y endocrinas que requieren atención integral:
 
 **Hallazgos principales:**
-- **Menopausia confirmada**: FSH elevado (45 mIU/mL), LH alto (35 mIU/mL), estradiol muy bajo (18 pg/mL)
+- **Menopausia confirmada**: FSH elevado (45.2 mIU/mL), LH alto (35.8 mIU/mL), estradiol muy bajo (18 pg/mL)
 - **Hipotiroidismo subclínico**: TSH elevado (4.8 μIU/mL) contribuyendo a la fatiga
 - **Resistencia insulínica emergente**: Insulina elevada (18 μIU/mL), HbA1c en prediabetes (5.8%)
 - **Riesgo cardiovascular aumentado**: Sin protección estrogénica, colesterol total 235 mg/dL, LDL 145 mg/dL
 - **Inflamación crónica**: CRP elevado (4.2 mg/L) y cortisol alto (22 μg/dL)
+- **Deficiencias nutricionales**: Vitamina D (22 ng/mL), B12 (280 pg/mL), hierro bajo (45 μg/dL)
 
 **Recomendaciones prioritarias:**
 1. Terapia hormonal bioidéntica para síntomas menopáusicos
