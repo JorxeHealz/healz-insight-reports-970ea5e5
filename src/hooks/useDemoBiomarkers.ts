@@ -1,3 +1,4 @@
+
 import { useQuery } from '@tanstack/react-query';
 import { Biomarker } from '../components/report/biomarkers/types';
 
@@ -43,8 +44,15 @@ export const useDemoBiomarkers = (patientId: string) => {
         { name: 'DHEA-S', unit: 'μg/dL', optimal_min: 85, optimal_max: 475 }
       ];
 
-      // Mock biomarker values based on patient condition
-      const biomarkerValues = [
+      // Mock biomarker values based on patient condition with proper typing
+      const biomarkerValues: Array<{
+        name: string;
+        value: number;
+        unit: string;
+        status: 'optimal' | 'caution' | 'outOfRange';
+        collectedAgo: string;
+        notes: string;
+      }> = [
         { name: 'Glucose', value: 110, unit: 'mg/dL', status: 'outOfRange', collectedAgo: '2 days ago', notes: 'High after meal' },
         { name: 'Cholesterol', value: 220, unit: 'mg/dL', status: 'outOfRange', collectedAgo: '2 days ago', notes: 'High total cholesterol' },
         { name: 'Vitamin D', value: 25, unit: 'ng/mL', status: 'caution', collectedAgo: '2 days ago', notes: 'Slightly low' },
@@ -57,7 +65,7 @@ export const useDemoBiomarkers = (patientId: string) => {
         { name: 'DHEA-S', value: 300, unit: 'μg/dL', status: 'optimal', collectedAgo: '2 days ago', notes: 'Normal range' }
       ];
 
-      // Fix the type error by properly accessing the biomarker data
+      // Transform biomarkers with proper typing
       const transformedBiomarkers: Biomarker[] = biomarkerValues.map((biomarker, index) => {
         // Get the biomarker definition
         const biomarkerDef = availableBiomarkers.find(b => b.name === biomarker.name);

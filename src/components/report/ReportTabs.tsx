@@ -24,7 +24,7 @@ export const ReportTabs: React.FC<ReportTabsProps> = ({ report, patientId }) => 
       </TabsList>
 
       <TabsContent value="summary">
-        <ReportSummary report={report} patientId={patientId} />
+        <ReportSummary report={report} />
       </TabsContent>
 
       <TabsContent value="panels">
