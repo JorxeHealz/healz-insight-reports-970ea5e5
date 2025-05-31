@@ -11,6 +11,7 @@ export interface Biomarker {
   unit: string;
   biomarkerData?: BiomarkerRow;
   collectedAt: string;
+  notes?: string; // Add notes as optional property
 }
 
 export interface BiomarkerInfoData {
