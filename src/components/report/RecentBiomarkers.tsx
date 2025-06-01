@@ -17,25 +17,10 @@ export const RecentBiomarkers: React.FC<RecentBiomarkersProps> = ({
 }) => {
   const [expandedBiomarker, setExpandedBiomarker] = useState<string | null>(null);
   
-  console.log('RecentBiomarkers: Component rendered with reportId:', reportId);
-  
   const { data: reportBiomarkers, isLoading, error } = useReportBiomarkers(reportId);
-  
-  console.log('RecentBiomarkers: Hook result:', {
-    data: reportBiomarkers,
-    isLoading,
-    error,
-    count: reportBiomarkers?.length || 0
-  });
   
   // Use report biomarkers if available, otherwise fallback to mock data
   const biomarkers = reportId ? reportBiomarkers : mockBiomarkers;
-
-  console.log('RecentBiomarkers: Final biomarkers to display:', {
-    biomarkers,
-    count: biomarkers?.length || 0,
-    isUsingReportData: !!reportId
-  });
 
   // Sort biomarkers by status priority: outOfRange -> caution -> optimal
   const sortedBiomarkers = biomarkers ? [...biomarkers].sort((a, b) => {
@@ -60,7 +45,6 @@ export const RecentBiomarkers: React.FC<RecentBiomarkersProps> = ({
       <CardHeader className="pb-2">
         <CardTitle className="text-lg text-healz-brown">
           Biomarcadores del Informe
-          {/* Debugging info - se puede quitar después */}
           <span className="text-sm font-normal text-healz-brown/50 ml-2">
             ({sortedBiomarkers.length} encontrados)
           </span>
@@ -97,11 +81,10 @@ export const RecentBiomarkers: React.FC<RecentBiomarkersProps> = ({
                 <p className="text-sm text-healz-brown/70 mb-2">
                   No hay biomarcadores disponibles para este informe.
                 </p>
-                {/* Debugging info */}
                 <div className="text-xs text-healz-brown/50">
                   Report ID: {reportId || 'No reportId'}<br/>
-                  Hook called: {reportId ? 'Sí' : 'No'}<br/>
-                  Loading: {isLoading ? 'Sí' : 'No'}<br/>
+                  Hook llamado: {reportId ? 'Sí' : 'No'}<br/>
+                  Cargando: {isLoading ? 'Sí' : 'No'}<br/>
                   Error: {error ? 'Sí' : 'No'}
                 </div>
               </div>

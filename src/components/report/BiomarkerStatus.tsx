@@ -16,9 +16,7 @@ export const BiomarkerStatus: React.FC<BiomarkerStatusProps> = ({
   reportId, 
   summary: mockSummary
 }) => {
-  const { data: biomarkers, isLoading } = useReportBiomarkers(reportId);
-  
-  console.log('BiomarkerStatus: biomarkers data:', biomarkers);
+  const { data: biomarkers, isLoading, error } = useReportBiomarkers(reportId);
   
   // Calculate summary from biomarkers or use mock data
   const summary = React.useMemo(() => {
@@ -55,12 +53,31 @@ export const BiomarkerStatus: React.FC<BiomarkerStatusProps> = ({
     );
   }
 
+  if (error) {
+    return (
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-lg text-healz-brown">Estado de Biomarcadores</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-4">
+            <div className="text-healz-red text-sm mb-2">
+              Error al cargar el estado de los biomarcadores
+            </div>
+            <div className="text-xs text-healz-brown/70">
+              {error.message}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card>
       <CardHeader className="pb-2">
         <CardTitle className="text-lg text-healz-brown">
           Estado de Biomarcadores
-          {/* Debugging info */}
           <span className="text-sm font-normal text-healz-brown/50 ml-2">
             (Total: {total})
           </span>

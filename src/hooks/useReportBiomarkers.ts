@@ -14,126 +14,161 @@ export const useReportBiomarkers = (reportId: string | undefined) => {
 
       console.log('useReportBiomarkers: Fetching biomarkers for report:', reportId);
 
-      // Primera consulta: intentar obtener biomarcadores por report_id
-      const { data: reportBiomarkers, error: reportError } = await supabase
+      // Consulta directa usando JOIN explícito
+      const { data: biomarkersData, error } = await supabase
         .from('patient_biomarkers')
         .select(`
-          *,
-          biomarker:biomarkers(*)
+          id,
+          patient_id,
+          biomarker_id,
+          value,
+          date,
+          is_out_of_range,
+          notes,
+          biomarkers!inner (
+            id,
+            name,
+            unit,
+            description,
+            category,
+            Panel,
+            conventional_min,
+            conventional_max,
+            optimal_min,
+            optimal_max
+          )
         `)
         .eq('report_id', reportId)
         .order('date', { ascending: false });
 
-      console.log('useReportBiomarkers: Direct report_id query result:', {
-        data: reportBiomarkers,
-        error: reportError,
-        count: reportBiomarkers?.length || 0
+      console.log('useReportBiomarkers: Direct query result:', {
+        data: biomarkersData,
+        error,
+        count: biomarkersData?.length || 0
       });
 
-      // Si tenemos biomarcadores con report_id, los usamos directamente
-      if (reportBiomarkers && reportBiomarkers.length > 0) {
-        console.log('useReportBiomarkers: Found biomarkers with report_id, transforming...');
-        const transformedBiomarkers = transformBiomarkersData(reportBiomarkers);
-        console.log('useReportBiomarkers: Transformed biomarkers:', transformedBiomarkers);
-        return transformedBiomarkers;
+      if (error) {
+        console.error('useReportBiomarkers: Error fetching biomarkers:', error);
+        throw error;
       }
 
-      console.log('useReportBiomarkers: No biomarkers found with report_id, trying fallback with form_id...');
+      // Si no hay biomarcadores con report_id, intentar fallback con form_id
+      if (!biomarkersData || biomarkersData.length === 0) {
+        console.log('useReportBiomarkers: No biomarkers found with report_id, trying fallback...');
+        
+        // Obtener form_id del report
+        const { data: reportData, error: reportError } = await supabase
+          .from('reports')
+          .select('form_id')
+          .eq('id', reportId)
+          .single();
 
-      // Fallback: obtener form_id del report y buscar por form_id
-      const { data: reportData, error: reportFormError } = await supabase
-        .from('reports')
-        .select('form_id')
-        .eq('id', reportId)
-        .single();
+        if (reportError || !reportData?.form_id) {
+          console.log('useReportBiomarkers: No form_id found or error:', reportError);
+          return [];
+        }
 
-      console.log('useReportBiomarkers: Report form_id query result:', {
-        reportData,
-        error: reportFormError
-      });
+        // Consulta fallback usando form_id
+        const { data: fallbackData, error: fallbackError } = await supabase
+          .from('patient_biomarkers')
+          .select(`
+            id,
+            patient_id,
+            biomarker_id,
+            value,
+            date,
+            is_out_of_range,
+            notes,
+            biomarkers!inner (
+              id,
+              name,
+              unit,
+              description,
+              category,
+              Panel,
+              conventional_min,
+              conventional_max,
+              optimal_min,
+              optimal_max
+            )
+          `)
+          .eq('form_id', reportData.form_id)
+          .order('date', { ascending: false });
 
-      if (reportFormError) {
-        console.error('useReportBiomarkers: Error fetching report form_id:', reportFormError);
-        throw reportFormError;
+        console.log('useReportBiomarkers: Fallback query result:', {
+          data: fallbackData,
+          error: fallbackError,
+          count: fallbackData?.length || 0
+        });
+
+        if (fallbackError) {
+          console.error('useReportBiomarkers: Fallback error:', fallbackError);
+          throw fallbackError;
+        }
+
+        return transformBiomarkersData(fallbackData || []);
       }
 
-      if (!reportData?.form_id) {
-        console.log('useReportBiomarkers: No form_id found for report');
-        return [];
-      }
-
-      // Consulta fallback por form_id
-      const { data: fallbackBiomarkers, error: fallbackError } = await supabase
-        .from('patient_biomarkers')
-        .select(`
-          *,
-          biomarker:biomarkers(*)
-        `)
-        .eq('form_id', reportData.form_id)
-        .order('date', { ascending: false });
-
-      console.log('useReportBiomarkers: Fallback form_id query result:', {
-        data: fallbackBiomarkers,
-        error: fallbackError,
-        count: fallbackBiomarkers?.length || 0
-      });
-
-      if (fallbackError) {
-        console.error('useReportBiomarkers: Error fetching fallback biomarkers:', fallbackError);
-        throw fallbackError;
-      }
-
-      const transformedFallbackBiomarkers = transformBiomarkersData(fallbackBiomarkers || []);
-      console.log('useReportBiomarkers: Final transformed biomarkers:', transformedFallbackBiomarkers);
-      
-      return transformedFallbackBiomarkers;
+      return transformBiomarkersData(biomarkersData || []);
     },
     enabled: !!reportId
   });
 };
 
-// Función helper para transformar los datos de Supabase a nuestro formato
+// Función mejorada para transformar los datos
 function transformBiomarkersData(biomarkersData: any[]): Biomarker[] {
-  console.log('transformBiomarkersData: Input data:', biomarkersData);
+  console.log('transformBiomarkersData: Processing', biomarkersData.length, 'records');
   
-  const transformed = biomarkersData.map((biomarker, index) => {
-    console.log(`transformBiomarkersData: Processing biomarker ${index}:`, biomarker);
-    
-    const biomarkerInfo = biomarker.biomarker;
-    
-    if (!biomarkerInfo) {
-      console.warn(`transformBiomarkersData: Missing biomarker info for index ${index}`);
-      return null;
-    }
-    
-    let status: 'optimal' | 'caution' | 'outOfRange' = 'optimal';
-    
-    // Determinar el estado basado en is_out_of_range y rangos óptimos
-    if (biomarker.is_out_of_range) {
-      status = 'outOfRange';
-    } else if (biomarkerInfo && (
-      (biomarkerInfo.optimal_min !== null && biomarker.value < biomarkerInfo.optimal_min) || 
-      (biomarkerInfo.optimal_max !== null && biomarker.value > biomarkerInfo.optimal_max)
-    )) {
-      status = 'caution';
-    }
+  if (!biomarkersData || biomarkersData.length === 0) {
+    console.log('transformBiomarkersData: No data to transform');
+    return [];
+  }
+  
+  const transformed = biomarkersData
+    .map((record, index) => {
+      console.log(`transformBiomarkersData: Processing record ${index}:`, record);
+      
+      // Verificar que tenemos los datos del biomarcador
+      const biomarkerInfo = record.biomarkers;
+      if (!biomarkerInfo) {
+        console.warn(`transformBiomarkersData: Missing biomarker info for record ${index}`);
+        return null;
+      }
+      
+      // Determinar el estado del biomarcador
+      let status: 'optimal' | 'caution' | 'outOfRange' = 'optimal';
+      
+      if (record.is_out_of_range) {
+        status = 'outOfRange';
+      } else {
+        // Verificar si está fuera del rango óptimo
+        const value = parseFloat(record.value);
+        const optimalMin = biomarkerInfo.optimal_min;
+        const optimalMax = biomarkerInfo.optimal_max;
+        
+        if ((optimalMin !== null && value < optimalMin) || 
+            (optimalMax !== null && value > optimalMax)) {
+          status = 'caution';
+        }
+      }
 
-    const result = {
-      name: biomarkerInfo.name || 'Unknown',
-      valueWithUnit: `${biomarker.value} ${biomarkerInfo.unit || ''}`,
-      status,
-      collectedAgo: new Date(biomarker.date).toLocaleDateString('es-ES'),
-      rawValue: biomarker.value,
-      unit: biomarkerInfo.unit || '',
-      biomarkerData: biomarkerInfo,
-      collectedAt: biomarker.date,
-      notes: biomarker.notes
-    };
-    
-    console.log(`transformBiomarkersData: Transformed biomarker ${index}:`, result);
-    return result;
-  }).filter(Boolean) as Biomarker[];
+      const result = {
+        name: biomarkerInfo.name || 'Unknown Biomarker',
+        valueWithUnit: `${record.value} ${biomarkerInfo.unit || ''}`,
+        status,
+        collectedAgo: new Date(record.date).toLocaleDateString('es-ES'),
+        rawValue: parseFloat(record.value),
+        unit: biomarkerInfo.unit || '',
+        biomarkerData: biomarkerInfo,
+        collectedAt: record.date,
+        notes: record.notes
+      };
+      
+      console.log(`transformBiomarkersData: Transformed record ${index}:`, result);
+      return result;
+    })
+    .filter((item): item is Biomarker => item !== null);
   
-  console.log('transformBiomarkersData: Final result:', transformed);
+  console.log('transformBiomarkersData: Final result:', transformed.length, 'biomarkers');
   return transformed;
 }
