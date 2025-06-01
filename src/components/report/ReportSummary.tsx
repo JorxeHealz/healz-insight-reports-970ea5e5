@@ -13,9 +13,8 @@ type ReportSummaryProps = {
 };
 
 export const ReportSummary: React.FC<ReportSummaryProps> = ({ report }) => {
-  // Extract report_id and patient_id from the report data
+  // Extract report_id from the report data
   const reportId = report.id;
-  const patientId = report.patient?.id;
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -32,13 +31,11 @@ export const ReportSummary: React.FC<ReportSummaryProps> = ({ report }) => {
         />
         <BiomarkerStatus 
           reportId={reportId}
-          patientId={patientId}
           summary={report.biomarkerSummary} 
         />
         <SymptomsList symptoms={report.topSymptoms} />
         <RecentBiomarkers 
           reportId={reportId}
-          patientId={patientId}
           biomarkers={report.recentBiomarkers} 
         />
       </div>

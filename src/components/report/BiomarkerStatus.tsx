@@ -1,37 +1,22 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { useReportBiomarkers } from '../../hooks/useReportBiomarkers';
-import { useRealBiomarkers } from '../../hooks/useRealBiomarkers';
 
 interface BiomarkerStatusProps {
-  reportId?: string; // Cambiar de formId a reportId
+  reportId?: string;
   summary?: {
     optimal: number;
     caution: number;
     outOfRange: number;
   };
-  patientId?: string;
 }
 
 export const BiomarkerStatus: React.FC<BiomarkerStatusProps> = ({ 
   reportId, 
-  summary: mockSummary,
-  patientId 
+  summary: mockSummary
 }) => {
-  // Use real data if patientId is Ana's ID
-  const shouldUseRealData = patientId === '550e8400-e29b-41d4-a716-446655440003';
-  
-  const { data: realBiomarkers, isLoading: realLoading } = useRealBiomarkers(
-    shouldUseRealData ? patientId : ''
-  );
-  
-  const { data: reportBiomarkers, isLoading: reportLoading } = useReportBiomarkers(
-    !shouldUseRealData && reportId ? reportId : ''
-  );
-  
-  // Determine which data to use
-  const biomarkers = shouldUseRealData ? realBiomarkers : reportBiomarkers;
-  const isLoading = shouldUseRealData ? realLoading : reportLoading;
+  const { data: biomarkers, isLoading } = useReportBiomarkers(reportId);
   
   // Calculate summary from biomarkers or use mock data
   const summary = React.useMemo(() => {

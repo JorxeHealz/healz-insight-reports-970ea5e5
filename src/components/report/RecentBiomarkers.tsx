@@ -5,50 +5,22 @@ import { Link } from 'react-router-dom';
 import { BiomarkerItem } from './biomarkers/BiomarkerItem';
 import { Biomarker } from './biomarkers/types';
 import { useReportBiomarkers } from '../../hooks/useReportBiomarkers';
-import { useRealBiomarkers } from '../../hooks/useRealBiomarkers';
 
 interface RecentBiomarkersProps {
-  reportId?: string; // Cambiar de formId a reportId
+  reportId?: string;
   biomarkers?: Biomarker[];
-  patientId?: string;
 }
 
 export const RecentBiomarkers: React.FC<RecentBiomarkersProps> = ({ 
   reportId, 
-  biomarkers: mockBiomarkers,
-  patientId 
+  biomarkers: mockBiomarkers
 }) => {
   const [expandedBiomarker, setExpandedBiomarker] = useState<string | null>(null);
   
-  // Use real data if patientId is Ana's ID, otherwise use report-specific data or mock data
-  const shouldUseRealData = patientId === '550e8400-e29b-41d4-a716-446655440003';
+  const { data: reportBiomarkers, isLoading, error } = useReportBiomarkers(reportId);
   
-  const { data: realBiomarkers, isLoading: realLoading, error: realError } = useRealBiomarkers(
-    shouldUseRealData ? patientId : ''
-  );
-  
-  const { data: reportBiomarkers, isLoading: reportLoading, error: reportError } = useReportBiomarkers(
-    !shouldUseRealData && reportId ? reportId : ''
-  );
-  
-  // Determine which data to use
-  let biomarkers: Biomarker[] | undefined;
-  let isLoading: boolean;
-  let error: Error | null = null;
-
-  if (shouldUseRealData) {
-    biomarkers = realBiomarkers;
-    isLoading = realLoading;
-    error = realError;
-  } else if (reportId) {
-    biomarkers = reportBiomarkers;
-    isLoading = reportLoading;
-    error = reportError;
-  } else {
-    biomarkers = mockBiomarkers;
-    isLoading = false;
-    error = null;
-  }
+  // Use report biomarkers if available, otherwise fallback to mock data
+  const biomarkers = reportId ? reportBiomarkers : mockBiomarkers;
 
   // Sort biomarkers by status priority: outOfRange -> caution -> optimal
   const sortedBiomarkers = biomarkers ? [...biomarkers].sort((a, b) => {
