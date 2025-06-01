@@ -35,17 +35,40 @@ export const fetchReportData = async (reportId: string) => {
   return reportData;
 };
 
-export const fetchReportBiomarkers = async (formId: string) => {
-  const { data } = await supabase
+export const fetchReportBiomarkers = async (reportId: string) => {
+  // Primero intentar obtener biomarcadores por report_id (nueva columna)
+  const { data: reportBiomarkers } = await supabase
     .from('patient_biomarkers')
     .select(`
       *,
       biomarker:biomarkers(*)
     `)
-    .eq('form_id', formId)
+    .eq('report_id', reportId)
     .order('date', { ascending: false });
 
-  return data || [];
+  // Si no hay biomarcadores con report_id, usar form_id como fallback
+  if (!reportBiomarkers || reportBiomarkers.length === 0) {
+    const { data: reportData } = await supabase
+      .from('reports')
+      .select('form_id')
+      .eq('id', reportId)
+      .single();
+
+    if (reportData?.form_id) {
+      const { data: fallbackBiomarkers } = await supabase
+        .from('patient_biomarkers')
+        .select(`
+          *,
+          biomarker:biomarkers(*)
+        `)
+        .eq('form_id', reportData.form_id)
+        .order('date', { ascending: false });
+
+      return fallbackBiomarkers || [];
+    }
+  }
+
+  return reportBiomarkers || [];
 };
 
 export const fetchReportRiskProfiles = async (reportId: string, formId: string) => {

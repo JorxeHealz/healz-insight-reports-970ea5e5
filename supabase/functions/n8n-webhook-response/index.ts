@@ -95,7 +95,7 @@ serve(async (req) => {
       );
     }
 
-    // Guardar biomarcadores del informe si están presentes
+    // Guardar biomarcadores del informe si están presentes (ahora con report_id)
     if (biomarkers && Array.isArray(biomarkers)) {
       for (const biomarker of biomarkers) {
         await supabaseClient
@@ -103,6 +103,7 @@ serve(async (req) => {
           .insert({
             patient_id: queueEntry.patient_id,
             form_id: queueEntry.form_id,
+            report_id: report.id, // Nueva columna agregada
             biomarker_id: biomarker.biomarker_id,
             value: biomarker.value,
             date: biomarker.date || new Date().toISOString(),

@@ -268,6 +268,7 @@ export type Database = {
           is_out_of_range: boolean
           notes: string | null
           patient_id: string
+          report_id: string | null
           trend: Database["public"]["Enums"]["trend"] | null
           value: number
         }
@@ -281,6 +282,7 @@ export type Database = {
           is_out_of_range?: boolean
           notes?: string | null
           patient_id: string
+          report_id?: string | null
           trend?: Database["public"]["Enums"]["trend"] | null
           value: number
         }
@@ -294,6 +296,7 @@ export type Database = {
           is_out_of_range?: boolean
           notes?: string | null
           patient_id?: string
+          report_id?: string | null
           trend?: Database["public"]["Enums"]["trend"] | null
           value?: number
         }
@@ -324,6 +327,13 @@ export type Database = {
             columns: ["patient_id"]
             isOneToOne: false
             referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_biomarkers_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "reports"
             referencedColumns: ["id"]
           },
         ]

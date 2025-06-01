@@ -13,8 +13,8 @@ type ReportSummaryProps = {
 };
 
 export const ReportSummary: React.FC<ReportSummaryProps> = ({ report }) => {
-  // Extract form_id and patient_id from the report data
-  const formId = report.id;
+  // Extract report_id and patient_id from the report data
+  const reportId = report.id;
   const patientId = report.patient?.id;
 
   return (
@@ -31,13 +31,13 @@ export const ReportSummary: React.FC<ReportSummaryProps> = ({ report }) => {
           chronologicalAge={report.chronologicalAge} 
         />
         <BiomarkerStatus 
-          formId={formId}
+          reportId={reportId}
           patientId={patientId}
           summary={report.biomarkerSummary} 
         />
         <SymptomsList symptoms={report.topSymptoms} />
         <RecentBiomarkers 
-          formId={formId}
+          reportId={reportId}
           patientId={patientId}
           biomarkers={report.recentBiomarkers} 
         />

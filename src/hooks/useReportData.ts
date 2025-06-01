@@ -29,8 +29,8 @@ export const useReportData = (reportId: string | undefined) => {
       // Get the report with patient data and diagnosis from Supabase
       const reportData = await fetchReportData(reportId);
 
-      // Get report-specific biomarkers using form_id
-      const reportBiomarkers = await fetchReportBiomarkers(reportData.form_id);
+      // Get report-specific biomarkers using report_id (nueva implementación)
+      const reportBiomarkers = await fetchReportBiomarkers(reportId);
 
       // Get report risk profiles using both report_id and form_id for consistency
       const riskProfiles = await fetchReportRiskProfiles(reportId, reportData.form_id);

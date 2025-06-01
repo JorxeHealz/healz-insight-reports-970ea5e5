@@ -8,13 +8,13 @@ import { useReportBiomarkers } from '../../hooks/useReportBiomarkers';
 import { useRealBiomarkers } from '../../hooks/useRealBiomarkers';
 
 interface RecentBiomarkersProps {
-  formId?: string;
+  reportId?: string; // Cambiar de formId a reportId
   biomarkers?: Biomarker[];
-  patientId?: string; // Add patientId for real data
+  patientId?: string;
 }
 
 export const RecentBiomarkers: React.FC<RecentBiomarkersProps> = ({ 
-  formId, 
+  reportId, 
   biomarkers: mockBiomarkers,
   patientId 
 }) => {
@@ -28,7 +28,7 @@ export const RecentBiomarkers: React.FC<RecentBiomarkersProps> = ({
   );
   
   const { data: reportBiomarkers, isLoading: reportLoading, error: reportError } = useReportBiomarkers(
-    !shouldUseRealData && formId ? formId : ''
+    !shouldUseRealData && reportId ? reportId : ''
   );
   
   // Determine which data to use
@@ -40,7 +40,7 @@ export const RecentBiomarkers: React.FC<RecentBiomarkersProps> = ({
     biomarkers = realBiomarkers;
     isLoading = realLoading;
     error = realError;
-  } else if (formId) {
+  } else if (reportId) {
     biomarkers = reportBiomarkers;
     isLoading = reportLoading;
     error = reportError;

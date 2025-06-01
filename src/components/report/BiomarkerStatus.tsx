@@ -1,21 +1,20 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { useReportBiomarkers } from '../../hooks/useReportBiomarkers';
 import { useRealBiomarkers } from '../../hooks/useRealBiomarkers';
 
 interface BiomarkerStatusProps {
-  formId?: string;
+  reportId?: string; // Cambiar de formId a reportId
   summary?: {
     optimal: number;
     caution: number;
     outOfRange: number;
   };
-  patientId?: string; // Add patientId for real data
+  patientId?: string;
 }
 
 export const BiomarkerStatus: React.FC<BiomarkerStatusProps> = ({ 
-  formId, 
+  reportId, 
   summary: mockSummary,
   patientId 
 }) => {
@@ -27,7 +26,7 @@ export const BiomarkerStatus: React.FC<BiomarkerStatusProps> = ({
   );
   
   const { data: reportBiomarkers, isLoading: reportLoading } = useReportBiomarkers(
-    !shouldUseRealData && formId ? formId : ''
+    !shouldUseRealData && reportId ? reportId : ''
   );
   
   // Determine which data to use
