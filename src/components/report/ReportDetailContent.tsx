@@ -41,7 +41,7 @@ export const ReportDetailContent: React.FC<ReportDetailContentProps> = ({
   return (
     <div className="space-y-6">
       <ReportHeader />
-      <ReportTabs report={report} patientId={report.patient?.id} />
+      <ReportTabs report={report} />
     </div>
   );
 };
