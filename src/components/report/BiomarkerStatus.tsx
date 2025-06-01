@@ -18,17 +18,22 @@ export const BiomarkerStatus: React.FC<BiomarkerStatusProps> = ({
 }) => {
   const { data: biomarkers, isLoading } = useReportBiomarkers(reportId);
   
+  console.log('BiomarkerStatus: biomarkers data:', biomarkers);
+  
   // Calculate summary from biomarkers or use mock data
   const summary = React.useMemo(() => {
-    if (biomarkers) {
-      return biomarkers.reduce(
+    if (biomarkers && biomarkers.length > 0) {
+      const calculated = biomarkers.reduce(
         (acc, biomarker) => {
           acc[biomarker.status]++;
           return acc;
         },
         { optimal: 0, caution: 0, outOfRange: 0 }
       );
+      console.log('BiomarkerStatus: calculated summary:', calculated);
+      return calculated;
     }
+    console.log('BiomarkerStatus: using mock summary:', mockSummary);
     return mockSummary || { optimal: 0, caution: 0, outOfRange: 0 };
   }, [biomarkers, mockSummary]);
 
@@ -53,7 +58,13 @@ export const BiomarkerStatus: React.FC<BiomarkerStatusProps> = ({
   return (
     <Card>
       <CardHeader className="pb-2">
-        <CardTitle className="text-lg text-healz-brown">Estado de Biomarcadores</CardTitle>
+        <CardTitle className="text-lg text-healz-brown">
+          Estado de Biomarcadores
+          {/* Debugging info */}
+          <span className="text-sm font-normal text-healz-brown/50 ml-2">
+            (Total: {total})
+          </span>
+        </CardTitle>
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-3 gap-3">
