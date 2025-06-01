@@ -6,12 +6,12 @@ export interface Biomarker {
   valueWithUnit: string;
   status: 'optimal' | 'caution' | 'outOfRange';
   collectedAgo: string;
-  // New fields for integration with Supabase
-  rawValue: number | string;
+  // Fix: Make rawValue consistently number since we parse it
+  rawValue: number;
   unit: string;
   biomarkerData?: BiomarkerRow;
   collectedAt: string;
-  notes?: string; // Add notes as optional property
+  notes?: string;
 }
 
 export interface BiomarkerInfoData {

@@ -135,6 +135,13 @@ function transformBiomarkersData(biomarkersData: any[]): Biomarker[] {
         return null;
       }
       
+      // Asegurar que value es un número
+      const numericValue = typeof record.value === 'string' ? parseFloat(record.value) : record.value;
+      if (isNaN(numericValue)) {
+        console.warn(`transformBiomarkersData: Invalid numeric value for record ${index}:`, record.value);
+        return null;
+      }
+      
       // Determinar el estado del biomarcador
       let status: 'optimal' | 'caution' | 'outOfRange' = 'optimal';
       
@@ -142,22 +149,21 @@ function transformBiomarkersData(biomarkersData: any[]): Biomarker[] {
         status = 'outOfRange';
       } else {
         // Verificar si está fuera del rango óptimo
-        const value = parseFloat(record.value);
         const optimalMin = biomarkerInfo.optimal_min;
         const optimalMax = biomarkerInfo.optimal_max;
         
-        if ((optimalMin !== null && value < optimalMin) || 
-            (optimalMax !== null && value > optimalMax)) {
+        if ((optimalMin !== null && numericValue < optimalMin) || 
+            (optimalMax !== null && numericValue > optimalMax)) {
           status = 'caution';
         }
       }
 
-      const result = {
+      const result: Biomarker = {
         name: biomarkerInfo.name || 'Unknown Biomarker',
         valueWithUnit: `${record.value} ${biomarkerInfo.unit || ''}`,
         status,
         collectedAgo: new Date(record.date).toLocaleDateString('es-ES'),
-        rawValue: parseFloat(record.value),
+        rawValue: numericValue, // Now consistently a number
         unit: biomarkerInfo.unit || '',
         biomarkerData: biomarkerInfo,
         collectedAt: record.date,
