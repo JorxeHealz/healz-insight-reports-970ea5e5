@@ -944,6 +944,34 @@ export type Database = {
           creator_name: string
         }[]
       }
+      get_report_biomarkers: {
+        Args: { p_report_id: string }
+        Returns: {
+          id: string
+          patient_id: string
+          biomarker_id: string
+          value: number
+          date: string
+          is_out_of_range: boolean
+          trend: Database["public"]["Enums"]["trend"]
+          notes: string
+          created_at: string
+          created_by: string
+          form_id: string
+          report_id: string
+          biomarker_name: string
+          unit: string
+          description: string
+          category: string
+          panel: string
+          conventional_min: number
+          conventional_max: number
+          optimal_min: number
+          optimal_max: number
+          biomarker_created_at: string
+          biomarker_updated_at: string
+        }[]
+      }
       is_admin_or_coach: {
         Args: { user_uuid: string }
         Returns: boolean

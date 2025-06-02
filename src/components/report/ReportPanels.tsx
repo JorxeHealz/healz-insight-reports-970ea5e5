@@ -3,124 +3,98 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../ui/accordion';
 import { Badge } from '../ui/badge';
 import { BiomarkerStatus } from './BiomarkerStatus';
+import { useReportBiomarkers } from '../../hooks/useReportBiomarkers';
 
 type ReportPanelsProps = {
   report: any; // Idealmente crear un tipo adecuado
 };
 
 export const ReportPanels: React.FC<ReportPanelsProps> = ({ report }) => {
-  // Función para calcular estadísticas de biomarcadores por panel
-  const calculatePanelStats = (panelBiomarkers: string[]) => {
-    const totalBiomarkers = panelBiomarkers.length;
-    let measuredCount = 0;
+  // Use the hook to get real biomarkers data for this report
+  const { data: reportBiomarkers, isLoading, error } = useReportBiomarkers(report.id);
+
+  // Function to group biomarkers by panel
+  const groupBiomarkersByPanel = () => {
+    if (!reportBiomarkers) return {};
+    
+    const grouped = reportBiomarkers.reduce((acc, biomarker) => {
+      const panel = biomarker.biomarkerData?.panel || 'Sin Panel';
+      if (!acc[panel]) {
+        acc[panel] = [];
+      }
+      acc[panel].push(biomarker);
+      return acc;
+    }, {} as Record<string, typeof reportBiomarkers>);
+    
+    return grouped;
+  };
+
+  // Function to calculate panel statistics
+  const calculatePanelStats = (biomarkers: typeof reportBiomarkers) => {
+    const totalBiomarkers = biomarkers.length;
     let outOfRangeCount = 0;
     let cautionCount = 0;
 
-    panelBiomarkers.forEach(biomarker => {
-      const biomarkerData = report.recentBiomarkers?.find(
-        b => b.name === biomarker || b.name.includes(biomarker.split(' ')[0])
-      );
-      
-      if (biomarkerData) {
-        measuredCount++;
-        if (biomarkerData.status === 'outOfRange') {
-          outOfRangeCount++;
-        } else if (biomarkerData.status === 'caution') {
-          cautionCount++;
-        }
+    biomarkers.forEach(biomarker => {
+      if (biomarker.status === 'outOfRange') {
+        outOfRangeCount++;
+      } else if (biomarker.status === 'caution') {
+        cautionCount++;
       }
     });
 
     return {
       total: totalBiomarkers,
-      measured: measuredCount,
+      measured: totalBiomarkers,
       outOfRange: outOfRangeCount,
       caution: cautionCount,
       alerts: outOfRangeCount + cautionCount
     };
   };
 
-  // Definición de los 13 paneles específicos de biomarcadores
-  const biomarkerPanels = [
-    {
-      id: 'cardiovascular',
-      name: 'Salud Cardiovascular',
-      description: 'Vigilar tu perfil lipídico, inflamación vascular y riesgo de aterosclerosis antes de que aparezcan síntomas.',
-      biomarkers: ['Apolipoproteína B (Apo B)', 'Colesterol total', 'Colesterol HDL', 'Relación Colesterol/HDL', 'Colesterol no-HDL', 'LDL-C', 'Número de partículas LDL', 'HDL large', 'Triglicéridos', 'Lipoproteína (a)', 'Proteína C reactiva ultrasensible (hs-CRP)', 'Homocisteína']
-    },
-    {
-      id: 'metabolismo',
-      name: 'Metabolismo y Resistencia a la Insulina',
-      description: 'Detectar disglucemias, síndrome metabólico y señales tempranas de diabetes para ajustar dieta y ejercicio.',
-      biomarkers: ['Glucosa en ayunas', 'Hemoglobina A1c', 'Insulina (con cálculo HOMA-IR)', 'Leptina', 'Ácido úrico', 'Triglicéridos', 'ALT', 'AST', 'ALP']
-    },
-    {
-      id: 'hormonas-femeninas',
-      name: 'Hormonas Femeninas',
-      description: 'Optimizar fertilidad, regular el ciclo y mantener energía y estado de ánimo mediante el equilibrio endocrino.',
-      biomarkers: ['FSH', 'LH', 'Estradiol', 'Testosterona libre y total', 'SHBG', 'Prolactina', 'DHEA-S', 'Hormona anti-Mülleriana (AMH)']
-    },
-    {
-      id: 'hormonas-masculinas',
-      name: 'Hormonas Masculinas',
-      description: 'Potenciar masa muscular, líbido y salud prostática asegurando niveles hormonales óptimos y estables.',
-      biomarkers: ['Testosterona libre y total', 'SHBG', 'LH', 'FSH', 'Estradiol', 'Prolactina', 'DHEA-S', 'PSA total', 'PSA libre y % libre']
-    },
-    {
-      id: 'tiroides',
-      name: 'Función Tiroidea',
-      description: 'Controlar el termostato metabólico del cuerpo, clave en peso, temperatura, concentración y vitalidad.',
-      biomarkers: ['TSH', 'T4 libre', 'T3 libre', 'Anticuerpos antitiroglobulina', 'Anticuerpos antiperoxidasa tiroidea']
-    },
-    {
-      id: 'inflamacion',
-      name: 'Inflamación e Inmunidad',
-      description: 'Identificar inflamación crónica silenciosa y la capacidad del sistema inmune para prevenir enfermedades.',
-      biomarkers: ['Recuento leucocitario total', 'Neutrófilos', 'Linfocitos', 'Monocitos', 'Eosinófilos', 'Basófilos', 'hs-CRP', 'Proteína total', 'Cociente Albúmina/Globulina']
-    },
-    {
-      id: 'higado',
-      name: 'Hígado',
-      description: 'Monitorizar la detoxificación, el metabolismo hormonal y la producción de proteínas esenciales.',
-      biomarkers: ['ALT', 'AST', 'ALP', 'GGT', 'Bilirrubina total', 'Albúmina', 'Globulina', 'Relación A/G', 'Proteínas totales']
-    },
-    {
-      id: 'rinon',
-      name: 'Riñón y Electrolitos',
-      description: 'Comprobar la filtración glomerular y el equilibrio de sales que influyen en tensión arterial y rendimiento.',
-      biomarkers: ['Creatinina', 'BUN', 'Cociente BUN/Creatinina', 'eGFR', 'Sodio', 'Potasio', 'Cloruro', 'CO₂ (bicarbonato)', 'Calcio sérico']
-    },
-    {
-      id: 'hematologia',
-      name: 'Hematología Completa',
-      description: 'Evaluar la capacidad de oxigenación, detectar anemias y medir la calidad de la sangre para el rendimiento.',
-      biomarkers: ['Hematocrito', 'Hemoglobina', 'Recuento eritrocitario (RBC)', 'MCV', 'MCH', 'MCHC', 'RDW', 'Plaquetas', 'MPV', 'Grupo sanguíneo ABO/Rh']
-    },
-    {
-      id: 'nutrientes',
-      name: 'Nutrientes Esenciales',
-      description: 'Revelar carencias de vitaminas, minerales y ácidos grasos que afectan energía, inmunidad y reparación tisular.',
-      biomarkers: ['Ferritina', 'Hierro', 'Capacidad fijadora total de hierro (TIBC)', '% saturación de hierro', 'Vitamina D', 'Magnesio', 'Zinc', 'Homocisteína', 'Omega-3 total', 'Cociente Ω-6/Ω-3', 'Cociente Ácido araquidónico/EPA', 'Ácido metilmalónico', 'Calcio']
-    },
-    {
-      id: 'estres',
-      name: 'Estrés y Edad Biológica',
-      description: 'Cuantificar el impacto del estrés crónico y estimar tu "edad interna" para enfocar estrategias antienvejecimiento.',
-      biomarkers: ['Cortisol', 'DHEA-S', 'Índice de Edad Biológica (algoritmo multi-marcador)']
-    },
-    {
-      id: 'urianalisis',
-      name: 'Urianálisis',
-      description: 'Reflejar la salud renal, el equilibrio metabólico y posibles infecciones del tracto urinario de forma rápida.',
-      biomarkers: ['Proteína', 'Glucosa', 'Cetonas', 'Sangre oculta', 'Leucocitos', 'Nitritos', 'Bilirrubina', 'pH', 'Densidad específica', 'Apariencia/Color', 'Albúmina-orina', 'Eritrocitos-orina (RBC)', 'Leucocitos-orina (WBC)', 'Cilindros granulosos']
-    },
-    {
-      id: 'metales',
-      name: 'Metales Pesados',
-      description: 'Detectar exposición tóxica a plomo y mercurio que puede dañar cerebro, riñón y sistema inmune a largo plazo.',
-      biomarkers: ['Plomo', 'Mercurio']
-    }
-  ];
+  // Panel descriptions (keeping the good descriptions from the original)
+  const panelDescriptions: Record<string, string> = {
+    'Cardiovascular': 'Vigilar tu perfil lipídico, inflamación vascular y riesgo de aterosclerosis antes de que aparezcan síntomas.',
+    'Metabolic': 'Detectar disglucemias, síndrome metabólico y señales tempranas de diabetes para ajustar dieta y ejercicio.',
+    'Hormones Female': 'Optimizar fertilidad, regular el ciclo y mantener energía y estado de ánimo mediante el equilibrio endocrino.',
+    'Hormones Male': 'Potenciar masa muscular, líbido y salud prostática asegurando niveles hormonales óptimos y estables.',
+    'Thyroid': 'Controlar el termostato metabólico del cuerpo, clave en peso, temperatura, concentración y vitalidad.',
+    'Inflammation': 'Identificar inflamación crónica silenciosa y la capacidad del sistema inmune para prevenir enfermedades.',
+    'Liver': 'Monitorizar la detoxificación, el metabolismo hormonal y la producción de proteínas esenciales.',
+    'Kidney': 'Comprobar la filtración glomerular y el equilibrio de sales que influyen en tensión arterial y rendimiento.',
+    'Blood': 'Evaluar la capacidad de oxigenación, detectar anemias y medir la calidad de la sangre para el rendimiento.',
+    'Nutrients': 'Revelar carencias de vitaminas, minerales y ácidos grasos que afectan energía, inmunidad y reparación tisular.',
+    'Stress': 'Cuantificar el impacto del estrés crónico y estimar tu "edad interna" para enfocar estrategias antienvejecimiento.',
+    'Urine': 'Reflejar la salud renal, el equilibrio metabólico y posibles infecciones del tracto urinario de forma rápida.',
+    'Heavy Metals': 'Detectar exposición tóxica a plomo y mercurio que puede dañar cerebro, riñón y sistema inmune a largo plazo.'
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-48">
+        <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-healz-brown border-r-transparent"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-healz-red/10 text-healz-red p-4 rounded-md">
+        Error al cargar los biomarcadores: {error.message}
+      </div>
+    );
+  }
+
+  const groupedBiomarkers = groupBiomarkersByPanel();
+  const panelEntries = Object.entries(groupedBiomarkers);
+
+  if (panelEntries.length === 0) {
+    return (
+      <div className="text-center py-8 text-healz-brown/70">
+        No se encontraron biomarcadores para este reporte.
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -134,20 +108,21 @@ export const ReportPanels: React.FC<ReportPanelsProps> = ({ report }) => {
           </p>
           
           <Accordion type="single" collapsible className="w-full">
-            {biomarkerPanels.map(panel => {
-              const stats = calculatePanelStats(panel.biomarkers);
+            {panelEntries.map(([panelName, biomarkers]) => {
+              const stats = calculatePanelStats(biomarkers);
+              const description = panelDescriptions[panelName] || 'Panel de biomarcadores especializados para el análisis de salud.';
               
               return (
-                <AccordionItem key={panel.id} value={panel.id}>
+                <AccordionItem key={panelName} value={panelName}>
                   <AccordionTrigger className="hover:text-healz-brown text-healz-brown">
                     <div className="flex items-center justify-between w-full mr-4">
-                      <span className="text-left">{panel.name}</span>
+                      <span className="text-left">{panelName}</span>
                       <div className="flex items-center gap-2 flex-shrink-0">
                         <Badge 
                           variant="outline" 
                           className="text-xs bg-healz-teal/10 text-healz-teal border-healz-teal/30 hover:bg-healz-teal/20 rounded-md px-3 py-1"
                         >
-                          {stats.measured}/{stats.total} medidos
+                          {stats.measured} medidos
                         </Badge>
                         {stats.alerts > 0 && (
                           <Badge 
@@ -162,36 +137,25 @@ export const ReportPanels: React.FC<ReportPanelsProps> = ({ report }) => {
                   </AccordionTrigger>
                   <AccordionContent>
                     <div className="p-2 text-sm">
-                      <p className="mb-4 text-healz-brown/70 text-xs leading-relaxed">{panel.description}</p>
+                      <p className="mb-4 text-healz-brown/70 text-xs leading-relaxed">{description}</p>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                        {panel.biomarkers.map(biomarker => {
-                          // Buscar si existe este biomarcador en el reporte actual
-                          const biomarkerData = report.recentBiomarkers?.find(
-                            b => b.name === biomarker || b.name.includes(biomarker.split(' ')[0])
-                          );
-                          
-                          return (
-                            <div key={biomarker} className="flex justify-between items-center border-b pb-1 border-healz-brown/10">
-                              <span className="text-xs">{biomarker}</span>
-                              {biomarkerData ? (
-                                <div className="flex items-center gap-2">
-                                  <span className="font-medium text-xs">{biomarkerData.valueWithUnit}</span>
-                                  <span className={`px-1.5 py-0.5 text-xs rounded ${
-                                    biomarkerData.status === 'optimal' ? 'bg-healz-green/20 text-healz-green' :
-                                    biomarkerData.status === 'caution' ? 'bg-healz-yellow/20 text-healz-orange' :
-                                    'bg-healz-red/20 text-healz-red'
-                                  }`}>
-                                    {biomarkerData.status === 'optimal' ? 'Óptimo' :
-                                     biomarkerData.status === 'caution' ? 'Precaución' :
-                                     'Fuera de rango'}
-                                  </span>
-                                </div>
-                              ) : (
-                                <span className="text-healz-brown/40 text-xs">No medido</span>
-                              )}
+                        {biomarkers.map(biomarker => (
+                          <div key={biomarker.biomarkerData?.id} className="flex justify-between items-center border-b pb-1 border-healz-brown/10">
+                            <span className="text-xs">{biomarker.name}</span>
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium text-xs">{biomarker.valueWithUnit}</span>
+                              <span className={`px-1.5 py-0.5 text-xs rounded ${
+                                biomarker.status === 'optimal' ? 'bg-healz-green/20 text-healz-green' :
+                                biomarker.status === 'caution' ? 'bg-healz-yellow/20 text-healz-orange' :
+                                'bg-healz-red/20 text-healz-red'
+                              }`}>
+                                {biomarker.status === 'optimal' ? 'Óptimo' :
+                                 biomarker.status === 'caution' ? 'Precaución' :
+                                 'Fuera de rango'}
+                              </span>
                             </div>
-                          );
-                        })}
+                          </div>
+                        ))}
                       </div>
                     </div>
                   </AccordionContent>
