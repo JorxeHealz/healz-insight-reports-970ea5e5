@@ -14,8 +14,8 @@ export const useReportBiomarkers = (reportId: string | undefined) => {
 
       console.log('useReportBiomarkers: Fetching biomarkers for report:', reportId);
 
-      // Consulta directa usando JOIN explícito con "Panel" correctamente entrecomillado
-      const { data: biomarkersData, error } = await supabase
+      // Step 1: Get patient biomarkers data
+      const { data: patientBiomarkers, error: biomarkerError } = await supabase
         .from('patient_biomarkers')
         .select(`
           id,
@@ -24,35 +24,71 @@ export const useReportBiomarkers = (reportId: string | undefined) => {
           value,
           date,
           is_out_of_range,
-          notes,
-          biomarkers!inner (
-            id,
-            name,
-            unit,
-            description,
-            category,
-            "Panel",
-            conventional_min,
-            conventional_max,
-            optimal_min,
-            optimal_max
-          )
+          notes
         `)
         .eq('report_id', reportId)
         .order('date', { ascending: false });
 
-      console.log('useReportBiomarkers: Query result:', {
-        data: biomarkersData,
-        error,
-        count: biomarkersData?.length || 0
+      console.log('useReportBiomarkers: Patient biomarkers result:', {
+        data: patientBiomarkers,
+        error: biomarkerError,
+        count: patientBiomarkers?.length || 0
       });
 
-      if (error) {
-        console.error('useReportBiomarkers: Error fetching biomarkers:', error);
-        throw error;
+      if (biomarkerError) {
+        console.error('useReportBiomarkers: Error fetching patient biomarkers:', biomarkerError);
+        throw biomarkerError;
       }
 
-      return transformBiomarkersData(biomarkersData || []);
+      if (!patientBiomarkers || patientBiomarkers.length === 0) {
+        console.log('useReportBiomarkers: No patient biomarkers found for report_id');
+        return [];
+      }
+
+      // Step 2: Get biomarker definitions
+      const biomarkerIds = patientBiomarkers.map(pb => pb.biomarker_id);
+      const { data: biomarkerDefinitions, error: definitionsError } = await supabase
+        .from('biomarkers')
+        .select(`
+          id,
+          name,
+          unit,
+          description,
+          category,
+          "Panel",
+          conventional_min,
+          conventional_max,
+          optimal_min,
+          optimal_max
+        `)
+        .in('id', biomarkerIds);
+
+      console.log('useReportBiomarkers: Biomarker definitions result:', {
+        data: biomarkerDefinitions,
+        error: definitionsError,
+        count: biomarkerDefinitions?.length || 0
+      });
+
+      if (definitionsError) {
+        console.error('useReportBiomarkers: Error fetching biomarker definitions:', definitionsError);
+        throw definitionsError;
+      }
+
+      // Step 3: Combine the data
+      const combinedData = patientBiomarkers.map(pb => {
+        const biomarkerInfo = biomarkerDefinitions?.find(bd => bd.id === pb.biomarker_id);
+        return {
+          ...pb,
+          biomarkers: biomarkerInfo
+        };
+      });
+
+      console.log('useReportBiomarkers: Combined data:', {
+        count: combinedData.length,
+        sample: combinedData[0]
+      });
+
+      return transformBiomarkersData(combinedData);
     },
     enabled: !!reportId
   });
