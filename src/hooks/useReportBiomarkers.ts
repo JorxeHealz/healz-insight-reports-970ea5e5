@@ -2,6 +2,9 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import { Biomarker } from '../components/report/biomarkers/types';
+import { evaluateBiomarkerStatus, formatBiomarkerValue } from '../utils/biomarkerEvaluation';
+import { formatDistanceToNow } from 'date-fns';
+import { es } from 'date-fns/locale';
 
 export const useReportBiomarkers = (reportId: string | undefined) => {
   return useQuery({
@@ -14,89 +17,90 @@ export const useReportBiomarkers = (reportId: string | undefined) => {
 
       console.log('useReportBiomarkers: Fetching biomarkers for report:', reportId);
 
-      // Consulta simple y directa con JOIN
-      const { data, error } = await supabase
+      // Primera consulta: obtener patient_biomarkers con report_id
+      const { data: patientBiomarkers, error: biomarkersError } = await supabase
         .from('patient_biomarkers')
-        .select(`
-          id,
-          patient_id,
-          biomarker_id,
-          value,
-          date,
-          is_out_of_range,
-          notes,
-          biomarkers (
-            id,
-            name,
-            unit,
-            description,
-            category,
-            panel,
-            conventional_min,
-            conventional_max,
-            optimal_min,
-            optimal_max
-          )
-        `)
+        .select('*')
         .eq('report_id', reportId)
         .order('date', { ascending: false });
 
-      console.log('useReportBiomarkers: Query result:', {
-        data,
-        error,
-        count: data?.length || 0
+      console.log('useReportBiomarkers: Patient biomarkers query result:', {
+        data: patientBiomarkers,
+        error: biomarkersError,
+        count: patientBiomarkers?.length || 0
       });
 
-      if (error) {
-        console.error('useReportBiomarkers: Error:', error);
-        throw error;
+      if (biomarkersError) {
+        console.error('useReportBiomarkers: Error fetching patient biomarkers:', biomarkersError);
+        throw biomarkersError;
       }
 
-      if (!data || data.length === 0) {
-        console.log('useReportBiomarkers: No biomarkers found');
+      if (!patientBiomarkers || patientBiomarkers.length === 0) {
+        console.log('useReportBiomarkers: No patient biomarkers found');
         return [];
       }
 
-      return transformBiomarkersData(data);
+      // Segunda consulta: obtener información de biomarkers
+      const biomarkerIds = [...new Set(patientBiomarkers.map(pb => pb.biomarker_id))];
+      const { data: biomarkersData, error: biomarkersDataError } = await supabase
+        .from('biomarkers')
+        .select('*')
+        .in('id', biomarkerIds);
+
+      console.log('useReportBiomarkers: Biomarkers data query result:', {
+        data: biomarkersData,
+        error: biomarkersDataError,
+        count: biomarkersData?.length || 0
+      });
+
+      if (biomarkersDataError) {
+        console.error('useReportBiomarkers: Error fetching biomarkers data:', biomarkersDataError);
+        throw biomarkersDataError;
+      }
+
+      if (!biomarkersData) {
+        console.log('useReportBiomarkers: No biomarkers data found');
+        return [];
+      }
+
+      // Combinar los datos manualmente
+      const transformedBiomarkers: Biomarker[] = patientBiomarkers.map(pb => {
+        const biomarkerInfo = biomarkersData.find(b => b.id === pb.biomarker_id);
+        
+        if (!biomarkerInfo) {
+          console.warn('useReportBiomarkers: No biomarker info found for ID:', pb.biomarker_id);
+          return null;
+        }
+
+        const numericValue = typeof pb.value === 'string' ? parseFloat(pb.value) : pb.value;
+        
+        // Determinar el estado del biomarcador usando la utilidad existente
+        const evaluation = evaluateBiomarkerStatus(numericValue, biomarkerInfo);
+        const valueWithUnit = formatBiomarkerValue(numericValue, biomarkerInfo.unit);
+        const collectedAgo = formatDistanceToNow(new Date(pb.date), { 
+          addSuffix: false,
+          locale: es 
+        });
+
+        const result: Biomarker = {
+          name: biomarkerInfo.name,
+          valueWithUnit,
+          status: evaluation.status,
+          collectedAgo,
+          rawValue: numericValue,
+          unit: biomarkerInfo.unit || '',
+          biomarkerData: biomarkerInfo,
+          collectedAt: pb.date,
+          notes: pb.notes
+        };
+        
+        console.log('useReportBiomarkers: Transformed biomarker:', result);
+        return result;
+      }).filter(Boolean) as Biomarker[];
+
+      console.log('useReportBiomarkers: Final transformed biomarkers:', transformedBiomarkers.length);
+      return transformedBiomarkers;
     },
     enabled: !!reportId
   });
 };
-
-// Función simplificada para transformar los datos
-function transformBiomarkersData(biomarkersData: any[]): Biomarker[] {
-  console.log('transformBiomarkersData: Processing', biomarkersData.length, 'records');
-  
-  return biomarkersData
-    .filter(record => record.biomarkers) // Solo procesar registros con datos del biomarcador
-    .map(record => {
-      const biomarkerInfo = record.biomarkers;
-      const numericValue = typeof record.value === 'string' ? parseFloat(record.value) : record.value;
-      
-      // Determinar el estado del biomarcador
-      let status: 'optimal' | 'caution' | 'outOfRange' = 'optimal';
-      
-      if (record.is_out_of_range) {
-        status = 'outOfRange';
-      } else if (
-        (biomarkerInfo.optimal_min !== null && numericValue < biomarkerInfo.optimal_min) ||
-        (biomarkerInfo.optimal_max !== null && numericValue > biomarkerInfo.optimal_max)
-      ) {
-        status = 'caution';
-      }
-
-      const result: Biomarker = {
-        name: biomarkerInfo.name,
-        valueWithUnit: `${record.value} ${biomarkerInfo.unit || ''}`,
-        status,
-        collectedAgo: new Date(record.date).toLocaleDateString('es-ES'),
-        rawValue: numericValue,
-        unit: biomarkerInfo.unit || '',
-        biomarkerData: biomarkerInfo,
-        collectedAt: record.date,
-        notes: record.notes
-      };
-      
-      return result;
-    });
-}
