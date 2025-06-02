@@ -58,7 +58,7 @@ export type Database = {
           name: string
           optimal_max: number
           optimal_min: number
-          Panel: string | null
+          panel: string | null
           unit: string
           updated_at: string
         }
@@ -72,7 +72,7 @@ export type Database = {
           name: string
           optimal_max?: number
           optimal_min?: number
-          Panel?: string | null
+          panel?: string | null
           unit: string
           updated_at?: string
         }
@@ -86,7 +86,7 @@ export type Database = {
           name?: string
           optimal_max?: number
           optimal_min?: number
-          Panel?: string | null
+          panel?: string | null
           unit?: string
           updated_at?: string
         }

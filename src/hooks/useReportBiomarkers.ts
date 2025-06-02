@@ -31,7 +31,7 @@ export const useReportBiomarkers = (reportId: string | undefined) => {
             unit,
             description,
             category,
-            Panel,
+            panel,
             conventional_min,
             conventional_max,
             optimal_min,
