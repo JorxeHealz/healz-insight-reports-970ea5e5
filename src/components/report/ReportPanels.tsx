@@ -14,7 +14,7 @@ export const ReportPanels: React.FC<ReportPanelsProps> = ({ report }) => {
   // Use the hook to get real biomarkers data for this report
   const { data: reportBiomarkers, isLoading, error } = useReportBiomarkers(report.id);
 
-  // Panel definitions with static biomarker lists (original functionality)
+  // Panel definitions with static biomarker lists (restored original functionality)
   const panelDefinitions = {
     'Salud Cardiovascular': {
       biomarkers: [
@@ -345,7 +345,7 @@ export const ReportPanels: React.FC<ReportPanelsProps> = ({ report }) => {
       </Card>
       
       <div className="bg-healz-cream/50 border border-healz-brown/10 p-4 rounded-lg">
-        <BiomarkerStatus summary={report.biomarkerSummary} />
+        <BiomarkerStatus reportId={report.id} />
       </div>
     </div>
   );
