@@ -17,47 +17,50 @@ export const useReportBiomarkers = (reportId: string | undefined) => {
 
       console.log('useReportBiomarkers: Fetching biomarkers for report:', reportId);
 
-      // Single query with JOIN to get both patient_biomarkers and biomarkers data
-      const { data: patientBiomarkers, error: biomarkersError } = await supabase
-        .from('patient_biomarkers')
-        .select(`
-          *,
-          biomarkers (*)
-        `)
-        .eq('report_id', reportId)
-        .order('date', { ascending: false });
+      // Use RPC function to execute the SQL query that we know works
+      const { data: rawData, error: biomarkersError } = await supabase
+        .rpc('get_report_biomarkers', { p_report_id: reportId });
 
-      console.log('useReportBiomarkers: Patient biomarkers with JOIN query result:', {
-        data: patientBiomarkers,
+      console.log('useReportBiomarkers: RPC query result:', {
+        data: rawData,
         error: biomarkersError,
-        count: patientBiomarkers?.length || 0
+        count: rawData?.length || 0
       });
 
       if (biomarkersError) {
-        console.error('useReportBiomarkers: Error fetching patient biomarkers with JOIN:', biomarkersError);
+        console.error('useReportBiomarkers: Error fetching biomarkers with RPC:', biomarkersError);
         throw biomarkersError;
       }
 
-      if (!patientBiomarkers || patientBiomarkers.length === 0) {
-        console.log('useReportBiomarkers: No patient biomarkers found');
+      if (!rawData || rawData.length === 0) {
+        console.log('useReportBiomarkers: No biomarkers found via RPC');
         return [];
       }
 
-      // Transform the data now that we have both patient_biomarkers and biomarkers in one query
-      const transformedBiomarkers: Biomarker[] = patientBiomarkers.map(pb => {
-        const biomarkerInfo = pb.biomarkers;
+      // Transform the RPC result into Biomarker format
+      const transformedBiomarkers: Biomarker[] = rawData.map((row: any) => {
+        const numericValue = typeof row.value === 'string' ? parseFloat(row.value) : row.value;
         
-        if (!biomarkerInfo) {
-          console.warn('useReportBiomarkers: No biomarker info found for patient biomarker:', pb.id);
-          return null;
-        }
-
-        const numericValue = typeof pb.value === 'string' ? parseFloat(pb.value) : pb.value;
+        // Create biomarker info object from the flat row data
+        const biomarkerInfo = {
+          id: row.biomarker_id,
+          name: row.biomarker_name,
+          unit: row.unit,
+          description: row.description,
+          category: row.category,
+          panel: row.panel,
+          conventional_min: row.conventional_min,
+          conventional_max: row.conventional_max,
+          optimal_min: row.optimal_min,
+          optimal_max: row.optimal_max,
+          created_at: row.biomarker_created_at,
+          updated_at: row.biomarker_updated_at
+        };
         
         // Determinar el estado del biomarcador usando la utilidad existente
         const evaluation = evaluateBiomarkerStatus(numericValue, biomarkerInfo);
         const valueWithUnit = formatBiomarkerValue(numericValue, biomarkerInfo.unit);
-        const collectedAgo = formatDistanceToNow(new Date(pb.date), { 
+        const collectedAgo = formatDistanceToNow(new Date(row.date), { 
           addSuffix: false,
           locale: es 
         });
@@ -70,13 +73,13 @@ export const useReportBiomarkers = (reportId: string | undefined) => {
           rawValue: numericValue,
           unit: biomarkerInfo.unit || '',
           biomarkerData: biomarkerInfo,
-          collectedAt: pb.date,
-          notes: pb.notes
+          collectedAt: row.date,
+          notes: row.notes
         };
         
         console.log('useReportBiomarkers: Transformed biomarker:', result);
         return result;
-      }).filter(Boolean) as Biomarker[];
+      });
 
       console.log('useReportBiomarkers: Final transformed biomarkers:', transformedBiomarkers.length);
       return transformedBiomarkers;
