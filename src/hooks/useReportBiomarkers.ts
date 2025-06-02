@@ -14,7 +14,7 @@ export const useReportBiomarkers = (reportId: string | undefined) => {
 
       console.log('useReportBiomarkers: Fetching biomarkers for report:', reportId);
 
-      // Consulta directa usando JOIN explícito
+      // Consulta directa usando JOIN explícito con "Panel" correctamente entrecomillado
       const { data: biomarkersData, error } = await supabase
         .from('patient_biomarkers')
         .select(`
@@ -31,7 +31,7 @@ export const useReportBiomarkers = (reportId: string | undefined) => {
             unit,
             description,
             category,
-            Panel,
+            "Panel",
             conventional_min,
             conventional_max,
             optimal_min,
@@ -41,7 +41,7 @@ export const useReportBiomarkers = (reportId: string | undefined) => {
         .eq('report_id', reportId)
         .order('date', { ascending: false });
 
-      console.log('useReportBiomarkers: Direct query result:', {
+      console.log('useReportBiomarkers: Query result:', {
         data: biomarkersData,
         error,
         count: biomarkersData?.length || 0
@@ -50,63 +50,6 @@ export const useReportBiomarkers = (reportId: string | undefined) => {
       if (error) {
         console.error('useReportBiomarkers: Error fetching biomarkers:', error);
         throw error;
-      }
-
-      // Si no hay biomarcadores con report_id, intentar fallback con form_id
-      if (!biomarkersData || biomarkersData.length === 0) {
-        console.log('useReportBiomarkers: No biomarkers found with report_id, trying fallback...');
-        
-        // Obtener form_id del report
-        const { data: reportData, error: reportError } = await supabase
-          .from('reports')
-          .select('form_id')
-          .eq('id', reportId)
-          .single();
-
-        if (reportError || !reportData?.form_id) {
-          console.log('useReportBiomarkers: No form_id found or error:', reportError);
-          return [];
-        }
-
-        // Consulta fallback usando form_id
-        const { data: fallbackData, error: fallbackError } = await supabase
-          .from('patient_biomarkers')
-          .select(`
-            id,
-            patient_id,
-            biomarker_id,
-            value,
-            date,
-            is_out_of_range,
-            notes,
-            biomarkers!inner (
-              id,
-              name,
-              unit,
-              description,
-              category,
-              Panel,
-              conventional_min,
-              conventional_max,
-              optimal_min,
-              optimal_max
-            )
-          `)
-          .eq('form_id', reportData.form_id)
-          .order('date', { ascending: false });
-
-        console.log('useReportBiomarkers: Fallback query result:', {
-          data: fallbackData,
-          error: fallbackError,
-          count: fallbackData?.length || 0
-        });
-
-        if (fallbackError) {
-          console.error('useReportBiomarkers: Fallback error:', fallbackError);
-          throw fallbackError;
-        }
-
-        return transformBiomarkersData(fallbackData || []);
       }
 
       return transformBiomarkersData(biomarkersData || []);
@@ -163,7 +106,7 @@ function transformBiomarkersData(biomarkersData: any[]): Biomarker[] {
         valueWithUnit: `${record.value} ${biomarkerInfo.unit || ''}`,
         status,
         collectedAgo: new Date(record.date).toLocaleDateString('es-ES'),
-        rawValue: numericValue, // Now consistently a number
+        rawValue: numericValue,
         unit: biomarkerInfo.unit || '',
         biomarkerData: biomarkerInfo,
         collectedAt: record.date,
