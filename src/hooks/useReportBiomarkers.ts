@@ -17,21 +17,24 @@ export const useReportBiomarkers = (reportId: string | undefined) => {
 
       console.log('useReportBiomarkers: Fetching biomarkers for report:', reportId);
 
-      // Primera consulta: obtener patient_biomarkers con report_id
+      // Single query with JOIN to get both patient_biomarkers and biomarkers data
       const { data: patientBiomarkers, error: biomarkersError } = await supabase
         .from('patient_biomarkers')
-        .select('*')
+        .select(`
+          *,
+          biomarkers (*)
+        `)
         .eq('report_id', reportId)
         .order('date', { ascending: false });
 
-      console.log('useReportBiomarkers: Patient biomarkers query result:', {
+      console.log('useReportBiomarkers: Patient biomarkers with JOIN query result:', {
         data: patientBiomarkers,
         error: biomarkersError,
         count: patientBiomarkers?.length || 0
       });
 
       if (biomarkersError) {
-        console.error('useReportBiomarkers: Error fetching patient biomarkers:', biomarkersError);
+        console.error('useReportBiomarkers: Error fetching patient biomarkers with JOIN:', biomarkersError);
         throw biomarkersError;
       }
 
@@ -40,35 +43,12 @@ export const useReportBiomarkers = (reportId: string | undefined) => {
         return [];
       }
 
-      // Segunda consulta: obtener información de biomarkers
-      const biomarkerIds = [...new Set(patientBiomarkers.map(pb => pb.biomarker_id))];
-      const { data: biomarkersData, error: biomarkersDataError } = await supabase
-        .from('biomarkers')
-        .select('*')
-        .in('id', biomarkerIds);
-
-      console.log('useReportBiomarkers: Biomarkers data query result:', {
-        data: biomarkersData,
-        error: biomarkersDataError,
-        count: biomarkersData?.length || 0
-      });
-
-      if (biomarkersDataError) {
-        console.error('useReportBiomarkers: Error fetching biomarkers data:', biomarkersDataError);
-        throw biomarkersDataError;
-      }
-
-      if (!biomarkersData) {
-        console.log('useReportBiomarkers: No biomarkers data found');
-        return [];
-      }
-
-      // Combinar los datos manualmente
+      // Transform the data now that we have both patient_biomarkers and biomarkers in one query
       const transformedBiomarkers: Biomarker[] = patientBiomarkers.map(pb => {
-        const biomarkerInfo = biomarkersData.find(b => b.id === pb.biomarker_id);
+        const biomarkerInfo = pb.biomarkers;
         
         if (!biomarkerInfo) {
-          console.warn('useReportBiomarkers: No biomarker info found for ID:', pb.biomarker_id);
+          console.warn('useReportBiomarkers: No biomarker info found for patient biomarker:', pb.id);
           return null;
         }
 
