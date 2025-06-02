@@ -27,7 +27,7 @@ export const useBiomarkerData = (patientId: string) => {
             unit,
             description,
             category,
-            Panel,
+            panel,
             conventional_min,
             conventional_max,
             optimal_min,

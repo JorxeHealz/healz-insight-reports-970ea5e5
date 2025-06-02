@@ -47,9 +47,9 @@ export const BiomarkerInfo: React.FC<BiomarkerInfoProps> = ({ biomarker }) => {
               <div>
                 <span className="font-medium">Convencional:</span> {biomarkerData.conventional_min} - {biomarkerData.conventional_max} {biomarkerData.unit}
               </div>
-              {biomarkerData.Panel && (
+              {biomarkerData.panel && (
                 <div>
-                  <span className="font-medium">Panel:</span> {biomarkerData.Panel}
+                  <span className="font-medium">Panel:</span> {biomarkerData.panel}
                 </div>
               )}
               {biomarkerData.category && (
