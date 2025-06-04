@@ -7,8 +7,17 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { calculateAge } from '../../utils/dateUtils';
 
+interface PatientForm {
+  id: string;
+  created_at: string;
+  completed_at: string | null;
+  status: string;
+  form_token: string;
+}
+
 interface DataReviewProps {
   patient: Patient;
+  selectedForm: PatientForm | null | undefined;
   onBack: () => void;
   onNext: () => void;
   isLoading: boolean;
@@ -19,7 +28,7 @@ interface BiomarkerGroup {
   biomarkers: PatientSnapshot[];
 }
 
-export const DataReview = ({ patient, onBack, onNext, isLoading }: DataReviewProps) => {
+export const DataReview = ({ patient, selectedForm, onBack, onNext, isLoading }: DataReviewProps) => {
   const [snapshots, setSnapshots] = useState<PatientSnapshot[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -28,10 +37,15 @@ export const DataReview = ({ patient, onBack, onNext, isLoading }: DataReviewPro
   useEffect(() => {
     const fetchPatientData = async () => {
       try {
-        const { data, error } = await supabase
+        let query = supabase
           .from('patient_snapshot')
           .select('*')
           .eq('patient_id', patient.id);
+
+        // Si hay un formulario seleccionado, mostrar nota informativa
+        // pero mantenemos la consulta general por patient_id para mostrar todos los datos disponibles
+        
+        const { data, error } = await query;
 
         if (error) throw error;
 
@@ -120,6 +134,44 @@ export const DataReview = ({ patient, onBack, onNext, isLoading }: DataReviewPro
           </div>
         </div>
       </div>
+
+      {selectedForm && (
+        <div className="bg-healz-blue/10 border border-healz-blue/30 p-4 rounded-lg">
+          <div className="flex items-start gap-3">
+            <div className="w-6 h-6 rounded-full bg-healz-blue flex items-center justify-center text-white text-xs font-medium mt-0.5">
+              ℹ
+            </div>
+            <div>
+              <div className="font-medium text-healz-brown">
+                Formulario base seleccionado
+              </div>
+              <div className="text-sm text-healz-brown/70 mt-1">
+                Los datos del informe se vincularán al formulario #{selectedForm.form_token.slice(-8)}. 
+                Los biomarcadores y síntomas específicos de este formulario estarán disponibles en el diagnóstico.
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {selectedForm === null && (
+        <div className="bg-healz-yellow/10 border border-healz-yellow/30 p-4 rounded-lg">
+          <div className="flex items-start gap-3">
+            <div className="w-6 h-6 rounded-full bg-healz-yellow flex items-center justify-center text-white text-xs font-medium mt-0.5">
+              ⚠
+            </div>
+            <div>
+              <div className="font-medium text-healz-brown">
+                Informe sin formulario base
+              </div>
+              <div className="text-sm text-healz-brown/70 mt-1">
+                Se creará un informe en blanco. Los datos mostrados a continuación son generales del paciente 
+                y no están vinculados a un formulario específico.
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {loading ? (
         <div className="text-center py-8">

@@ -1,9 +1,9 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '../lib/supabase';
 import { PatientSelector } from '../components/reports/PatientSelector';
+import { FormSelector } from '../components/reports/FormSelector';
 import { DataReview } from '../components/reports/DataReview';
 import { DiagnosisGeneration } from '../components/reports/DiagnosisGeneration';
 import { ReportPreview } from '../components/reports/ReportPreview';
@@ -11,19 +11,37 @@ import { Patient, Diagnosis } from '../types/supabase';
 import { pdf } from '@react-pdf/renderer';
 import { ReportPDF } from '../components/reports/ReportPDF';
 
-type Step = 'patient' | 'data' | 'diagnosis' | 'report';
+interface PatientForm {
+  id: string;
+  created_at: string;
+  completed_at: string | null;
+  status: string;
+  form_token: string;
+}
+
+type Step = 'patient' | 'form' | 'data' | 'diagnosis' | 'report';
 
 const NewReport = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState<Step>('patient');
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
+  const [selectedForm, setSelectedForm] = useState<PatientForm | null | undefined>(undefined);
   const [diagnosis, setDiagnosis] = useState<Diagnosis | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
 
   const handlePatientSelect = (patient: Patient) => {
     setSelectedPatient(patient);
+    setSelectedForm(undefined); // Reset form selection
+    setCurrentStep('form');
+  };
+
+  const handleFormSelect = (form: PatientForm | null) => {
+    setSelectedForm(form);
+  };
+
+  const handleFormNext = () => {
     setCurrentStep('data');
   };
 
@@ -114,15 +132,21 @@ const NewReport = () => {
       // Generar y subir el PDF
       const pdfUrl = await generateAndUploadPdf();
       
-      // Guardar el informe en la base de datos
+      // Guardar el informe en la base de datos con form_id si está seleccionado
+      const reportData: any = {
+        patient_id: selectedPatient.id,
+        diagnosis: diagnosis,
+        pdf_url: pdfUrl,
+      };
+
+      // Incluir form_id si se seleccionó un formulario
+      if (selectedForm) {
+        reportData.form_id = selectedForm.id;
+      }
+      
       const { data, error } = await supabase
         .from('reports')
-        .insert({
-          patient_id: selectedPatient.id,
-          diagnosis: diagnosis,
-          pdf_url: pdfUrl,
-          // doctor_id vendría del contexto de autenticación en versiones futuras
-        })
+        .insert(reportData)
         .select()
         .single();
 
@@ -154,11 +178,22 @@ const NewReport = () => {
     switch (currentStep) {
       case 'patient':
         return <PatientSelector onSelectPatient={handlePatientSelect} />;
+      case 'form':
+        return selectedPatient ? (
+          <FormSelector 
+            patient={selectedPatient}
+            selectedForm={selectedForm}
+            onSelectForm={handleFormSelect}
+            onBack={() => setCurrentStep('patient')}
+            onNext={handleFormNext}
+          />
+        ) : null;
       case 'data':
         return selectedPatient ? (
           <DataReview 
             patient={selectedPatient} 
-            onBack={() => setCurrentStep('patient')} 
+            selectedForm={selectedForm}
+            onBack={() => setCurrentStep('form')} 
             onNext={handleGenerateDiagnosis} 
             isLoading={isLoading}
           />
@@ -198,27 +233,33 @@ const NewReport = () => {
               1
             </span>
           </li>
+          <li className={`flex w-full items-center ${currentStep === 'form' ? 'text-healz-red' : 'text-healz-brown/70'} after:content-[''] after:w-full after:h-1 after:border-b ${currentStep === 'form' ? 'after:border-healz-red' : 'after:border-healz-brown/30'} after:border-4 after:inline-block`}>
+            <span className={`flex items-center justify-center w-10 h-10 rounded-full lg:h-12 lg:w-12 shrink-0 ${currentStep === 'form' ? 'bg-healz-red text-white' : 'bg-healz-brown/20'}`}>
+              2
+            </span>
+          </li>
           <li className={`flex w-full items-center ${currentStep === 'data' ? 'text-healz-red' : 'text-healz-brown/70'} after:content-[''] after:w-full after:h-1 after:border-b ${currentStep === 'data' ? 'after:border-healz-red' : 'after:border-healz-brown/30'} after:border-4 after:inline-block`}>
             <span className={`flex items-center justify-center w-10 h-10 rounded-full lg:h-12 lg:w-12 shrink-0 ${currentStep === 'data' ? 'bg-healz-red text-white' : 'bg-healz-brown/20'}`}>
-              2
+              3
             </span>
           </li>
           <li className={`flex w-full items-center ${currentStep === 'diagnosis' ? 'text-healz-red' : 'text-healz-brown/70'} after:content-[''] after:w-full after:h-1 after:border-b ${currentStep === 'diagnosis' ? 'after:border-healz-red' : 'after:border-healz-brown/30'} after:border-4 after:inline-block`}>
             <span className={`flex items-center justify-center w-10 h-10 rounded-full lg:h-12 lg:w-12 shrink-0 ${currentStep === 'diagnosis' ? 'bg-healz-red text-white' : 'bg-healz-brown/20'}`}>
-              3
+              4
             </span>
           </li>
           <li className={`flex items-center ${currentStep === 'report' ? 'text-healz-red' : 'text-healz-brown/70'}`}>
             <span className={`flex items-center justify-center w-10 h-10 rounded-full lg:h-12 lg:w-12 shrink-0 ${currentStep === 'report' ? 'bg-healz-red text-white' : 'bg-healz-brown/20'}`}>
-              4
+              5
             </span>
           </li>
         </ol>
         <div className="flex justify-between mt-2 px-2">
-          <span className="text-sm font-medium">Seleccionar Paciente</span>
-          <span className="text-sm font-medium">Revisar Datos</span>
-          <span className="text-sm font-medium">Generar Diagnóstico</span>
-          <span className="text-sm font-medium">Vista Previa</span>
+          <span className="text-sm font-medium">Paciente</span>
+          <span className="text-sm font-medium">Formulario</span>
+          <span className="text-sm font-medium">Datos</span>
+          <span className="text-sm font-medium">Diagnóstico</span>
+          <span className="text-sm font-medium">Informe</span>
         </div>
       </div>
 
