@@ -98,7 +98,7 @@ serve(async (req) => {
       );
     }
 
-    // Preparar datos para n8n
+    // Preparar datos para n8n con credenciales de Supabase para acceso directo
     const patientData = {
       patient: {
         id: form.patient_id,
@@ -128,8 +128,12 @@ serve(async (req) => {
         size: file.file_size
       })) || [],
       processing: {
-        queue_id: queueEntry.id,
-        webhook_return_url: `${Deno.env.get('SUPABASE_URL')?.replace('/rest/v1', '')}/functions/v1/n8n-webhook-response`
+        queue_id: queueEntry.id
+      },
+      supabase_config: {
+        url: Deno.env.get('SUPABASE_URL'),
+        service_role_key: Deno.env.get('SUPABASE_SERVICE_ROLE_KEY'),
+        completion_webhook_url: `${Deno.env.get('SUPABASE_URL')?.replace('/rest/v1', '')}/functions/v1/n8n-processing-complete`
       }
     };
 
@@ -169,7 +173,7 @@ serve(async (req) => {
             .eq('id', queueEntry.id);
         }
 
-        console.log(`Successfully sent form ${form_id} to n8n webhook`);
+        console.log(`Successfully sent form ${form_id} to n8n webhook for OCR processing`);
 
       } catch (webhookError) {
         console.error('Error calling n8n webhook:', webhookError);
@@ -191,18 +195,14 @@ serve(async (req) => {
       }
     }
 
-    // Marcar formulario como "processed"
-    await supabaseClient
-      .from('patient_forms')
-      .update({ status: 'processed' })
-      .eq('id', form_id);
+    // NO marcamos el formulario como "processed" aquí - N8N lo hará cuando termine el OCR
 
     return new Response(
       JSON.stringify({
         success: true,
-        message: 'Form sent to n8n for processing',
+        message: 'Form sent to n8n for OCR processing',
         queue_id: queueEntry.id,
-        patient_data: patientData
+        note: 'N8N will update the form status to "processed" after completing OCR and saving biomarkers'
       }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
