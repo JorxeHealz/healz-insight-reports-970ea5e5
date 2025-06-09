@@ -13,8 +13,7 @@ export function useFormSubmission() {
     formData: any,
     token: string,
     answers: Record<string, any>,
-    files: Record<string, File>,
-    uploadFile: (file: File, formId: string) => Promise<string>
+    prepareFilesForSubmission: () => Promise<Record<string, { name: string; type: string; size: number; data: string }>>
   ) => {
     if (!formData || !token) {
       toast({
@@ -28,55 +27,18 @@ export function useFormSubmission() {
     setIsSubmitting(true);
     
     try {
-      console.log('Starting form submission with files:', Object.keys(files));
+      console.log('Starting form submission...');
       
-      // Upload files and get URLs
-      const uploadedFiles: FormSubmissionData['files'] = [];
-      const updatedAnswers = { ...answers };
-      
-      // If there are files, try to upload them
-      if (Object.keys(files).length > 0) {
-        for (const [questionId, file] of Object.entries(files)) {
-          try {
-            console.log(`Uploading file for question ${questionId}:`, file.name);
-            
-            const fileUrl = await uploadFile(file, formData.form.id);
-            
-            uploadedFiles.push({
-              name: file.name,
-              url: fileUrl,
-              type: file.type,
-              size: file.size
-            });
-            
-            // Update answer with file URL
-            updatedAnswers[questionId] = fileUrl;
-            
-            console.log(`File uploaded successfully for question ${questionId}`);
-            
-          } catch (error) {
-            console.error(`Error uploading file for question ${questionId}:`, error);
-            
-            // Show warning but continue with form submission
-            toast({
-              title: "Advertencia",
-              description: `No se pudo subir el archivo ${file.name}. El formulario se enviará sin este archivo.`,
-              variant: "default"
-            });
-            
-            // Remove the file from answers if upload failed
-            updatedAnswers[questionId] = `Error al subir: ${file.name}`;
-          }
-        }
-      }
+      // Prepare files for submission (convert to base64)
+      const preparedFiles = await prepareFilesForSubmission();
+      console.log('Files prepared:', Object.keys(preparedFiles));
 
-      console.log('Submitting form data (with or without files)');
-
-      // Submit form data
-      const submissionData: FormSubmissionData = {
+      // Submit form data with prepared files
+      const submissionData: FormSubmissionData & { files_data?: Record<string, any> } = {
         form_token: token,
-        answers: updatedAnswers,
-        files: uploadedFiles
+        answers: answers,
+        files: [], // Will be populated by edge function
+        files_data: preparedFiles // Send base64 files to edge function
       };
 
       const { error: submitError } = await supabase.functions.invoke('submit-patient-form', {
@@ -95,7 +57,7 @@ export function useFormSubmission() {
         description: "Su formulario ha sido enviado correctamente. Gracias por completarlo."
       });
 
-      // Redirect to success page or show success message
+      // Redirect to success page
       setTimeout(() => {
         navigate('/');
       }, 2000);

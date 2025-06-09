@@ -19,9 +19,13 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '', // Usar service role para formularios públicos
     );
 
-    const { form_token, answers, files } = await req.json();
+    const { form_token, answers, files_data } = await req.json();
 
-    console.log('Received form submission:', { form_token, answersCount: Object.keys(answers || {}).length, filesCount: files?.length || 0 });
+    console.log('Received form submission:', { 
+      form_token, 
+      answersCount: Object.keys(answers || {}).length, 
+      filesDataCount: Object.keys(files_data || {}).length 
+    });
 
     if (!form_token || !answers) {
       return new Response(
@@ -49,7 +53,6 @@ serve(async (req) => {
     // Verificar que el formulario no ha expirado
     if (new Date(form.expires_at) < new Date()) {
       console.log('Form expired, updating status');
-      // Marcar como expirado
       await supabaseClient
         .from('patient_forms')
         .update({ status: 'expired' })
@@ -94,6 +97,65 @@ serve(async (req) => {
       );
     }
 
+    // Procesar archivos si los hay
+    const uploadedFiles: any[] = [];
+    const updatedAnswers = { ...answers };
+
+    if (files_data && Object.keys(files_data).length > 0) {
+      console.log('Processing files:', Object.keys(files_data).length);
+      
+      for (const [questionId, fileData] of Object.entries(files_data) as [string, any][]) {
+        try {
+          console.log(`Uploading file for question ${questionId}:`, fileData.name);
+          
+          // Generate unique filename
+          const fileExt = fileData.name.split('.').pop();
+          const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+          const filePath = `${form.id}/${fileName}`;
+          
+          // Convert base64 to Uint8Array
+          const fileBuffer = Uint8Array.from(atob(fileData.data), c => c.charCodeAt(0));
+          
+          // Upload file to storage
+          const { error: uploadError } = await supabaseClient.storage
+            .from('patient-files')
+            .upload(filePath, fileBuffer, {
+              contentType: fileData.type,
+              cacheControl: '3600',
+              upsert: false
+            });
+
+          if (uploadError) {
+            console.error(`Upload error for question ${questionId}:`, uploadError);
+            throw new Error(`Error uploading file: ${uploadError.message}`);
+          }
+
+          // Get public URL
+          const { data: { publicUrl } } = supabaseClient.storage
+            .from('patient-files')
+            .getPublicUrl(filePath);
+
+          // Save file info
+          uploadedFiles.push({
+            name: fileData.name,
+            url: publicUrl,
+            type: fileData.type,
+            size: fileData.size
+          });
+
+          // Update answer with file URL
+          updatedAnswers[questionId] = publicUrl;
+          
+          console.log(`File uploaded successfully for question ${questionId}: ${publicUrl}`);
+          
+        } catch (error) {
+          console.error(`Error processing file for question ${questionId}:`, error);
+          // Continue with form submission but log the error
+          updatedAnswers[questionId] = `Error al subir: ${fileData.name}`;
+        }
+      }
+    }
+
     // Mapear question_type a answer_type válido
     const mapQuestionTypeToAnswerType = (questionType: string): string => {
       switch (questionType) {
@@ -102,7 +164,7 @@ serve(async (req) => {
         case 'frequency':
           return 'text';
         case 'checkbox_multiple':
-          return 'text'; // Array will be stringified
+          return 'text';
         case 'number':
         case 'scale':
           return 'number';
@@ -119,7 +181,7 @@ serve(async (req) => {
     };
 
     // Insertar respuestas
-    const answersToInsert = Object.entries(answers).map(([questionId, answer]) => {
+    const answersToInsert = Object.entries(updatedAnswers).map(([questionId, answer]) => {
       const question = questions.find(q => q.id === questionId);
       const answerType = question ? mapQuestionTypeToAnswerType(question.question_type) : 'text';
       
@@ -155,10 +217,10 @@ serve(async (req) => {
 
     console.log('Answers inserted successfully');
 
-    // Procesar archivos si los hay
-    if (files && files.length > 0) {
-      console.log('Processing files:', files.length);
-      const filesToInsert = files.map((file: any) => ({
+    // Guardar información de archivos en form_files
+    if (uploadedFiles.length > 0) {
+      console.log('Saving file records:', uploadedFiles.length);
+      const filesToInsert = uploadedFiles.map((file: any) => ({
         form_id: form.id,
         patient_id: form.patient_id,
         file_name: file.name,
@@ -175,7 +237,7 @@ serve(async (req) => {
         console.error('Error inserting files:', filesError);
         // No fallar por errores de archivos, pero loggear
       } else {
-        console.log('Files processed successfully');
+        console.log('Files saved successfully');
       }
     }
 
@@ -196,13 +258,14 @@ serve(async (req) => {
       );
     }
 
-    console.log(`Form ${form_token} completed successfully for patient ${form.patient_id}`);
+    console.log(`Form ${form_token} completed successfully for patient ${form.patient_id}. Files uploaded: ${uploadedFiles.length}`);
 
     return new Response(
       JSON.stringify({
         success: true,
         message: 'Form submitted successfully',
-        form_id: form.id
+        form_id: form.id,
+        files_uploaded: uploadedFiles.length
       }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
@@ -210,7 +273,7 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error in submit-patient-form:', error);
     return new Response(
-      JSON.stringify({ error: 'Internal server error' }),
+      JSON.stringify({ error: 'Internal server error', details: error.message }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }

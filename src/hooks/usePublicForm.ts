@@ -45,7 +45,7 @@ export function usePublicForm(token: string) {
   );
 
   // Use file handling hook
-  const { files, handleFileChange, uploadFile } = useFormFileHandling();
+  const { files, handleFileChange, prepareFilesForSubmission } = useFormFileHandling();
 
   // Use navigation hook
   const {
@@ -75,7 +75,7 @@ export function usePublicForm(token: string) {
   };
 
   const handleSubmit = () => {
-    submitForm(formData, token, answers, files, uploadFile);
+    submitForm(formData, token, answers, prepareFilesForSubmission);
   };
 
   return {
