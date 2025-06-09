@@ -260,6 +260,32 @@ serve(async (req) => {
 
     console.log(`Form ${form_token} completed successfully for patient ${form.patient_id}. Files uploaded: ${uploadedFiles.length}`);
 
+    // Llamar al webhook de n8n después de completar exitosamente el formulario
+    try {
+      console.log(`Calling n8n webhook for form_id: ${form.id}`);
+      
+      const webhookResponse = await fetch('https://joinhealz.app.n8n.cloud/webhook-test/formulario', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          form_id: form.id
+        }),
+        signal: AbortSignal.timeout(10000) // 10 seconds timeout
+      });
+
+      if (webhookResponse.ok) {
+        const responseText = await webhookResponse.text();
+        console.log(`n8n webhook successful for form_id ${form.id}:`, responseText);
+      } else {
+        console.error(`n8n webhook failed for form_id ${form.id}. Status: ${webhookResponse.status}`);
+      }
+    } catch (webhookError) {
+      console.error(`Error calling n8n webhook for form_id ${form.id}:`, webhookError);
+      // Don't fail the main process if webhook fails
+    }
+
     return new Response(
       JSON.stringify({
         success: true,
