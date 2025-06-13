@@ -1,16 +1,21 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
 import { Textarea } from '../ui/textarea';
-import { Apple, Pill, Activity, Dumbbell, Heart, Calendar, MessageSquare, Star } from 'lucide-react';
+import { Apple, Pill, Activity, Dumbbell, Heart, Calendar, MessageSquare, Star, Plus } from 'lucide-react';
+import { EditableActionItem } from './EditableActionItem';
+import { AddActionForm } from './AddActionForm';
+import { useActionPlans } from '../../hooks/useActionPlans';
 
 type ActionPlanProps = {
   report: any;
 };
 
 export const ActionPlan: React.FC<ActionPlanProps> = ({ report }) => {
+  const [showAddForm, setShowAddForm] = useState<string | null>(null);
+  const { deleteActionPlan } = useActionPlans(report.id);
+  
   // Usar los datos reales de report_action_plans en lugar del campo actionPlan vacío
   const actionPlans = report.actionPlans || [];
   
@@ -69,6 +74,16 @@ export const ActionPlan: React.FC<ActionPlanProps> = ({ report }) => {
     }
   ];
 
+  const handleDeleteAction = async (id: string) => {
+    if (window.confirm('¿Estás seguro de que quieres eliminar esta acción?')) {
+      try {
+        await deleteActionPlan.mutateAsync(id);
+      } catch (error) {
+        console.error('Error deleting action plan:', error);
+      }
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Plan de Acción Principal */}
@@ -85,48 +100,47 @@ export const ActionPlan: React.FC<ActionPlanProps> = ({ report }) => {
               const Icon = category.icon;
               return (
                 <div key={category.id} className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <div className={`p-2 rounded-lg ${category.color}`}>
-                      <Icon className="h-5 w-5" />
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className={`p-2 rounded-lg ${category.color}`}>
+                        <Icon className="h-5 w-5" />
+                      </div>
+                      <h3 className="font-semibold text-healz-brown">{category.title}</h3>
                     </div>
-                    <h3 className="font-semibold text-healz-brown">{category.title}</h3>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setShowAddForm(category.id)}
+                      className="h-8 px-2"
+                    >
+                      <Plus className="h-3 w-3 mr-1" />
+                      Agregar
+                    </Button>
                   </div>
                   
                   <div className="space-y-2">
                     {category.items.length > 0 ? (
-                      category.items.map((item: any, index: number) => (
-                        <div key={index} className="bg-healz-cream/30 p-3 rounded-lg border border-healz-brown/10">
-                          <div className="flex items-start justify-between mb-2">
-                            <h4 className="font-medium text-sm text-healz-brown">{item.title}</h4>
-                            <Badge 
-                              variant="outline" 
-                              className={`text-xs ${
-                                item.priority === 'high' ? 'bg-healz-red/20 text-healz-red' :
-                                item.priority === 'medium' ? 'bg-healz-yellow/20 text-healz-orange' :
-                                'bg-healz-green/20 text-healz-green'
-                              }`}
-                            >
-                              {item.priority === 'high' ? 'Alta' : 
-                               item.priority === 'medium' ? 'Media' : 'Baja'}
-                            </Badge>
-                          </div>
-                          <p className="text-xs text-healz-brown/70">{item.description}</p>
-                          {item.dosage && (
-                            <p className="text-xs text-healz-brown/60 mt-1">
-                              <strong>Dosis:</strong> {item.dosage}
-                            </p>
-                          )}
-                          {item.duration && (
-                            <p className="text-xs text-healz-brown/60">
-                              <strong>Duración:</strong> {item.duration}
-                            </p>
-                          )}
-                        </div>
+                      category.items.map((item: any) => (
+                        <EditableActionItem
+                          key={item.id}
+                          item={item}
+                          reportId={report.id}
+                          onDelete={handleDeleteAction}
+                        />
                       ))
                     ) : (
                       <p className="text-sm text-healz-brown/60 italic">
                         No hay recomendaciones específicas en esta categoría
                       </p>
+                    )}
+                    
+                    {showAddForm === category.id && (
+                      <AddActionForm
+                        category={category.id}
+                        reportId={report.id}
+                        formId={report.patient?.id || ''}
+                        onCancel={() => setShowAddForm(null)}
+                      />
                     )}
                   </div>
                 </div>
