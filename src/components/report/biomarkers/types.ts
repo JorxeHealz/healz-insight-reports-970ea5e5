@@ -29,7 +29,7 @@ export interface BiomarkerRow {
   unit: string;
   description: string | null;
   category: string;
-  panel: string | null;
+  panel: string[] | null; // Changed from string to string[] to handle array
   conventional_min: number;
   conventional_max: number;
   optimal_min: number;

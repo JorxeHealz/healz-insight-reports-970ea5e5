@@ -42,13 +42,14 @@ export const useReportBiomarkers = (reportId: string | undefined) => {
         const numericValue = typeof row.value === 'string' ? parseFloat(row.value) : row.value;
         
         // Create biomarker info object from the flat row data
+        // Handle panel field as array (after migration)
         const biomarkerInfo = {
           id: row.biomarker_id,
           name: row.biomarker_name,
           unit: row.unit,
           description: row.description,
           category: row.category,
-          panel: row.panel,
+          panel: Array.isArray(row.panel) ? row.panel : (row.panel ? [row.panel] : null), // Handle both array and string cases
           conventional_min: row.conventional_min,
           conventional_max: row.conventional_max,
           optimal_min: row.optimal_min,
