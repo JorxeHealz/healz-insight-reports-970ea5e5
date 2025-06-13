@@ -14,16 +14,24 @@ export const BiomarkerListItem: React.FC<BiomarkerListItemProps> = ({
 }) => {
   const biomarkerData = getBiomarkerData(biomarkerName, reportBiomarkers);
   
+  // Debug log for troubleshooting
+  React.useEffect(() => {
+    if (!biomarkerData && reportBiomarkers) {
+      console.log(`Biomarker "${biomarkerName}" not found. Available biomarkers:`, 
+        reportBiomarkers.map(b => b.name));
+    }
+  }, [biomarkerName, biomarkerData, reportBiomarkers]);
+  
   return (
     <div className="flex justify-between items-center border-b pb-1 border-healz-brown/10">
-      <span className="text-xs">{biomarkerName}</span>
+      <span className="text-xs font-medium text-healz-brown">{biomarkerName}</span>
       <div className="flex items-center gap-2">
         {biomarkerData ? (
           <>
-            <span className="font-medium text-xs">{biomarkerData.valueWithUnit}</span>
-            <span className={`px-1.5 py-0.5 text-xs rounded ${
+            <span className="font-medium text-xs text-healz-brown">{biomarkerData.valueWithUnit}</span>
+            <span className={`px-1.5 py-0.5 text-xs rounded font-medium ${
               biomarkerData.status === 'optimal' ? 'bg-healz-green/20 text-healz-green' :
-              biomarkerData.status === 'caution' ? 'bg-healz-yellow/20 text-healz-orange' :
+              biomarkerData.status === 'caution' ? 'bg-healz-orange/20 text-healz-orange' :
               'bg-healz-red/20 text-healz-red'
             }`}>
               {biomarkerData.status === 'optimal' ? 'Óptimo' :
