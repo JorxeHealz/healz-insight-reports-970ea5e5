@@ -963,7 +963,7 @@ export type Database = {
           unit: string
           description: string
           category: string
-          panel: string
+          panel: string[]
           conventional_min: number
           conventional_max: number
           optimal_min: number
