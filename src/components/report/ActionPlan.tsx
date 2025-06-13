@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent } from '../ui/card';
 import { Apple, Pill, Activity, Dumbbell, Heart, Calendar } from 'lucide-react';
@@ -11,6 +10,16 @@ type ActionPlanProps = {
   report: any;
 };
 
+// Function to sort actions by priority (high -> medium -> low)
+const sortActionsByPriority = (actions: any[]) => {
+  const priorityOrder = { high: 1, medium: 2, low: 3 };
+  return actions.sort((a, b) => {
+    const aPriority = priorityOrder[a.priority as keyof typeof priorityOrder] || 4;
+    const bPriority = priorityOrder[b.priority as keyof typeof priorityOrder] || 4;
+    return aPriority - bPriority;
+  });
+};
+
 export const ActionPlan: React.FC<ActionPlanProps> = ({ report }) => {
   const [showAddForm, setShowAddForm] = useState<string | null>(null);
   const { deleteActionPlan } = useActionPlans(report.id);
@@ -18,14 +27,14 @@ export const ActionPlan: React.FC<ActionPlanProps> = ({ report }) => {
   // Usar los datos reales de report_action_plans en lugar del campo actionPlan vacío
   const actionPlans = report.actionPlans || [];
   
-  // Agrupar los action plans por categoría
+  // Agrupar los action plans por categoría y ordenar por prioridad
   const actionsByCategory = {
-    foods: actionPlans.filter((plan: any) => plan.category === 'foods'),
-    supplements: actionPlans.filter((plan: any) => plan.category === 'supplements'),
-    lifestyle: actionPlans.filter((plan: any) => plan.category === 'lifestyle'),
-    activity: actionPlans.filter((plan: any) => plan.category === 'activity'),
-    therapy: actionPlans.filter((plan: any) => plan.category === 'therapy'),
-    followup: actionPlans.filter((plan: any) => plan.category === 'followup')
+    foods: sortActionsByPriority(actionPlans.filter((plan: any) => plan.category === 'foods')),
+    supplements: sortActionsByPriority(actionPlans.filter((plan: any) => plan.category === 'supplements')),
+    lifestyle: sortActionsByPriority(actionPlans.filter((plan: any) => plan.category === 'lifestyle')),
+    activity: sortActionsByPriority(actionPlans.filter((plan: any) => plan.category === 'activity')),
+    therapy: sortActionsByPriority(actionPlans.filter((plan: any) => plan.category === 'therapy')),
+    followup: sortActionsByPriority(actionPlans.filter((plan: any) => plan.category === 'followup'))
   };
 
   const actionCategories = [
