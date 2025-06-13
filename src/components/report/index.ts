@@ -1,4 +1,3 @@
-
 export * from './ReportHeader';
 export * from './ReportTabs';
 export * from './ReportSummary';
@@ -18,3 +17,9 @@ export * from './biomarkers/BiomarkerStatusBadge';
 export * from './biomarkers/BiomarkerInfo';
 export * from './biomarkers/BiomarkerItem';
 export * from './biomarkers/types';
+export * from './ActionPlanHeader';
+export * from './ActionPlanCategory';
+export * from './ActionPlanFeedback';
+export * from './ActionPlanStats';
+export * from './AddActionForm';
+export * from './EditableActionItem';
