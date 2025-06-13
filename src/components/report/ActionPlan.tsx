@@ -4,40 +4,67 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
 import { Textarea } from '../ui/textarea';
-import { Apple, Pill, Activity, Calendar, MessageSquare, Star } from 'lucide-react';
+import { Apple, Pill, Activity, Dumbbell, Heart, Calendar, MessageSquare, Star } from 'lucide-react';
 
 type ActionPlanProps = {
   report: any;
 };
 
 export const ActionPlan: React.FC<ActionPlanProps> = ({ report }) => {
+  // Usar los datos reales de report_action_plans en lugar del campo actionPlan vacío
+  const actionPlans = report.actionPlans || [];
+  
+  // Agrupar los action plans por categoría
+  const actionsByCategory = {
+    foods: actionPlans.filter((plan: any) => plan.category === 'foods'),
+    supplements: actionPlans.filter((plan: any) => plan.category === 'supplements'),
+    lifestyle: actionPlans.filter((plan: any) => plan.category === 'lifestyle'),
+    activity: actionPlans.filter((plan: any) => plan.category === 'activity'),
+    therapy: actionPlans.filter((plan: any) => plan.category === 'therapy'),
+    followup: actionPlans.filter((plan: any) => plan.category === 'followup')
+  };
+
   const actionCategories = [
     {
       id: 'foods',
       title: 'Alimentación',
       icon: Apple,
-      items: report.actionPlan?.foods || [],
+      items: actionsByCategory.foods,
       color: 'bg-healz-green/20 text-healz-green'
     },
     {
       id: 'supplements',
       title: 'Suplementos',
       icon: Pill,
-      items: report.actionPlan?.supplements || [],
+      items: actionsByCategory.supplements,
       color: 'bg-healz-orange/20 text-healz-orange'
     },
     {
       id: 'lifestyle',
       title: 'Estilo de Vida',
-      icon: Activity,
-      items: report.actionPlan?.lifestyle || [],
+      icon: Heart,
+      items: actionsByCategory.lifestyle,
       color: 'bg-healz-blue/20 text-healz-teal'
+    },
+    {
+      id: 'activity',
+      title: 'Actividad',
+      icon: Dumbbell,
+      items: actionsByCategory.activity,
+      color: 'bg-healz-teal/20 text-healz-teal'
+    },
+    {
+      id: 'therapy',
+      title: 'Terapia',
+      icon: Activity,
+      items: actionsByCategory.therapy,
+      color: 'bg-healz-red/20 text-healz-red'
     },
     {
       id: 'followup',
       title: 'Seguimiento',
       icon: Calendar,
-      items: report.actionPlan?.followup || [],
+      items: actionsByCategory.followup,
       color: 'bg-healz-yellow/20 text-healz-orange'
     }
   ];

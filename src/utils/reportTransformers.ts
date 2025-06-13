@@ -85,34 +85,19 @@ export const transformClinicalNotes = (clinicalNotes: any[]) => {
   }));
 };
 
+// Actualizar la función de transformación de action plans para devolver el array completo
 export const transformActionPlan = (actionPlans: any[]) => {
-  return {
-    foods: actionPlans.filter(plan => plan.category === 'foods').map(plan => ({
-      title: plan.title,
-      description: plan.description,
-      priority: plan.priority,
-      duration: plan.duration
-    })),
-    supplements: actionPlans.filter(plan => plan.category === 'supplements').map(plan => ({
-      title: plan.title,
-      description: plan.description,
-      dosage: plan.dosage,
-      duration: plan.duration,
-      priority: plan.priority
-    })),
-    lifestyle: actionPlans.filter(plan => plan.category === 'lifestyle').map(plan => ({
-      title: plan.title,
-      description: plan.description,
-      duration: plan.duration,
-      priority: plan.priority
-    })),
-    followup: actionPlans.filter(plan => plan.category === 'followup').map(plan => ({
-      title: plan.title,
-      description: plan.description,
-      duration: plan.duration,
-      priority: plan.priority
-    }))
-  };
+  // Devolver el array completo de action plans en lugar de agrupar por categoría
+  // El componente ActionPlan se encargará de agrupar los datos
+  return actionPlans.map(plan => ({
+    id: plan.id,
+    category: plan.category,
+    title: plan.title,
+    description: plan.description,
+    priority: plan.priority,
+    duration: plan.duration,
+    dosage: plan.dosage
+  }));
 };
 
 export const buildTransformedReport = (
@@ -140,7 +125,8 @@ export const buildTransformedReport = (
     clinicalNotes: transformedClinicalNotes,
     summary: reportData.diagnosis?.summary || generateSummary(patient, finalRisks, biomarkerSummary),
     manualNotes: reportData.manual_notes,
-    actionPlan: transformedActionPlan
+    // Cambiar de actionPlan a actionPlans para usar el array completo
+    actionPlans: transformedActionPlan
   };
 };
 
