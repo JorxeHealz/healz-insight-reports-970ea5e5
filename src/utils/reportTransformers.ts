@@ -112,6 +112,7 @@ export const buildTransformedReport = (
 ) => {
   return {
     id: reportData.id,
+    form_id: reportData.form_id,
     patient: patient,
     createdAt: reportData.created_at,
     vitalityScore: reportData.diagnosis?.vitalityScore || 45,
