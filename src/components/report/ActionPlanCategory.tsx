@@ -14,6 +14,7 @@ type ActionPlanCategoryProps = {
     color: string;
   };
   reportId: string;
+  formId: string;
   showAddForm: string | null;
   setShowAddForm: (categoryId: string | null) => void;
   onDeleteAction: (id: string) => void;
@@ -22,6 +23,7 @@ type ActionPlanCategoryProps = {
 export const ActionPlanCategory: React.FC<ActionPlanCategoryProps> = ({
   category,
   reportId,
+  formId,
   showAddForm,
   setShowAddForm,
   onDeleteAction
@@ -68,7 +70,7 @@ export const ActionPlanCategory: React.FC<ActionPlanCategoryProps> = ({
           <AddActionForm
             category={category.id}
             reportId={reportId}
-            formId={reportId}
+            formId={formId}
             onCancel={() => setShowAddForm(null)}
           />
         )}
