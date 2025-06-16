@@ -1,4 +1,3 @@
-
 import { supabase } from '../lib/supabase';
 
 export const fetchReportData = async (reportId: string) => {
@@ -107,6 +106,16 @@ export const fetchReportSymptoms = async (formId: string) => {
   const { data } = await supabase
     .from('questionnaire_answers')
     .select('*')
+    .eq('form_id', formId);
+
+  return data || [];
+};
+
+export const fetchReportSummarySections = async (reportId: string, formId: string) => {
+  const { data } = await supabase
+    .from('report_summary_sections')
+    .select('*')
+    .eq('report_id', reportId)
     .eq('form_id', formId);
 
   return data || [];

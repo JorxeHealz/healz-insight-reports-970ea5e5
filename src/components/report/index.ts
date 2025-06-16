@@ -23,3 +23,7 @@ export * from './ActionPlanFeedback';
 export * from './ActionPlanStats';
 export * from './AddActionForm';
 export * from './EditableActionItem';
+export * from './EditableClinicalNote';
+export * from './EditClinicalNoteDialog';
+export * from './AddClinicalNoteDialog';
+export * from './EditableSummarySection';

@@ -6,7 +6,8 @@ import {
   fetchReportRiskProfiles,
   fetchReportActionPlans,
   fetchReportComments,
-  fetchReportSymptoms
+  fetchReportSymptoms,
+  fetchReportSummarySections
 } from './useReportQueries';
 import {
   transformBiomarkers,
@@ -15,6 +16,7 @@ import {
   transformSymptoms,
   transformClinicalNotes,
   transformActionPlan,
+  transformSummarySections,
   buildTransformedReport
 } from '../utils/reportTransformers';
 
@@ -44,13 +46,17 @@ export const useReportData = (reportId: string | undefined) => {
       // Get symptoms from questionnaire answers using form_id
       const symptoms = await fetchReportSymptoms(reportData.form_id);
 
+      // Get summary sections using both report_id and form_id
+      const summarySections = await fetchReportSummarySections(reportId, reportData.form_id);
+
       console.log('Report data loaded:', {
         reportData,
         biomarkers: reportBiomarkers?.length,
         riskProfiles: riskProfiles?.length,
         actionPlans: actionPlans?.length,
         clinicalNotes: clinicalNotes?.length,
-        symptoms: symptoms?.length
+        symptoms: symptoms?.length,
+        summarySections: summarySections?.length
       });
 
       // Extract patient data
@@ -74,6 +80,9 @@ export const useReportData = (reportId: string | undefined) => {
       // Transform action plans to the expected format
       const transformedActionPlan = transformActionPlan(actionPlans);
 
+      // Transform summary sections
+      const transformedSummarySections = transformSummarySections(summarySections);
+
       const transformedReport = buildTransformedReport(
         reportData,
         patient,
@@ -82,7 +91,8 @@ export const useReportData = (reportId: string | undefined) => {
         topSymptoms,
         recentBiomarkers,
         transformedClinicalNotes,
-        transformedActionPlan
+        transformedActionPlan,
+        transformedSummarySections
       );
 
       console.log('Transformed report:', transformedReport);

@@ -1,8 +1,11 @@
 
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { Badge } from '../ui/badge';
-import { Calendar, FileText, User } from 'lucide-react';
+import { Button } from '../ui/button';
+import { Calendar, FileText, User, Plus } from 'lucide-react';
+import { EditableClinicalNote } from './EditableClinicalNote';
+import { AddClinicalNoteDialog } from './AddClinicalNoteDialog';
+import { useClinicalNotes } from '../../hooks/useClinicalNotes';
 
 type ClinicalNotesProps = {
   report: any;
@@ -10,8 +13,25 @@ type ClinicalNotesProps = {
 
 export const ClinicalNotes: React.FC<ClinicalNotesProps> = ({ report }) => {
   const [selectedNoteId, setSelectedNoteId] = useState<string>(report.clinicalNotes?.[0]?.id || '');
+  const [showAddDialog, setShowAddDialog] = useState(false);
+  const { deleteClinicalNote } = useClinicalNotes(report.id);
 
   const selectedNote = report.clinicalNotes?.find((note: any) => note.id === selectedNoteId) || report.clinicalNotes?.[0];
+
+  const handleDeleteNote = async (id: string) => {
+    if (window.confirm('¿Estás seguro de que quieres eliminar esta nota clínica?')) {
+      try {
+        await deleteClinicalNote.mutateAsync(id);
+        // Si era la nota seleccionada, seleccionar la primera disponible
+        if (selectedNoteId === id && report.clinicalNotes?.length > 1) {
+          const remainingNotes = report.clinicalNotes.filter((note: any) => note.id !== id);
+          setSelectedNoteId(remainingNotes[0]?.id || '');
+        }
+      } catch (error) {
+        console.error('Error deleting clinical note:', error);
+      }
+    }
+  };
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 h-[600px]">
@@ -19,10 +39,20 @@ export const ClinicalNotes: React.FC<ClinicalNotesProps> = ({ report }) => {
       <div className="lg:col-span-1">
         <Card className="h-full">
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm flex items-center gap-2">
-              <FileText className="h-4 w-4" />
-              Historial de Notas
-            </CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-sm flex items-center gap-2">
+                <FileText className="h-4 w-4" />
+                Historial de Notas
+              </CardTitle>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setShowAddDialog(true)}
+                className="h-6 px-2"
+              >
+                <Plus className="h-3 w-3" />
+              </Button>
+            </div>
           </CardHeader>
           <CardContent className="p-0">
             <div className="space-y-1">
@@ -36,9 +66,14 @@ export const ClinicalNotes: React.FC<ClinicalNotesProps> = ({ report }) => {
                 >
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-xs text-healz-brown/70">{note.date}</span>
-                    <Badge variant="outline" className="text-xs">
-                      {note.type}
-                    </Badge>
+                    <span className={`text-xs px-1 rounded ${
+                      note.priority === 'high' ? 'bg-healz-red/20 text-healz-red' :
+                      note.priority === 'medium' ? 'bg-healz-yellow/20 text-healz-orange' :
+                      'bg-healz-green/20 text-healz-green'
+                    }`}>
+                      {note.priority === 'high' ? 'Alta' : 
+                       note.priority === 'medium' ? 'Media' : 'Baja'}
+                    </span>
                   </div>
                   <p className="text-sm font-medium text-healz-brown">{note.title}</p>
                   <p className="text-xs text-healz-brown/60 mt-1">{note.author}</p>
@@ -68,66 +103,35 @@ export const ClinicalNotes: React.FC<ClinicalNotesProps> = ({ report }) => {
                     </div>
                   </div>
                 </div>
-                <Badge variant="outline">{selectedNote.type}</Badge>
               </div>
             </CardHeader>
             <CardContent className="p-6 overflow-y-auto">
-              {/* Resumen general */}
-              <div className="mb-6">
-                <h3 className="font-semibold text-healz-brown mb-2">Resumen</h3>
-                <p className="text-sm text-healz-brown/80 leading-relaxed">
-                  {selectedNote.summary}
-                </p>
-              </div>
-
-              {/* Hallazgos por categorías */}
-              <div className="space-y-6">
-                {selectedNote.findings?.map((category: any, index: number) => (
-                  <div key={index}>
-                    <h3 className="font-semibold text-healz-brown mb-3 flex items-center gap-2">
-                      {category.category}
-                      <Badge 
-                        variant="outline" 
-                        className={`text-xs ${
-                          category.priority === 'high' ? 'bg-healz-red/20 text-healz-red' :
-                          category.priority === 'medium' ? 'bg-healz-yellow/20 text-healz-orange' :
-                          'bg-healz-green/20 text-healz-green'
-                        }`}
-                      >
-                        {category.priority === 'high' ? 'Alta' : 
-                         category.priority === 'medium' ? 'Media' : 'Baja'} prioridad
-                      </Badge>
-                    </h3>
-                    
-                    <div className="bg-healz-cream/20 p-4 rounded-lg border border-healz-brown/10">
-                      <p className="text-sm text-healz-brown/80 leading-relaxed mb-3">
-                        {category.findings}
-                      </p>
-                      
-                      {category.recommendations && (
-                        <div>
-                          <h4 className="font-medium text-healz-brown text-sm mb-2">Recomendaciones:</h4>
-                          <ul className="list-disc list-inside space-y-1 text-sm text-healz-brown/70">
-                            {category.recommendations.map((rec: string, recIndex: number) => (
-                              <li key={recIndex}>{rec}</li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <EditableClinicalNote
+                note={selectedNote}
+                reportId={report.id}
+                onDelete={handleDeleteNote}
+              />
             </CardContent>
           </Card>
         ) : (
           <Card className="h-full flex items-center justify-center">
-            <CardContent>
-              <p className="text-healz-brown/60">No hay notas clínicas disponibles</p>
+            <CardContent className="text-center">
+              <p className="text-healz-brown/60 mb-4">No hay notas clínicas disponibles</p>
+              <Button onClick={() => setShowAddDialog(true)}>
+                <Plus className="h-4 w-4 mr-2" />
+                Agregar Primera Nota
+              </Button>
             </CardContent>
           </Card>
         )}
       </div>
+
+      <AddClinicalNoteDialog
+        reportId={report.id}
+        formId={report.form_id}
+        open={showAddDialog}
+        onOpenChange={setShowAddDialog}
+      />
     </div>
   );
 };

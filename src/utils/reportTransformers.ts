@@ -1,4 +1,3 @@
-
 import {
   calculateBiologicalAge,
   calculateChronologicalAge,
@@ -100,6 +99,17 @@ export const transformActionPlan = (actionPlans: any[]) => {
   }));
 };
 
+export const transformSummarySections = (summarySections: any[]) => {
+  return summarySections.reduce((acc, section) => {
+    acc[section.section_type] = {
+      title: section.title,
+      content: section.content,
+      updated_at: section.updated_at
+    };
+    return acc;
+  }, {} as Record<string, { title: string; content: string; updated_at: string }>);
+};
+
 export const buildTransformedReport = (
   reportData: any,
   patient: any,
@@ -108,7 +118,8 @@ export const buildTransformedReport = (
   topSymptoms: any[],
   recentBiomarkers: any[],
   transformedClinicalNotes: any[],
-  transformedActionPlan: any
+  transformedActionPlan: any,
+  summarySections: any = {}
 ) => {
   return {
     id: reportData.id,
@@ -127,7 +138,8 @@ export const buildTransformedReport = (
     summary: reportData.diagnosis?.summary || generateSummary(patient, finalRisks, biomarkerSummary),
     manualNotes: reportData.manual_notes,
     // Cambiar de actionPlan a actionPlans para usar el array completo
-    actionPlans: transformedActionPlan
+    actionPlans: transformedActionPlan,
+    summarySections: summarySections
   };
 };
 

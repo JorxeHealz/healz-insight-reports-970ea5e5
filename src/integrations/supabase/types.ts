@@ -704,6 +704,39 @@ export type Database = {
           },
         ]
       }
+      report_summary_sections: {
+        Row: {
+          content: string
+          created_at: string
+          form_id: string
+          id: string
+          report_id: string
+          section_type: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          form_id: string
+          id?: string
+          report_id: string
+          section_type: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          form_id?: string
+          id?: string
+          report_id?: string
+          section_type?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       reports: {
         Row: {
           action_plan: Json | null
