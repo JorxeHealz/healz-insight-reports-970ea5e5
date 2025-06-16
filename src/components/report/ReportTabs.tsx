@@ -1,44 +1,62 @@
 
 import React from 'react';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '../ui/tabs';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
+import { Card, CardContent } from '../ui/card';
 import { ReportSummary } from './ReportSummary';
 import { ReportPanels } from './ReportPanels';
-import { ReportCategories } from './ReportCategories';
-import { ClinicalNotes } from './ClinicalNotes';
 import { ActionPlan } from './ActionPlan';
+import { FileText, Activity, Target, Brain } from 'lucide-react';
 
-type ReportTabsProps = {
+interface ReportTabsProps {
   report: any;
-};
+  clinicalNotesComponent?: React.ReactNode;
+}
 
-export const ReportTabs: React.FC<ReportTabsProps> = ({ report }) => {
+export const ReportTabs: React.FC<ReportTabsProps> = ({ 
+  report, 
+  clinicalNotesComponent 
+}) => {
   return (
-    <Tabs defaultValue="summary" className="w-full">
-      <TabsList className="grid w-full grid-cols-5 mb-4">
-        <TabsTrigger value="summary">Resumen</TabsTrigger>
-        <TabsTrigger value="panels">Paneles</TabsTrigger>
-        <TabsTrigger value="categories">Categorías</TabsTrigger>
-        <TabsTrigger value="notes">Comentarios</TabsTrigger>
-        <TabsTrigger value="action">Plan de Acción</TabsTrigger>
+    <Tabs defaultValue="summary" className="space-y-6">
+      <TabsList className="grid w-full grid-cols-4">
+        <TabsTrigger value="summary" className="flex items-center gap-2">
+          <FileText className="h-4 w-4" />
+          Resumen
+        </TabsTrigger>
+        <TabsTrigger value="panels" className="flex items-center gap-2">
+          <Activity className="h-4 w-4" />
+          Paneles
+        </TabsTrigger>
+        <TabsTrigger value="diagnosis" className="flex items-center gap-2">
+          <Brain className="h-4 w-4" />
+          Diagnóstico
+        </TabsTrigger>
+        <TabsTrigger value="action-plan" className="flex items-center gap-2">
+          <Target className="h-4 w-4" />
+          Plan de Acción
+        </TabsTrigger>
       </TabsList>
 
-      <TabsContent value="summary">
+      <TabsContent value="summary" className="space-y-6">
         <ReportSummary report={report} />
       </TabsContent>
 
-      <TabsContent value="panels">
+      <TabsContent value="panels" className="space-y-6">
         <ReportPanels report={report} />
       </TabsContent>
 
-      <TabsContent value="categories">
-        <ReportCategories report={report} />
+      <TabsContent value="diagnosis" className="space-y-6">
+        {clinicalNotesComponent || (
+          <Card>
+            <CardContent className="text-center py-12">
+              <Brain className="h-12 w-12 text-healz-brown/40 mx-auto mb-4" />
+              <p className="text-healz-brown/60">No hay diagnósticos disponibles</p>
+            </CardContent>
+          </Card>
+        )}
       </TabsContent>
 
-      <TabsContent value="notes">
-        <ClinicalNotes report={report} />
-      </TabsContent>
-
-      <TabsContent value="action">
+      <TabsContent value="action-plan" className="space-y-6">
         <ActionPlan report={report} />
       </TabsContent>
     </Tabs>

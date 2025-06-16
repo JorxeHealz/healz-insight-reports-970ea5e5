@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
 import { Button } from '../ui/button';
@@ -31,7 +30,7 @@ export const AddClinicalNoteDialog: React.FC<AddClinicalNoteDialogProps> = ({
   const [category, setCategory] = useState('general');
   const [priority, setPriority] = useState('medium');
   const [entryType, setEntryType] = useState<'note' | 'evaluation'>('evaluation');
-  const [evaluationType, setEvaluationType] = useState<'general' | 'panel' | 'biomarker'>('panel');
+  const [evaluationType, setEvaluationType] = useState<'general' | 'panel' | 'biomarker'>('general');
   const [targetId, setTargetId] = useState('');
   const [evaluationScore, setEvaluationScore] = useState(5);
   const [criticalityLevel, setCriticalityLevel] = useState('medium');
@@ -124,41 +123,41 @@ export const AddClinicalNoteDialog: React.FC<AddClinicalNoteDialogProps> = ({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             {getEntryTypeIcon()}
-            {entryType === 'note' ? 'Agregar Nota Clínica' : 'Agregar Evaluación Clínica'}
+            Nueva Evaluación Clínica
           </DialogTitle>
         </DialogHeader>
         
         <div className="space-y-4">
           <div>
-            <Label className="text-sm font-medium text-healz-brown">Tipo de Entrada</Label>
-            <Select value={entryType} onValueChange={(value: 'note' | 'evaluation') => setEntryType(value)}>
+            <Label className="text-sm font-medium text-healz-brown">Tipo de Evaluación</Label>
+            <Select value={evaluationType} onValueChange={(value: 'general' | 'panel' | 'biomarker') => setEvaluationType(value)}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="evaluation">Evaluación Clínica</SelectItem>
-                <SelectItem value="note">Nota Clínica</SelectItem>
+                <SelectItem value="general">
+                  <div className="flex items-center gap-2">
+                    <Brain className="h-4 w-4" />
+                    Evaluación General
+                  </div>
+                </SelectItem>
+                <SelectItem value="panel">
+                  <div className="flex items-center gap-2">
+                    <Package className="h-4 w-4" />
+                    Evaluación por Panel
+                  </div>
+                </SelectItem>
+                <SelectItem value="biomarker">
+                  <div className="flex items-center gap-2">
+                    <Activity className="h-4 w-4" />
+                    Evaluación por Biomarcador
+                  </div>
+                </SelectItem>
               </SelectContent>
             </Select>
           </div>
 
-          {entryType === 'evaluation' && (
-            <div>
-              <Label className="text-sm font-medium text-healz-brown">Tipo de Evaluación</Label>
-              <Select value={evaluationType} onValueChange={(value: 'general' | 'panel' | 'biomarker') => setEvaluationType(value)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="general">Evaluación General</SelectItem>
-                  <SelectItem value="panel">Evaluación por Panel</SelectItem>
-                  <SelectItem value="biomarker">Evaluación por Biomarcador</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          )}
-
-          {entryType === 'evaluation' && evaluationType === 'panel' && (
+          {evaluationType === 'panel' && (
             <div>
               <Label className="text-sm font-medium text-healz-brown">Panel</Label>
               <Select value={targetId} onValueChange={setTargetId}>
@@ -176,7 +175,7 @@ export const AddClinicalNoteDialog: React.FC<AddClinicalNoteDialogProps> = ({
             </div>
           )}
 
-          {entryType === 'evaluation' && evaluationType === 'biomarker' && (
+          {evaluationType === 'biomarker' && (
             <div>
               <Label className="text-sm font-medium text-healz-brown">Biomarcador</Label>
               <Select value={targetId} onValueChange={setTargetId}>

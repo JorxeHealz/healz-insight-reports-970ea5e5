@@ -1,12 +1,16 @@
 
 import React from 'react';
+import { Skeleton } from '../ui/skeleton';
+import { Alert, AlertDescription } from '../ui/alert';
+import { AlertCircle } from 'lucide-react';
 import { ReportHeader } from './ReportHeader';
 import { ReportTabs } from './ReportTabs';
+import { ClinicalNotesStructured } from './ClinicalNotesStructured';
 
 interface ReportDetailContentProps {
   report: any;
   isLoading: boolean;
-  error: Error | null;
+  error: any;
 }
 
 export const ReportDetailContent: React.FC<ReportDetailContentProps> = ({
@@ -16,32 +20,48 @@ export const ReportDetailContent: React.FC<ReportDetailContentProps> = ({
 }) => {
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-48">
-        <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-healz-brown border-r-transparent"></div>
+      <div className="space-y-6">
+        <Skeleton className="h-8 w-64" />
+        <Skeleton className="h-32 w-full" />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Skeleton className="h-40" />
+          <Skeleton className="h-40" />
+          <Skeleton className="h-40" />
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="bg-healz-red/10 text-healz-red p-4 rounded-md">
-        Error al cargar el informe: {error.message}
-      </div>
+      <Alert variant="destructive">
+        <AlertCircle className="h-4 w-4" />
+        <AlertDescription>
+          Error al cargar el informe: {error.message}
+        </AlertDescription>
+      </Alert>
     );
   }
 
   if (!report) {
     return (
-      <div className="text-center py-8 text-healz-brown/70">
-        Informe no encontrado.
-      </div>
+      <Alert>
+        <AlertCircle className="h-4 w-4" />
+        <AlertDescription>
+          No se encontró el informe solicitado.
+        </AlertDescription>
+      </Alert>
     );
   }
 
   return (
     <div className="space-y-6">
-      <ReportHeader />
-      <ReportTabs report={report} />
+      <ReportHeader report={report} />
+      
+      <ReportTabs 
+        report={report}
+        clinicalNotesComponent={<ClinicalNotesStructured report={report} />}
+      />
     </div>
   );
 };
