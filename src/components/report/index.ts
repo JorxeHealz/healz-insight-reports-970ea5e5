@@ -1,9 +1,11 @@
+
 export * from './ReportHeader';
 export * from './ReportTabs';
 export * from './ReportSummary';
 export * from './ReportPanels';
 export * from './ReportCategories';
 export * from './ClinicalNotes';
+export * from './ClinicalNotesStructured';
 export * from './ActionPlan';
 export * from './VitalityScoreCard';
 export * from './QualityOfLifeStars';
