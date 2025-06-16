@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
-import { Calendar, FileText, User, Plus, Package, Activity, Filter } from 'lucide-react';
+import { Calendar, FileText, User, Plus, Package, Activity, Filter, Brain } from 'lucide-react';
 import { Badge } from '../ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { EditableClinicalNote } from './EditableClinicalNote';
@@ -13,28 +13,45 @@ type ClinicalNotesProps = {
   report: any;
 };
 
-type FilterType = 'all' | 'notes' | 'evaluations';
+type FilterType = 'all' | 'notes' | 'evaluations' | 'general' | 'panel' | 'biomarker';
 
 export const ClinicalNotes: React.FC<ClinicalNotesProps> = ({ report }) => {
-  const [selectedNoteId, setSelectedNoteId] = useState<string>(report.clinicalNotes?.[0]?.id || '');
+  // Ordenar las notas clínicas para que la evaluación general aparezca primero
+  const sortedClinicalNotes = React.useMemo(() => {
+    if (!report.clinicalNotes) return [];
+    
+    return [...report.clinicalNotes].sort((a, b) => {
+      // Evaluación general siempre primera
+      if (a.evaluation_type === 'general' && b.evaluation_type !== 'general') return -1;
+      if (b.evaluation_type === 'general' && a.evaluation_type !== 'general') return 1;
+      
+      // Luego por fecha (más reciente primero)
+      return new Date(b.date).getTime() - new Date(a.date).getTime();
+    });
+  }, [report.clinicalNotes]);
+
+  const [selectedNoteId, setSelectedNoteId] = useState<string>(sortedClinicalNotes[0]?.id || '');
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [filter, setFilter] = useState<FilterType>('all');
   const { deleteClinicalNote } = useClinicalNotes(report.id);
 
   // Filter notes based on selected filter
-  const filteredNotes = report.clinicalNotes?.filter((note: any) => {
+  const filteredNotes = sortedClinicalNotes.filter((note: any) => {
     if (filter === 'all') return true;
     if (filter === 'notes') return !note.evaluation_type;
     if (filter === 'evaluations') return note.evaluation_type;
+    if (filter === 'general') return note.evaluation_type === 'general';
+    if (filter === 'panel') return note.evaluation_type === 'panel';
+    if (filter === 'biomarker') return note.evaluation_type === 'biomarker';
     return true;
-  }) || [];
+  });
 
   const selectedNote = filteredNotes.find((note: any) => note.id === selectedNoteId) || filteredNotes[0];
 
   const getEntryIcon = (note: any) => {
     if (!note.evaluation_type) return <FileText className="h-4 w-4 text-healz-brown" />;
     switch (note.evaluation_type) {
-      case 'general': return <FileText className="h-4 w-4 text-healz-blue" />;
+      case 'general': return <Brain className="h-4 w-4 text-healz-blue" />;
       case 'panel': return <Package className="h-4 w-4 text-healz-orange" />;
       case 'biomarker': return <Activity className="h-4 w-4 text-healz-green" />;
       default: return <FileText className="h-4 w-4 text-healz-brown" />;
@@ -51,13 +68,30 @@ export const ClinicalNotes: React.FC<ClinicalNotesProps> = ({ report }) => {
     }
   };
 
+  const getTargetDisplay = (note: any) => {
+    if (!note.target_id) return null;
+    if (note.evaluation_type === 'panel') return `Panel: ${note.target_id}`;
+    if (note.evaluation_type === 'biomarker') return `Biomarcador: ${note.target_id}`;
+    return note.target_id;
+  };
+
   const getCriticalityColor = (level: string) => {
     switch (level) {
-      case 'critical': return 'bg-healz-red/20 text-healz-red';
-      case 'high': return 'bg-healz-orange/20 text-healz-orange';
-      case 'medium': return 'bg-healz-yellow/20 text-healz-orange';
-      case 'low': return 'bg-healz-green/20 text-healz-green';
-      default: return 'bg-healz-cream/20 text-healz-brown';
+      case 'critical': return 'bg-healz-red/20 text-healz-red border-healz-red/30';
+      case 'high': return 'bg-healz-orange/20 text-healz-orange border-healz-orange/30';
+      case 'medium': return 'bg-healz-yellow/20 text-healz-orange border-healz-yellow/30';
+      case 'low': return 'bg-healz-green/20 text-healz-green border-healz-green/30';
+      default: return 'bg-healz-cream/20 text-healz-brown border-healz-cream/30';
+    }
+  };
+
+  const getCriticalityLabel = (level?: string) => {
+    switch (level) {
+      case 'critical': return 'Crítica';
+      case 'high': return 'Alta';
+      case 'medium': return 'Media';
+      case 'low': return 'Baja';
+      default: return 'Media';
     }
   };
 
@@ -75,26 +109,29 @@ export const ClinicalNotes: React.FC<ClinicalNotesProps> = ({ report }) => {
     }
   };
 
-  // Mock available panels and biomarkers - in real app these would come from report data
-  const availablePanels = ['Cardiovascular', 'Metabólico', 'Hormonal', 'Inflamatorio', 'Nutricional'];
+  // Mock available panels and biomarkers - en una app real estos vendrían de los datos del informe
+  const availablePanels = ['Cardiovascular', 'Metabólico', 'Hormonal', 'Inflamatorio', 'Nutricional', 'Renal', 'Hepático'];
   const availableBiomarkers = [
-    { id: '1', name: 'Colesterol Total' },
-    { id: '2', name: 'Glucosa' },
-    { id: '3', name: 'Cortisol' },
-    { id: '4', name: 'TSH' },
-    { id: '5', name: 'Vitamina D' }
+    { id: 'cholesterol_total', name: 'Colesterol Total' },
+    { id: 'glucose', name: 'Glucosa' },
+    { id: 'cortisol', name: 'Cortisol' },
+    { id: 'tsh', name: 'TSH' },
+    { id: 'vitamin_d', name: 'Vitamina D' },
+    { id: 'testosterone', name: 'Testosterona' },
+    { id: 'crp', name: 'Proteína C Reactiva' },
+    { id: 'ldl', name: 'LDL Colesterol' }
   ];
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 h-[600px]">
-      {/* Sidebar con historial de notas */}
+      {/* Sidebar con historial de evaluaciones */}
       <div className="lg:col-span-1">
         <Card className="h-full">
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between mb-2">
               <CardTitle className="text-sm flex items-center gap-2">
-                <FileText className="h-4 w-4" />
-                Historial
+                <Brain className="h-4 w-4" />
+                Evaluaciones Clínicas
               </CardTitle>
               <Button
                 size="sm"
@@ -113,8 +150,11 @@ export const ClinicalNotes: React.FC<ClinicalNotesProps> = ({ report }) => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todo</SelectItem>
+                  <SelectItem value="evaluations">Evaluaciones</SelectItem>
+                  <SelectItem value="general">General</SelectItem>
+                  <SelectItem value="panel">Paneles</SelectItem>
+                  <SelectItem value="biomarker">Biomarcadores</SelectItem>
                   <SelectItem value="notes">Solo Notas</SelectItem>
-                  <SelectItem value="evaluations">Solo Evaluaciones</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -138,34 +178,42 @@ export const ClinicalNotes: React.FC<ClinicalNotesProps> = ({ report }) => {
                       <Badge variant="outline" className="text-xs h-4 px-1">
                         {getEntryTypeLabel(note)}
                       </Badge>
-                      {note.evaluation_type && (
-                        <Badge className={`text-xs h-4 px-1 ${getCriticalityColor(note.criticality_level || 'medium')}`}>
-                          {note.criticality_level === 'critical' ? 'Crítica' :
-                           note.criticality_level === 'high' ? 'Alta' : 
-                           note.criticality_level === 'medium' ? 'Media' : 'Baja'}
-                        </Badge>
-                      )}
                     </div>
                   </div>
-                  <p className="text-sm font-medium text-healz-brown">{note.title}</p>
-                  {note.evaluation_score && (
-                    <div className="flex items-center gap-1 mt-1">
-                      <span className="text-xs text-healz-brown/60">Puntuación:</span>
-                      <span className="text-xs font-medium text-healz-orange">{note.evaluation_score}/10</span>
+                  <p className="text-sm font-medium text-healz-brown mb-1">{note.title}</p>
+                  
+                  {note.evaluation_type && (
+                    <div className="space-y-1">
+                      {note.evaluation_score && (
+                        <div className="flex items-center gap-1">
+                          <span className="text-xs text-healz-brown/60">Puntuación:</span>
+                          <span className="text-xs font-medium text-healz-orange">{note.evaluation_score}/10</span>
+                        </div>
+                      )}
+                      <Badge className={`text-xs h-4 px-1 ${getCriticalityColor(note.criticality_level || 'medium')}`}>
+                        {getCriticalityLabel(note.criticality_level)}
+                      </Badge>
                     </div>
                   )}
-                  {note.target_id && (
-                    <p className="text-xs text-healz-brown/60 mt-1">🎯 {note.target_id}</p>
+                  
+                  {getTargetDisplay(note) && (
+                    <p className="text-xs text-healz-brown/60 mt-1">🎯 {getTargetDisplay(note)}</p>
                   )}
                   <p className="text-xs text-healz-brown/60 mt-1">{note.author}</p>
                 </button>
               ))}
+              
+              {filteredNotes.length === 0 && (
+                <div className="p-4 text-center text-healz-brown/60">
+                  <p className="text-sm">No hay evaluaciones para este filtro</p>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Panel principal con nota seleccionada */}
+      {/* Panel principal con evaluación seleccionada */}
       <div className="lg:col-span-3">
         {selectedNote ? (
           <Card className="h-full">
@@ -179,10 +227,13 @@ export const ClinicalNotes: React.FC<ClinicalNotesProps> = ({ report }) => {
                       {getEntryTypeLabel(selectedNote)}
                     </Badge>
                     {selectedNote.evaluation_type && (
-                      <Badge className={getCriticalityColor(selectedNote.criticality_level || 'medium')}>
-                        {selectedNote.criticality_level === 'critical' ? 'Crítica' :
-                         selectedNote.criticality_level === 'high' ? 'Alta' : 
-                         selectedNote.criticality_level === 'medium' ? 'Media' : 'Baja'}
+                      <Badge className={`${getCriticalityColor(selectedNote.criticality_level || 'medium')}`}>
+                        {getCriticalityLabel(selectedNote.criticality_level)}
+                      </Badge>
+                    )}
+                    {selectedNote.is_auto_generated && (
+                      <Badge variant="outline" className="text-xs bg-healz-blue/10 text-healz-blue">
+                        Auto-generado
                       </Badge>
                     )}
                   </div>
@@ -200,9 +251,9 @@ export const ClinicalNotes: React.FC<ClinicalNotesProps> = ({ report }) => {
                         <span>Puntuación: {selectedNote.evaluation_score}/10</span>
                       </div>
                     )}
-                    {selectedNote.target_id && (
+                    {getTargetDisplay(selectedNote) && (
                       <div className="flex items-center gap-1">
-                        <span>🎯 {selectedNote.target_id}</span>
+                        <span>🎯 {getTargetDisplay(selectedNote)}</span>
                       </div>
                     )}
                   </div>
@@ -223,10 +274,11 @@ export const ClinicalNotes: React.FC<ClinicalNotesProps> = ({ report }) => {
         ) : (
           <Card className="h-full flex items-center justify-center">
             <CardContent className="text-center">
-              <p className="text-healz-brown/60 mb-4">No hay entradas disponibles</p>
+              <Brain className="h-12 w-12 text-healz-brown/40 mx-auto mb-4" />
+              <p className="text-healz-brown/60 mb-4">No hay evaluaciones disponibles</p>
               <Button onClick={() => setShowAddDialog(true)}>
                 <Plus className="h-4 w-4 mr-2" />
-                Agregar Primera Entrada
+                Agregar Primera Evaluación
               </Button>
             </CardContent>
           </Card>

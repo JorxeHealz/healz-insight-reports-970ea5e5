@@ -6,7 +6,7 @@ import { Input } from '../ui/input';
 import { Textarea } from '../ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Label } from '../ui/label';
-import { Star, FileText, Package, Activity } from 'lucide-react';
+import { Star, FileText, Package, Activity, Brain } from 'lucide-react';
 import { useClinicalNotes } from '../../hooks/useClinicalNotes';
 
 type AddClinicalNoteDialogProps = {
@@ -30,8 +30,8 @@ export const AddClinicalNoteDialog: React.FC<AddClinicalNoteDialogProps> = ({
   const [content, setContent] = useState('');
   const [category, setCategory] = useState('general');
   const [priority, setPriority] = useState('medium');
-  const [entryType, setEntryType] = useState<'note' | 'evaluation'>('note');
-  const [evaluationType, setEvaluationType] = useState<'general' | 'panel' | 'biomarker'>('general');
+  const [entryType, setEntryType] = useState<'note' | 'evaluation'>('evaluation');
+  const [evaluationType, setEvaluationType] = useState<'general' | 'panel' | 'biomarker'>('panel');
   const [targetId, setTargetId] = useState('');
   const [evaluationScore, setEvaluationScore] = useState(5);
   const [criticalityLevel, setCriticalityLevel] = useState('medium');
@@ -40,6 +40,12 @@ export const AddClinicalNoteDialog: React.FC<AddClinicalNoteDialogProps> = ({
 
   const handleSave = async () => {
     if (!title.trim() || !content.trim()) return;
+    
+    // Para evaluaciones específicas, validar que se haya seleccionado un target
+    if (entryType === 'evaluation' && evaluationType !== 'general' && !targetId.trim()) {
+      alert('Por favor selecciona un panel o biomarcador para la evaluación específica');
+      return;
+    }
     
     try {
       await addClinicalNote.mutateAsync({
@@ -66,8 +72,8 @@ export const AddClinicalNoteDialog: React.FC<AddClinicalNoteDialogProps> = ({
     setContent('');
     setCategory('general');
     setPriority('medium');
-    setEntryType('note');
-    setEvaluationType('general');
+    setEntryType('evaluation');
+    setEvaluationType('panel');
     setTargetId('');
     setEvaluationScore(5);
     setCriticalityLevel('medium');
@@ -81,12 +87,36 @@ export const AddClinicalNoteDialog: React.FC<AddClinicalNoteDialogProps> = ({
   const getEntryTypeIcon = () => {
     if (entryType === 'note') return <FileText className="h-4 w-4" />;
     switch (evaluationType) {
-      case 'general': return <FileText className="h-4 w-4" />;
+      case 'general': return <Brain className="h-4 w-4" />;
       case 'panel': return <Package className="h-4 w-4" />;
       case 'biomarker': return <Activity className="h-4 w-4" />;
       default: return <FileText className="h-4 w-4" />;
     }
   };
+
+  // Sugerencias de títulos basadas en el tipo de evaluación
+  const getTitleSuggestion = () => {
+    if (entryType === 'note') return '';
+    
+    switch (evaluationType) {
+      case 'general':
+        return 'Evaluación General del Estado de Salud';
+      case 'panel':
+        return targetId ? `Evaluación Panel ${targetId}` : 'Evaluación de Panel Específico';
+      case 'biomarker':
+        const biomarker = availableBiomarkers.find(b => b.id === targetId);
+        return biomarker ? `Evaluación ${biomarker.name}` : 'Evaluación de Biomarcador Específico';
+      default:
+        return '';
+    }
+  };
+
+  React.useEffect(() => {
+    const suggestion = getTitleSuggestion();
+    if (suggestion && !title) {
+      setTitle(suggestion);
+    }
+  }, [evaluationType, targetId]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -106,8 +136,8 @@ export const AddClinicalNoteDialog: React.FC<AddClinicalNoteDialogProps> = ({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="note">Nota Clínica</SelectItem>
                 <SelectItem value="evaluation">Evaluación Clínica</SelectItem>
+                <SelectItem value="note">Nota Clínica</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -233,6 +263,11 @@ export const AddClinicalNoteDialog: React.FC<AddClinicalNoteDialogProps> = ({
                     />
                   ))}
                 </div>
+                <span className="text-sm text-healz-brown/70">
+                  {evaluationScore <= 3 ? 'Crítico' : 
+                   evaluationScore <= 5 ? 'Requiere atención' :
+                   evaluationScore <= 7 ? 'Aceptable' : 'Excelente'}
+                </span>
               </div>
             </div>
           )}
@@ -243,7 +278,15 @@ export const AddClinicalNoteDialog: React.FC<AddClinicalNoteDialogProps> = ({
               value={content}
               onChange={(e) => setContent(e.target.value)}
               rows={6}
-              placeholder={entryType === 'note' ? 'Contenido de la nota clínica...' : 'Descripción de la evaluación, hallazgos y análisis...'}
+              placeholder={
+                entryType === 'note' 
+                  ? 'Contenido de la nota clínica...' 
+                  : evaluationType === 'general'
+                    ? 'Evaluación general del estado de salud del paciente, considerando todos los parámetros analizados...'
+                    : evaluationType === 'panel'
+                      ? 'Análisis específico del panel seleccionado, evaluación de biomarcadores relacionados y recomendaciones...'
+                      : 'Evaluación detallada del biomarcador específico, interpretación de valores y recomendaciones...'
+              }
             />
           </div>
         </div>
