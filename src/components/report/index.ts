@@ -27,3 +27,8 @@ export * from './EditableClinicalNote';
 export * from './EditClinicalNoteDialog';
 export * from './AddClinicalNoteDialog';
 export * from './EditableSummarySection';
+export * from './ReportEvaluations';
+export * from './evaluations/EvaluationsManager';
+export * from './evaluations/EvaluationCard';
+export * from './evaluations/CreateEvaluationDialog';
+export * from './evaluations/types';

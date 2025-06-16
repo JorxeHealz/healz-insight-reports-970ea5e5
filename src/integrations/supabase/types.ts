@@ -708,30 +708,48 @@ export type Database = {
         Row: {
           content: string
           created_at: string
+          criticality_level: string | null
+          evaluation_score: number | null
+          evaluation_type: string | null
           form_id: string
           id: string
+          is_auto_generated: boolean | null
+          recommendations: Json | null
           report_id: string
           section_type: string
+          target_id: string | null
           title: string
           updated_at: string
         }
         Insert: {
           content: string
           created_at?: string
+          criticality_level?: string | null
+          evaluation_score?: number | null
+          evaluation_type?: string | null
           form_id: string
           id?: string
+          is_auto_generated?: boolean | null
+          recommendations?: Json | null
           report_id: string
           section_type: string
+          target_id?: string | null
           title: string
           updated_at?: string
         }
         Update: {
           content?: string
           created_at?: string
+          criticality_level?: string | null
+          evaluation_score?: number | null
+          evaluation_type?: string | null
           form_id?: string
           id?: string
+          is_auto_generated?: boolean | null
+          recommendations?: Json | null
           report_id?: string
           section_type?: string
+          target_id?: string | null
           title?: string
           updated_at?: string
         }

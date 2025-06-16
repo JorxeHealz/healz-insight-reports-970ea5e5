@@ -6,16 +6,18 @@ import { ReportPanels } from './ReportPanels';
 import { ReportCategories } from './ReportCategories';
 import { ClinicalNotes } from './ClinicalNotes';
 import { ActionPlan } from './ActionPlan';
+import { ReportEvaluations } from './ReportEvaluations';
 
 type ReportTabsProps = {
-  report: any; // Idealmente crear un tipo adecuado
+  report: any;
 };
 
 export const ReportTabs: React.FC<ReportTabsProps> = ({ report }) => {
   return (
     <Tabs defaultValue="summary" className="w-full">
-      <TabsList className="grid w-full grid-cols-5 mb-4">
+      <TabsList className="grid w-full grid-cols-6 mb-4">
         <TabsTrigger value="summary">Resumen</TabsTrigger>
+        <TabsTrigger value="evaluations">Evaluaciones</TabsTrigger>
         <TabsTrigger value="panels">Paneles</TabsTrigger>
         <TabsTrigger value="categories">Categorías</TabsTrigger>
         <TabsTrigger value="notes">Comentarios</TabsTrigger>
@@ -24,6 +26,10 @@ export const ReportTabs: React.FC<ReportTabsProps> = ({ report }) => {
 
       <TabsContent value="summary">
         <ReportSummary report={report} />
+      </TabsContent>
+
+      <TabsContent value="evaluations">
+        <ReportEvaluations report={report} />
       </TabsContent>
 
       <TabsContent value="panels">
