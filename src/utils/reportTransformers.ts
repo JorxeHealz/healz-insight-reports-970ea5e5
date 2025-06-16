@@ -1,3 +1,4 @@
+
 import {
   calculateBiologicalAge,
   calculateChronologicalAge,
@@ -66,6 +67,7 @@ export const transformSymptoms = (symptoms: any[]) => {
     }));
 };
 
+// Update transformClinicalNotes to preserve all evaluation properties
 export const transformClinicalNotes = (clinicalNotes: any[]) => {
   return clinicalNotes.map(note => ({
     id: note.id,
@@ -73,6 +75,15 @@ export const transformClinicalNotes = (clinicalNotes: any[]) => {
     content: note.content,
     author: note.author || 'Dr. Sistema',
     date: new Date(note.created_at).toLocaleDateString(),
+    category: note.category,
+    priority: note.priority,
+    // Preserve evaluation properties
+    evaluation_type: note.evaluation_type,
+    target_id: note.target_id,
+    evaluation_score: note.evaluation_score,
+    criticality_level: note.criticality_level,
+    is_auto_generated: note.is_auto_generated,
+    // Legacy properties for backward compatibility
     type: note.category,
     summary: note.content,
     findings: [{
@@ -134,7 +145,8 @@ export const buildTransformedReport = (
     biomarkerSummary,
     topSymptoms,
     recentBiomarkers,
-    clinicalNotes: transformedClinicalNotes,
+    // Use clinical_notes instead of clinicalNotes to match component expectations
+    clinical_notes: transformedClinicalNotes,
     summary: reportData.diagnosis?.summary || generateSummary(patient, finalRisks, biomarkerSummary),
     manualNotes: reportData.manual_notes,
     // Cambiar de actionPlan a actionPlans para usar el array completo

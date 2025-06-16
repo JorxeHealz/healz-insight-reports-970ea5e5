@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
@@ -29,6 +30,7 @@ export const ClinicalNotesStructured: React.FC<ClinicalNotesStructuredProps> = (
     return { general, panels, biomarkers };
   };
 
+  // Use clinical_notes instead of clinicalNotes to match the transformed data
   const notes = report.clinical_notes || [];
   const { general, panels, biomarkers } = categorizeNotes(notes);
 
