@@ -36,3 +36,7 @@ export * from './note/NoteHeader';
 export * from './note/EvaluationScore';
 export * from './note/TargetDisplay';
 export * from './note/NoteFooter';
+export * from './clinical-notes/types';
+export * from './clinical-notes/ClinicalNotesHeader';
+export * from './clinical-notes/ClinicalNotesList';
+export * from './clinical-notes/ClinicalNotesPanel';
