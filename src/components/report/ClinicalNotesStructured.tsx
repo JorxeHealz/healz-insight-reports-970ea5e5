@@ -8,8 +8,16 @@ import { EditableClinicalNote } from './EditableClinicalNote';
 import { AddClinicalNoteDialog } from './AddClinicalNoteDialog';
 import { useClinicalNotes } from '../../hooks/useClinicalNotes';
 
+interface Report {
+  id: string;
+  form_id?: string;
+  clinical_notes?: any[];
+  panels?: Record<string, any>;
+  biomarkers?: any[];
+}
+
 interface ClinicalNotesStructuredProps {
-  report: any;
+  report: Report;
 }
 
 export const ClinicalNotesStructured: React.FC<ClinicalNotesStructuredProps> = ({ report }) => {
