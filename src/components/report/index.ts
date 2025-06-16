@@ -1,4 +1,3 @@
-
 export * from './ReportHeader';
 export * from './ReportTabs';
 export * from './ReportSummary';
@@ -27,3 +26,9 @@ export * from './EditableClinicalNote';
 export * from './EditClinicalNoteDialog';
 export * from './AddClinicalNoteDialog';
 export * from './EditableSummarySection';
+export * from './dialog/types';
+export * from './dialog/EvaluationTypeSelector';
+export * from './dialog/TargetSelector';
+export * from './dialog/EvaluationScoreInput';
+export * from './dialog/FormFields';
+export * from './dialog/useTitleSuggestions';
