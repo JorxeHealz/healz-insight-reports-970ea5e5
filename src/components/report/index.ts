@@ -32,3 +32,7 @@ export * from './dialog/TargetSelector';
 export * from './dialog/EvaluationScoreInput';
 export * from './dialog/FormFields';
 export * from './dialog/useTitleSuggestions';
+export * from './note/NoteHeader';
+export * from './note/EvaluationScore';
+export * from './note/TargetDisplay';
+export * from './note/NoteFooter';
