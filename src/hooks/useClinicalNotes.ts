@@ -12,6 +12,10 @@ export const useClinicalNotes = (reportId: string) => {
       content: string;
       priority: string;
       formId: string;
+      evaluationType?: 'general' | 'panel' | 'biomarker';
+      targetId?: string;
+      evaluationScore?: number;
+      criticalityLevel?: string;
     }) => {
       const { data, error } = await supabase
         .from('report_comments')
@@ -22,7 +26,11 @@ export const useClinicalNotes = (reportId: string) => {
           title: noteData.title,
           content: noteData.content,
           priority: noteData.priority,
-          author: 'Dr. Sistema'
+          author: 'Dr. Sistema',
+          evaluation_type: noteData.evaluationType || null,
+          target_id: noteData.targetId || null,
+          evaluation_score: noteData.evaluationScore || null,
+          criticality_level: noteData.criticalityLevel || 'medium'
         })
         .select()
         .single();
@@ -42,6 +50,10 @@ export const useClinicalNotes = (reportId: string) => {
       content: string;
       category: string;
       priority: string;
+      evaluationType?: 'general' | 'panel' | 'biomarker';
+      targetId?: string;
+      evaluationScore?: number;
+      criticalityLevel?: string;
     }) => {
       const { data, error } = await supabase
         .from('report_comments')
@@ -49,7 +61,11 @@ export const useClinicalNotes = (reportId: string) => {
           title: noteData.title,
           content: noteData.content,
           category: noteData.category,
-          priority: noteData.priority
+          priority: noteData.priority,
+          evaluation_type: noteData.evaluationType || null,
+          target_id: noteData.targetId || null,
+          evaluation_score: noteData.evaluationScore || null,
+          criticality_level: noteData.criticalityLevel || 'medium'
         })
         .eq('id', noteData.id)
         .select()

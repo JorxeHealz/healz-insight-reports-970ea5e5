@@ -605,11 +605,17 @@ export type Database = {
           category: string
           content: string
           created_at: string
+          criticality_level: string | null
           date: string
+          evaluation_score: number | null
+          evaluation_type: string | null
           form_id: string
           id: string
+          is_auto_generated: boolean | null
           priority: string
+          recommendations: Json | null
           report_id: string
+          target_id: string | null
           title: string
         }
         Insert: {
@@ -617,11 +623,17 @@ export type Database = {
           category?: string
           content: string
           created_at?: string
+          criticality_level?: string | null
           date?: string
+          evaluation_score?: number | null
+          evaluation_type?: string | null
           form_id: string
           id?: string
+          is_auto_generated?: boolean | null
           priority?: string
+          recommendations?: Json | null
           report_id: string
+          target_id?: string | null
           title: string
         }
         Update: {
@@ -629,11 +641,17 @@ export type Database = {
           category?: string
           content?: string
           created_at?: string
+          criticality_level?: string | null
           date?: string
+          evaluation_score?: number | null
+          evaluation_type?: string | null
           form_id?: string
           id?: string
+          is_auto_generated?: boolean | null
           priority?: string
+          recommendations?: Json | null
           report_id?: string
+          target_id?: string | null
           title?: string
         }
         Relationships: [
