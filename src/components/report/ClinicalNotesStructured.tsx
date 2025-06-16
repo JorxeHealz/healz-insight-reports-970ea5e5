@@ -7,6 +7,7 @@ import { Brain, Plus, FileText } from 'lucide-react';
 import { EditableClinicalNote } from './EditableClinicalNote';
 import { AddClinicalNoteDialog } from './AddClinicalNoteDialog';
 import { useClinicalNotes } from '../../hooks/useClinicalNotes';
+import { useReportBiomarkers } from '../../hooks/useReportBiomarkers';
 
 interface Report {
   id: string;
@@ -14,6 +15,7 @@ interface Report {
   clinical_notes?: any[];
   panels?: Record<string, any>;
   biomarkers?: any[];
+  recentBiomarkers?: any[];
 }
 
 interface ClinicalNotesStructuredProps {
@@ -23,6 +25,9 @@ interface ClinicalNotesStructuredProps {
 export const ClinicalNotesStructured: React.FC<ClinicalNotesStructuredProps> = ({ report }) => {
   const [showAddDialog, setShowAddDialog] = useState(false);
   const { deleteClinicalNote } = useClinicalNotes(report.id);
+  
+  // Fetch biomarkers for this report
+  const { data: reportBiomarkers } = useReportBiomarkers(report.id);
 
   const categorizeNotes = (notes: any[]) => {
     const general = notes.filter(note => 
@@ -42,8 +47,30 @@ export const ClinicalNotesStructured: React.FC<ClinicalNotesStructuredProps> = (
   const notes = report.clinical_notes || [];
   const { general, panels, biomarkers } = categorizeNotes(notes);
 
-  const availablePanels = report.panels ? Object.keys(report.panels) : [];
-  const availableBiomarkers = report.biomarkers || [];
+  // Get available panels and biomarkers
+  const availablePanels = [
+    'Salud Cardiovascular',
+    'Función Tiroidea', 
+    'Metabolismo',
+    'Hormonas del Estrés',
+    'Estado Nutricional',
+    'Hormonas Sexuales',
+    'Función Hepática',
+    'Función Renal',
+    'Perfil Hematológico',
+    'Inflamación'
+  ];
+  
+  const availableBiomarkers = (reportBiomarkers || report.recentBiomarkers || []).map((biomarker: any) => ({
+    id: biomarker.biomarkerData?.id || biomarker.name?.toLowerCase().replace(/\s+/g, '_'),
+    name: biomarker.name
+  }));
+
+  console.log('ClinicalNotesStructured - Available data:', {
+    availablePanels: availablePanels.length,
+    availableBiomarkers: availableBiomarkers.length,
+    biomarkerNames: availableBiomarkers.map(b => b.name)
+  });
 
   const handleDeleteNote = async (noteId: string) => {
     try {

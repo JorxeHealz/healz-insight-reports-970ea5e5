@@ -7,8 +7,17 @@ import { ReportHeader } from './ReportHeader';
 import { ReportTabs } from './ReportTabs';
 import { ClinicalNotesStructured } from './ClinicalNotesStructured';
 
+interface Report {
+  id: string;
+  form_id?: string;
+  clinical_notes?: any[];
+  panels?: Record<string, any>;
+  biomarkers?: any[];
+  recentBiomarkers?: any[];
+}
+
 interface ReportDetailContentProps {
-  report: any;
+  report: Report | any;
   isLoading: boolean;
   error: any;
 }
