@@ -3,9 +3,7 @@ import React from 'react';
 import { useReportData } from '../../hooks/useReportData';
 import { ReportHeader } from './ReportHeader';
 import { ReportTabs } from './ReportTabs';
-import { VitalityScoreCard } from './VitalityScoreCard';
-import { RiskBars } from './RiskBars';
-import { BiologicalAgeCard } from './BiologicalAgeCard';
+import { ClinicalNotesStructured } from './ClinicalNotesStructured';
 import { Skeleton } from '../ui/skeleton';
 import { Card, CardContent } from '../ui/card';
 
@@ -53,37 +51,16 @@ export const ReportDetailContent = ({ reportId }: ReportDetailContentProps) => {
     );
   }
 
-  // Ensure risks object has the required structure for RiskBars component
-  const formattedRisks = {
-    cardio: report.risks?.cardio || 0,
-    mental: report.risks?.mental || 0,
-    adrenal: report.risks?.adrenal || 0,
-    oncologic: report.risks?.oncologic || 0,
-    metabolic: report.risks?.metabolic || 0,
-    inflammatory: report.risks?.inflammatory || 0,
-  };
-
   return (
     <div className="max-w-6xl mx-auto space-y-6">
       {/* Header del reporte */}
       <ReportHeader />
 
-      {/* Cards principales */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <VitalityScoreCard 
-          score={report.vitalityScore || 0} 
-        />
-        <RiskBars 
-          risks={formattedRisks} 
-        />
-        <BiologicalAgeCard 
-          biologicalAge={report.biologicalAge || 35} 
-          chronologicalAge={report.chronologicalAge || 32} 
-        />
-      </div>
-
-      {/* Tabs con contenido detallado */}
-      <ReportTabs report={report} />
+      {/* Tabs con contenido detallado - movidas al nivel superior */}
+      <ReportTabs 
+        report={report} 
+        clinicalNotesComponent={<ClinicalNotesStructured report={report} />}
+      />
     </div>
   );
 };

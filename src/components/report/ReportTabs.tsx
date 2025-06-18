@@ -1,10 +1,10 @@
 
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
-import { Card, CardContent } from '../ui/card';
 import { ReportSummary } from './ReportSummary';
 import { ReportPanels } from './ReportPanels';
 import { ActionPlan } from './ActionPlan';
+import { ClinicalNotesStructured } from './ClinicalNotesStructured';
 import { FileText, Activity, Target, Brain } from 'lucide-react';
 
 interface ReportTabsProps {
@@ -46,14 +46,7 @@ export const ReportTabs: React.FC<ReportTabsProps> = ({
       </TabsContent>
 
       <TabsContent value="diagnosis" className="space-y-6">
-        {clinicalNotesComponent || (
-          <Card>
-            <CardContent className="text-center py-12">
-              <Brain className="h-12 w-12 text-healz-brown/40 mx-auto mb-4" />
-              <p className="text-healz-brown/60">No hay diagnósticos disponibles</p>
-            </CardContent>
-          </Card>
-        )}
+        {clinicalNotesComponent || <ClinicalNotesStructured report={report} />}
       </TabsContent>
 
       <TabsContent value="action-plan" className="space-y-6">
