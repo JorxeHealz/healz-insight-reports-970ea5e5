@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
 import { Button } from '../ui/button';
@@ -10,6 +9,7 @@ import { usePatients } from '../../hooks/usePatients';
 import { useCreateAppointment, useUpdateAppointment, useDeleteAppointment } from '../../hooks/useAppointments';
 import { toast } from 'sonner';
 import moment from 'moment';
+import { AppointmentIcon, getAppointmentTypeLabel } from './AppointmentIcon';
 
 interface CalendarEvent {
   id: string;
@@ -41,7 +41,7 @@ export const AppointmentDialog: React.FC<AppointmentDialogProps> = ({
     description: '',
     start_time: '',
     end_time: '',
-    appointment_type: 'presencial' as 'presencial' | 'videollamada' | 'telefonica',
+    appointment_type: 'consulta_inicio' as 'consulta_inicio' | 'consulta_seguimiento' | 'onboarding' | 'seguimiento' | 'tareas',
     location: '',
     meeting_url: '',
     notes: '',
@@ -60,11 +60,11 @@ export const AppointmentDialog: React.FC<AppointmentDialogProps> = ({
 
       setFormData({
         patient_id: appointment?.patient_id || '',
-        title: appointment?.title || `Consulta ${patient ? `- ${patient.first_name} ${patient.last_name}` : ''}`,
+        title: appointment?.title || `${getAppointmentTypeLabel(appointment?.appointment_type || 'consulta_inicio')} ${patient ? `- ${patient.first_name} ${patient.last_name}` : ''}`,
         description: appointment?.description || '',
         start_time: moment(event.start).format('YYYY-MM-DDTHH:mm'),
         end_time: moment(event.end).format('YYYY-MM-DDTHH:mm'),
-        appointment_type: appointment?.appointment_type || 'presencial',
+        appointment_type: appointment?.appointment_type || 'consulta_inicio',
         location: appointment?.location || '',
         meeting_url: appointment?.meeting_url || '',
         notes: appointment?.notes || '',
@@ -136,12 +136,60 @@ export const AppointmentDialog: React.FC<AppointmentDialogProps> = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-[#3A2E1C]">
-            {isCreating ? 'Nueva Cita' : 'Editar Cita'}
+          <DialogTitle className="text-[#3A2E1C] flex items-center space-x-2">
+            <AppointmentIcon type={formData.appointment_type} />
+            <span>{isCreating ? 'Nueva Cita' : 'Editar Cita'}</span>
           </DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Tipo de cita */}
+          <div className="space-y-2">
+            <Label>Tipo de Acción</Label>
+            <Select 
+              value={formData.appointment_type} 
+              onValueChange={(value: 'consulta_inicio' | 'consulta_seguimiento' | 'onboarding' | 'seguimiento' | 'tareas') => 
+                setFormData(prev => ({ ...prev, appointment_type: value }))
+              }
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="consulta_inicio">
+                  <div className="flex items-center space-x-2">
+                    <AppointmentIcon type="consulta_inicio" />
+                    <span>Consulta Inicio</span>
+                  </div>
+                </SelectItem>
+                <SelectItem value="consulta_seguimiento">
+                  <div className="flex items-center space-x-2">
+                    <AppointmentIcon type="consulta_seguimiento" />
+                    <span>Consulta Seguimiento</span>
+                  </div>
+                </SelectItem>
+                <SelectItem value="onboarding">
+                  <div className="flex items-center space-x-2">
+                    <AppointmentIcon type="onboarding" />
+                    <span>Onboarding Cliente</span>
+                  </div>
+                </SelectItem>
+                <SelectItem value="seguimiento">
+                  <div className="flex items-center space-x-2">
+                    <AppointmentIcon type="seguimiento" />
+                    <span>Seguimiento</span>
+                  </div>
+                </SelectItem>
+                <SelectItem value="tareas">
+                  <div className="flex items-center space-x-2">
+                    <AppointmentIcon type="tareas" />
+                    <span>Tareas Cliente</span>
+                  </div>
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
           {/* Selección de paciente */}
           <div className="space-y-2">
             <Label htmlFor="patient">Paciente</Label>
@@ -153,7 +201,7 @@ export const AppointmentDialog: React.FC<AppointmentDialogProps> = ({
                   ...prev,
                   patient_id: value,
                   title: selectedPatient 
-                    ? `Consulta - ${selectedPatient.first_name} ${selectedPatient.last_name}`
+                    ? `${getAppointmentTypeLabel(prev.appointment_type)} - ${selectedPatient.first_name} ${selectedPatient.last_name}`
                     : prev.title
                 }));
               }}
@@ -215,53 +263,6 @@ export const AppointmentDialog: React.FC<AppointmentDialogProps> = ({
               />
             </div>
           </div>
-
-          {/* Tipo de cita */}
-          <div className="space-y-2">
-            <Label>Tipo de Cita</Label>
-            <Select 
-              value={formData.appointment_type} 
-              onValueChange={(value: 'presencial' | 'videollamada' | 'telefonica') => 
-                setFormData(prev => ({ ...prev, appointment_type: value }))
-              }
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="presencial">Presencial</SelectItem>
-                <SelectItem value="videollamada">Videollamada</SelectItem>
-                <SelectItem value="telefonica">Telefónica</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Ubicación (solo para presencial) */}
-          {formData.appointment_type === 'presencial' && (
-            <div className="space-y-2">
-              <Label htmlFor="location">Ubicación</Label>
-              <Input
-                id="location"
-                value={formData.location}
-                onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
-                placeholder="Dirección de la consulta"
-              />
-            </div>
-          )}
-
-          {/* URL de reunión (solo para videollamada) */}
-          {formData.appointment_type === 'videollamada' && (
-            <div className="space-y-2">
-              <Label htmlFor="meeting_url">URL de Reunión</Label>
-              <Input
-                id="meeting_url"
-                type="url"
-                value={formData.meeting_url}
-                onChange={(e) => setFormData(prev => ({ ...prev, meeting_url: e.target.value }))}
-                placeholder="https://meet.google.com/..."
-              />
-            </div>
-          )}
 
           {/* Estado (solo para edición) */}
           {!isCreating && (

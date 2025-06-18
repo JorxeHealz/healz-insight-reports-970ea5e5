@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../integrations/supabase/client';
 import type { Tables } from '../integrations/supabase/types';
@@ -12,7 +11,7 @@ type AppointmentInsert = {
   start_time: string;
   end_time: string;
   status?: string;
-  appointment_type?: string;
+  appointment_type?: 'consulta_inicio' | 'consulta_seguimiento' | 'onboarding' | 'seguimiento' | 'tareas';
   location?: string | null;
   meeting_url?: string | null;
   notes?: string | null;
