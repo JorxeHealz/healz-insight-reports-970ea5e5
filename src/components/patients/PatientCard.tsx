@@ -1,7 +1,9 @@
 
 import React from 'react';
+import { Link } from 'react-router-dom';
 import type { Tables } from '../../integrations/supabase/types';
 import { useDeletePatient } from '../../hooks/usePatients';
+import { generatePatientSlug } from '../../utils/patientSlug';
 import { Card, CardContent } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
@@ -60,6 +62,8 @@ export const PatientCard = ({ patient, onEdit }: PatientCardProps) => {
     }
   };
 
+  const patientSlug = generatePatientSlug(patient);
+
   return (
     <>
       <Card className="hover:shadow-md transition-shadow">
@@ -68,9 +72,12 @@ export const PatientCard = ({ patient, onEdit }: PatientCardProps) => {
             {/* Header con nombre y estado */}
             <div className="flex justify-between items-start">
               <div>
-                <h3 className="font-semibold text-healz-brown">
+                <Link 
+                  to={`/paciente/${patientSlug}`}
+                  className="font-semibold text-healz-brown hover:text-healz-teal transition-colors"
+                >
                   {patient.first_name} {patient.last_name}
-                </h3>
+                </Link>
                 <div className="flex items-center gap-1 text-sm text-healz-brown/70 mt-1">
                   <User className="h-3 w-3" />
                   <span>{getGenderLabel(patient.gender)}</span>

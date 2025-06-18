@@ -5,6 +5,7 @@ import { Toaster } from './components/ui/toaster';
 import { Layout } from './components/Layout';
 import Dashboard from './pages/Dashboard';
 import Patients from './pages/Patients';
+import PatientProfile from './pages/PatientProfile';
 import Reports from './pages/Reports';
 import NewReport from './pages/NewReport';
 import ReportDetail from './pages/ReportDetail';
@@ -27,6 +28,7 @@ function App() {
             <Route index element={<Dashboard />} />
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="patients" element={<Patients />} />
+            <Route path="paciente/:slug" element={<PatientProfile />} />
             <Route path="reports" element={<Reports />} />
             <Route path="reports/new" element={<NewReport />} />
             <Route path="reports/:id" element={<ReportDetail />} />
