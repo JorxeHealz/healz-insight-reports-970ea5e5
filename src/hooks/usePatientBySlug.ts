@@ -16,11 +16,11 @@ export const usePatientBySlug = (slug: string) => {
         throw new Error('Slug inválido');
       }
 
-      // Buscar paciente por ID que comience con el shortId
+      // Buscar paciente por ID que comience con el shortId usando casting a texto
       const { data, error } = await supabase
         .from('patients')
         .select('*')
-        .like('id', `${shortId}%`)
+        .filter('id', 'like', `${shortId}%`)
         .single();
 
       if (error) throw error;
