@@ -53,10 +53,20 @@ export const ReportDetailContent = ({ reportId }: ReportDetailContentProps) => {
     );
   }
 
+  // Ensure risks object has the required structure for RiskBars component
+  const formattedRisks = {
+    cardio: report.risks?.cardio || 0,
+    mental: report.risks?.mental || 0,
+    adrenal: report.risks?.adrenal || 0,
+    oncologic: report.risks?.oncologic || 0,
+    metabolic: report.risks?.metabolic || 0,
+    inflammatory: report.risks?.inflammatory || 0,
+  };
+
   return (
     <div className="max-w-6xl mx-auto space-y-6">
       {/* Header del reporte */}
-      <ReportHeader report={report} />
+      <ReportHeader />
 
       {/* Cards principales */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -64,7 +74,7 @@ export const ReportDetailContent = ({ reportId }: ReportDetailContentProps) => {
           score={report.vitalityScore || 0} 
         />
         <RiskBars 
-          risks={report.risks || {}} 
+          risks={formattedRisks} 
         />
         <BiologicalAgeCard 
           biologicalAge={report.biologicalAge || 35} 
