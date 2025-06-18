@@ -1,16 +1,19 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import type { Tables } from '../../integrations/supabase/types';
 import { useCreatePatient, useUpdatePatient } from '../../hooks/usePatients';
+import { useEmailValidation } from '../../hooks/useEmailValidation';
+import { usePatientErrorHandler } from '../../hooks/usePatientErrorHandler';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Textarea } from '../ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '../ui/form';
 import { toast } from '../../hooks/use-toast';
+import { AlertCircle, CheckCircle2 } from 'lucide-react';
 
 type Patient = Tables<'patients'>;
 
@@ -34,8 +37,16 @@ interface PatientFormProps {
 }
 
 export const PatientForm = ({ patient, onSuccess, onCancel }: PatientFormProps) => {
+  const [emailValidationState, setEmailValidationState] = useState<{
+    isValid: boolean;
+    message: string;
+    isChecking: boolean;
+  }>({ isValid: true, message: '', isChecking: false });
+
   const createPatient = useCreatePatient();
   const updatePatient = useUpdatePatient();
+  const { validateEmail } = useEmailValidation();
+  const { parseError } = usePatientErrorHandler();
 
   const form = useForm<PatientFormData>({
     resolver: zodResolver(patientSchema),
@@ -51,14 +62,37 @@ export const PatientForm = ({ patient, onSuccess, onCancel }: PatientFormProps) 
     },
   });
 
+  const handleEmailBlur = async (email: string) => {
+    if (!email || !z.string().email().safeParse(email).success) {
+      setEmailValidationState({ isValid: true, message: '', isChecking: false });
+      return;
+    }
+
+    setEmailValidationState(prev => ({ ...prev, isChecking: true }));
+    
+    const validation = await validateEmail(email, patient?.id);
+    
+    setEmailValidationState({
+      isValid: validation.isValid,
+      message: validation.message,
+      isChecking: false
+    });
+  };
+
   const onSubmit = async (data: PatientFormData) => {
+    // Validar email antes de enviar si no es válido
+    if (!emailValidationState.isValid) {
+      form.setError('email', { message: emailValidationState.message });
+      return;
+    }
+
     try {
       if (patient) {
         await updatePatient.mutateAsync({
           id: patient.id,
           first_name: data.first_name,
           last_name: data.last_name,
-          email: data.email,
+          email: data.email.toLowerCase(),
           phone: data.phone || null,
           date_of_birth: data.date_of_birth || null,
           gender: data.gender,
@@ -73,7 +107,7 @@ export const PatientForm = ({ patient, onSuccess, onCancel }: PatientFormProps) 
         await createPatient.mutateAsync({
           first_name: data.first_name,
           last_name: data.last_name,
-          email: data.email,
+          email: data.email.toLowerCase(),
           phone: data.phone || null,
           date_of_birth: data.date_of_birth || null,
           gender: data.gender,
@@ -89,10 +123,19 @@ export const PatientForm = ({ patient, onSuccess, onCancel }: PatientFormProps) 
       }
       onSuccess();
     } catch (error) {
-      console.error('Error saving patient:', error);
+      const parsedError = parseError(error);
+      
+      // Si el error es específico de un campo, mostrarlo en el campo
+      if (parsedError.field) {
+        form.setError(parsedError.field as keyof PatientFormData, {
+          message: parsedError.message
+        });
+      }
+      
+      // Mostrar toast con el error
       toast({
-        title: "Error",
-        description: "No se pudo guardar el paciente",
+        title: "Error al guardar",
+        description: parsedError.message,
         variant: "destructive"
       });
     }
@@ -139,9 +182,43 @@ export const PatientForm = ({ patient, onSuccess, onCancel }: PatientFormProps) 
               <FormItem>
                 <FormLabel>Email *</FormLabel>
                 <FormControl>
-                  <Input type="email" placeholder="email@ejemplo.com" {...field} />
+                  <div className="relative">
+                    <Input 
+                      type="email" 
+                      placeholder="email@ejemplo.com" 
+                      {...field}
+                      onBlur={(e) => {
+                        field.onBlur();
+                        handleEmailBlur(e.target.value);
+                      }}
+                      className={`pr-10 ${
+                        emailValidationState.message && !emailValidationState.isValid 
+                          ? 'border-red-500 focus:border-red-500' 
+                          : emailValidationState.isValid && emailValidationState.message === '' && field.value
+                          ? 'border-green-500 focus:border-green-500'
+                          : ''
+                      }`}
+                    />
+                    {emailValidationState.isChecking && (
+                      <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-healz-brown"></div>
+                      </div>
+                    )}
+                    {!emailValidationState.isChecking && field.value && (
+                      <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                        {emailValidationState.isValid ? (
+                          <CheckCircle2 className="h-4 w-4 text-green-500" />
+                        ) : (
+                          <AlertCircle className="h-4 w-4 text-red-500" />
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </FormControl>
                 <FormMessage />
+                {emailValidationState.message && !emailValidationState.isValid && (
+                  <p className="text-sm text-red-600 mt-1">{emailValidationState.message}</p>
+                )}
               </FormItem>
             )}
           />
@@ -243,7 +320,11 @@ export const PatientForm = ({ patient, onSuccess, onCancel }: PatientFormProps) 
           <Button type="button" variant="outline" onClick={onCancel}>
             Cancelar
           </Button>
-          <Button type="submit" disabled={isLoading} className="bg-healz-green hover:bg-healz-green/90">
+          <Button 
+            type="submit" 
+            disabled={isLoading || !emailValidationState.isValid || emailValidationState.isChecking}
+            className="bg-healz-green hover:bg-healz-green/90"
+          >
             {isLoading ? 'Guardando...' : (patient ? 'Actualizar' : 'Crear')} Paciente
           </Button>
         </div>
