@@ -16,7 +16,7 @@ import Reports from "./pages/Reports"
 import NotFound from "./pages/NotFound"
 import DatabaseCleanup from "./pages/DatabaseCleanup"
 import Calendar from "./pages/Calendar"
-import { ErrorBoundary } from "react-error-boundary"
+import React, { Component, ReactNode } from "react"
 
 // Create a stable QueryClient instance
 const queryClient = new QueryClient({
@@ -28,29 +28,57 @@ const queryClient = new QueryClient({
   },
 })
 
-function ErrorFallback({ error }: { error: Error }) {
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-healz-cream">
-      <div className="text-center p-6">
-        <h2 className="text-2xl font-bold text-healz-brown mb-4">Algo salió mal</h2>
-        <p className="text-healz-brown/70 mb-4">Ha ocurrido un error inesperado:</p>
-        <pre className="text-sm bg-red-50 p-4 rounded border text-left text-red-800 mb-4">
-          {error.message}
-        </pre>
-        <button
-          onClick={() => window.location.reload()}
-          className="bg-healz-orange text-white px-4 py-2 rounded hover:bg-healz-red"
-        >
-          Recargar página
-        </button>
-      </div>
-    </div>
-  )
+interface ErrorBoundaryState {
+  hasError: boolean;
+  error?: Error;
+}
+
+interface ErrorBoundaryProps {
+  children: ReactNode;
+}
+
+class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  constructor(props: ErrorBoundaryProps) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error('ErrorBoundary caught an error:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-healz-cream">
+          <div className="text-center p-6">
+            <h2 className="text-2xl font-bold text-healz-brown mb-4">Algo salió mal</h2>
+            <p className="text-healz-brown/70 mb-4">Ha ocurrido un error inesperado:</p>
+            <pre className="text-sm bg-red-50 p-4 rounded border text-left text-red-800 mb-4">
+              {this.state.error?.message}
+            </pre>
+            <button
+              onClick={() => window.location.reload()}
+              className="bg-healz-orange text-white px-4 py-2 rounded hover:bg-healz-red"
+            >
+              Recargar página
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
 }
 
 function App() {
   return (
-    <ErrorBoundary FallbackComponent={ErrorFallback}>
+    <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
           <Toaster />
