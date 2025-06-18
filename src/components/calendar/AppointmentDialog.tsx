@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
 import { Button } from '../ui/button';
@@ -10,6 +11,9 @@ import { useCreateAppointment, useUpdateAppointment, useDeleteAppointment } from
 import { toast } from 'sonner';
 import moment from 'moment';
 import { AppointmentIcon, getAppointmentTypeLabel } from './AppointmentIcon';
+
+// Temporary UUID for professional_id until authentication is implemented
+const TEMP_PROFESSIONAL_UUID = '00000000-0000-0000-0000-000000000001';
 
 interface CalendarEvent {
   id: string;
@@ -84,7 +88,7 @@ export const AppointmentDialog: React.FC<AppointmentDialogProps> = ({
     try {
       const appointmentData = {
         patient_id: formData.patient_id,
-        professional_id: 'temp-professional-id', // TODO: reemplazar con auth.uid()
+        professional_id: TEMP_PROFESSIONAL_UUID, // Using valid UUID instead of string
         title: formData.title,
         description: formData.description || null,
         start_time: new Date(formData.start_time).toISOString(),
