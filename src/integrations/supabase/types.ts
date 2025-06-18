@@ -963,6 +963,24 @@ export type Database = {
         }
         Returns: string
       }
+      find_patient_by_short_id: {
+        Args: { short_id: string }
+        Returns: {
+          id: string
+          first_name: string
+          last_name: string
+          email: string
+          phone: string
+          date_of_birth: string
+          gender: string
+          status: string
+          notes: string
+          last_visit: string
+          next_visit: string
+          created_at: string
+          updated_at: string
+        }[]
+      }
       generate_diagnosis: {
         Args: { patient_id: string }
         Returns: Json

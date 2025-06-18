@@ -23,7 +23,7 @@ export const usePatientBySlug = (slug: string) => {
 
       if (error) throw error;
       
-      if (!data || data.length === 0) {
+      if (!data || !Array.isArray(data) || data.length === 0) {
         throw new Error('Paciente no encontrado');
       }
 
