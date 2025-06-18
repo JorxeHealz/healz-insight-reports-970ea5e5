@@ -1,72 +1,82 @@
 
-import { Outlet, Link, useLocation } from 'react-router-dom';
+import { Outlet, Link, useLocation } from "react-router-dom";
+import { cn } from "@/lib/utils";
+import { 
+  HomeIcon, 
+  Users, 
+  FileText, 
+  BarChart3, 
+  Calendar as CalendarIcon,
+  Settings 
+} from "lucide-react";
 
-export const Layout = () => {
+const navigation = [
+  { name: "Dashboard", href: "/dashboard", icon: BarChart3 },
+  { name: "Pacientes", href: "/patients", icon: Users },
+  { name: "Calendario", href: "/calendar", icon: CalendarIcon },
+  { name: "Informes", href: "/reports", icon: FileText },
+];
+
+export function Layout() {
   const location = useLocation();
 
-  const isActive = (path: string) => {
-    return location.pathname === path || location.pathname.startsWith(path + '/');
-  };
-
   return (
-    <div className="min-h-screen bg-healz-cream">
-      <nav className="bg-white shadow-sm border-b border-healz-brown/10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex">
-              <Link to="/" className="flex items-center px-4 text-lg font-semibold text-healz-brown">
-                Healz Reports
-              </Link>
-              <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
-                <Link
-                  to="/dashboard"
-                  className={`inline-flex items-center px-1 pt-1 text-sm font-medium ${
-                    isActive('/dashboard') || location.pathname === '/'
-                      ? 'border-b-2 border-healz-orange text-healz-brown'
-                      : 'text-healz-brown/70 hover:text-healz-brown hover:border-b-2 hover:border-healz-orange/50'
-                  }`}
-                >
-                  Dashboard
-                </Link>
-                <Link
-                  to="/patients"
-                  className={`inline-flex items-center px-1 pt-1 text-sm font-medium ${
-                    isActive('/patients')
-                      ? 'border-b-2 border-healz-orange text-healz-brown'
-                      : 'text-healz-brown/70 hover:text-healz-brown hover:border-b-2 hover:border-healz-orange/50'
-                  }`}
-                >
-                  Pacientes
-                </Link>
-                <Link
-                  to="/reports"
-                  className={`inline-flex items-center px-1 pt-1 text-sm font-medium ${
-                    isActive('/reports')
-                      ? 'border-b-2 border-healz-orange text-healz-brown'
-                      : 'text-healz-brown/70 hover:text-healz-brown hover:border-b-2 hover:border-healz-orange/50'
-                  }`}
-                >
-                  Informes
-                </Link>
-                <Link
-                  to="/patient-forms"
-                  className={`inline-flex items-center px-1 pt-1 text-sm font-medium ${
-                    isActive('/patient-forms')
-                      ? 'border-b-2 border-healz-orange text-healz-brown'
-                      : 'text-healz-brown/70 hover:text-healz-brown hover:border-b-2 hover:border-healz-orange/50'
-                  }`}
-                >
-                  Formularios
-                </Link>
-              </div>
+    <div className="min-h-screen bg-[#F8F6F1]">
+      {/* Sidebar */}
+      <div className="fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg">
+        <div className="flex h-16 shrink-0 items-center px-6">
+          <Link to="/" className="flex items-center space-x-2">
+            <div className="h-8 w-8 bg-[#E48D58] rounded-lg flex items-center justify-center">
+              <span className="text-white font-bold text-sm">H</span>
             </div>
-          </div>
+            <span className="text-xl font-bold text-[#3A2E1C]">Healz</span>
+          </Link>
         </div>
-      </nav>
+        
+        <nav className="mt-8 px-3">
+          <ul className="space-y-1">
+            {navigation.map((item) => {
+              const isActive = location.pathname === item.href || 
+                (item.href !== "/" && location.pathname.startsWith(item.href));
+              
+              return (
+                <li key={item.name}>
+                  <Link
+                    to={item.href}
+                    className={cn(
+                      "flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors",
+                      isActive
+                        ? "bg-[#E48D58] text-white"
+                        : "text-[#3A2E1C] hover:bg-[#F8F6F1] hover:text-[#E48D58]"
+                    )}
+                  >
+                    <item.icon className="mr-3 h-5 w-5" />
+                    {item.name}
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </nav>
 
-      <main className="py-6 px-4 sm:px-6 lg:px-8">
-        <Outlet />
-      </main>
+        {/* Footer del sidebar */}
+        <div className="absolute bottom-0 w-full p-4 border-t">
+          <Link
+            to="/cleanup"
+            className="flex items-center px-3 py-2 text-sm text-gray-500 hover:text-[#E48D58] transition-colors"
+          >
+            <Settings className="mr-3 h-4 w-4" />
+            Admin Tools
+          </Link>
+        </div>
+      </div>
+
+      {/* Contenido principal */}
+      <div className="pl-64">
+        <main className="py-6">
+          <Outlet />
+        </main>
+      </div>
     </div>
   );
-};
+}
