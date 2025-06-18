@@ -9,31 +9,16 @@ export const useAssignedPatients = () => {
   return useQuery({
     queryKey: ['assignedPatients'],
     queryFn: async () => {
+      // Temporalmente consultamos directamente la tabla patients 
+      // hasta que se implemente el sistema de asignaciones completo
       const { data, error } = await supabase
-        .from('patient_assignments')
-        .select(`
-          patient_id,
-          patients!inner(
-            id,
-            first_name,
-            last_name,
-            email,
-            phone,
-            date_of_birth,
-            gender,
-            notes,
-            last_visit,
-            next_visit,
-            status,
-            created_at,
-            updated_at
-          )
-        `)
-        .eq('user_id', 'temp-user-id'); // TODO: Replace with actual auth.uid() when auth is implemented
+        .from('patients')
+        .select('*')
+        .order('created_at', { ascending: false });
 
       if (error) throw error;
 
-      return data?.map(assignment => assignment.patients).filter(Boolean) as Patient[] || [];
+      return data as Patient[] || [];
     },
   });
 };
