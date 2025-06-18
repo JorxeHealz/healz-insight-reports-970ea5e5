@@ -6,12 +6,32 @@ import { ReportTabs } from './ReportTabs';
 import { ClinicalNotesStructured } from './ClinicalNotesStructured';
 import { Skeleton } from '../ui/skeleton';
 import { Card, CardContent } from '../ui/card';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface ReportDetailContentProps {
   reportId: string;
 }
 
 export const ReportDetailContent = ({ reportId }: ReportDetailContentProps) => {
+  // Check if QueryClient is available
+  const queryClient = useQueryClient();
+  
+  console.log('ReportDetailContent rendering with reportId:', reportId);
+  console.log('QueryClient available:', !!queryClient);
+
+  if (!queryClient) {
+    return (
+      <Card className="max-w-2xl mx-auto">
+        <CardContent className="p-6 text-center">
+          <p className="text-healz-red mb-2">Error de configuración</p>
+          <p className="text-healz-brown/70 text-sm">
+            QueryClient no está disponible. Por favor, recarga la página.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
   const { data: report, isLoading, error } = useReportData(reportId);
 
   if (isLoading) {
