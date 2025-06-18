@@ -61,10 +61,10 @@ export const ReportDetailContent = ({ reportId }: ReportDetailContentProps) => {
       {/* Cards principales */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <VitalityScoreCard 
-          score={report.diagnosis?.vitalityScore || 0} 
+          score={report.vitalityScore || 0} 
         />
         <RiskBars 
-          riskProfile={report.diagnosis?.riskProfile || {}} 
+          risks={report.risks || {}} 
         />
         <BiologicalAgeCard 
           biologicalAge={report.biologicalAge || 35} 
