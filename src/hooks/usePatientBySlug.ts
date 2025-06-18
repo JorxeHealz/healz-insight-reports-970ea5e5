@@ -16,15 +16,18 @@ export const usePatientBySlug = (slug: string) => {
         throw new Error('Slug inválido');
       }
 
-      // Buscar paciente por ID que comience con el shortId usando casting a texto
-      const { data, error } = await supabase
-        .from('patients')
-        .select('*')
-        .filter('id', 'like', `${shortId}%`)
-        .single();
+      // Usar una consulta SQL raw que funcione correctamente con UUIDs
+      const { data, error } = await supabase.rpc('find_patient_by_short_id', {
+        short_id: shortId
+      });
 
       if (error) throw error;
-      return data as Patient;
+      
+      if (!data || data.length === 0) {
+        throw new Error('Paciente no encontrado');
+      }
+
+      return data[0] as Patient;
     },
     enabled: !!slug,
   });
