@@ -19,6 +19,16 @@ export const Layout = () => {
               </Link>
               <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
                 <Link
+                  to="/dashboard"
+                  className={`inline-flex items-center px-1 pt-1 text-sm font-medium ${
+                    isActive('/dashboard') || location.pathname === '/'
+                      ? 'border-b-2 border-healz-orange text-healz-brown'
+                      : 'text-healz-brown/70 hover:text-healz-brown hover:border-b-2 hover:border-healz-orange/50'
+                  }`}
+                >
+                  Dashboard
+                </Link>
+                <Link
                   to="/patients"
                   className={`inline-flex items-center px-1 pt-1 text-sm font-medium ${
                     isActive('/patients')
