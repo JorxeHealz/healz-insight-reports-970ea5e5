@@ -4,6 +4,20 @@ import { supabase } from '../integrations/supabase/client';
 import type { Tables } from '../integrations/supabase/types';
 
 type Appointment = Tables<'appointments'>;
+type AppointmentInsert = {
+  patient_id: string;
+  professional_id: string;
+  title: string;
+  description?: string | null;
+  start_time: string;
+  end_time: string;
+  status?: string;
+  appointment_type?: string;
+  location?: string | null;
+  meeting_url?: string | null;
+  notes?: string | null;
+  created_by?: string | null;
+};
 
 export const useAppointments = (startDate?: Date, endDate?: Date) => {
   return useQuery({
@@ -43,7 +57,7 @@ export const useCreateAppointment = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (appointmentData: Omit<Appointment, 'id' | 'created_at' | 'updated_at'>) => {
+    mutationFn: async (appointmentData: AppointmentInsert) => {
       const { data, error } = await supabase
         .from('appointments')
         .insert([appointmentData])

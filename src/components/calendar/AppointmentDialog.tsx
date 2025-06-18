@@ -83,10 +83,18 @@ export const AppointmentDialog: React.FC<AppointmentDialogProps> = ({
 
     try {
       const appointmentData = {
-        ...formData,
+        patient_id: formData.patient_id,
         professional_id: 'temp-professional-id', // TODO: reemplazar con auth.uid()
+        title: formData.title,
+        description: formData.description || null,
         start_time: new Date(formData.start_time).toISOString(),
         end_time: new Date(formData.end_time).toISOString(),
+        appointment_type: formData.appointment_type,
+        location: formData.location || null,
+        meeting_url: formData.meeting_url || null,
+        notes: formData.notes || null,
+        status: formData.status,
+        created_by: null, // TODO: reemplazar con auth.uid() cuando tengamos auth
       };
 
       if (isCreating) {
