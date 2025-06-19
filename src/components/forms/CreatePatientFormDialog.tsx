@@ -14,19 +14,29 @@ interface CreatePatientFormDialogProps {
   onOpenChange: (open: boolean) => void;
   onCreateSuccess: () => void;
   onCreateError: (error: Error) => void;
+  preselectedPatientId?: string;
 }
 
 export const CreatePatientFormDialog = ({ 
   open, 
   onOpenChange, 
   onCreateSuccess, 
-  onCreateError 
+  onCreateError,
+  preselectedPatientId
 }: CreatePatientFormDialogProps) => {
-  const [selectedPatientId, setSelectedPatientId] = useState('');
+  const [selectedPatientId, setSelectedPatientId] = useState(preselectedPatientId || '');
   const [notes, setNotes] = useState('');
   
   const { data: patients } = usePatients();
   const createForm = useCreatePatientForm();
+
+  // Reset form when dialog opens/closes or preselectedPatientId changes
+  React.useEffect(() => {
+    if (open) {
+      setSelectedPatientId(preselectedPatientId || '');
+      setNotes('');
+    }
+  }, [open, preselectedPatientId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,7 +53,7 @@ export const CreatePatientFormDialog = ({
       });
       
       // Reset form
-      setSelectedPatientId('');
+      setSelectedPatientId(preselectedPatientId || '');
       setNotes('');
       
       onCreateSuccess();
@@ -62,7 +72,11 @@ export const CreatePatientFormDialog = ({
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="patient">Paciente</Label>
-            <Select value={selectedPatientId} onValueChange={setSelectedPatientId}>
+            <Select 
+              value={selectedPatientId} 
+              onValueChange={setSelectedPatientId}
+              disabled={!!preselectedPatientId}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Seleccionar paciente..." />
               </SelectTrigger>
