@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { usePatientBySlug } from '../hooks/usePatientBySlug';
@@ -15,6 +14,7 @@ import { toast } from '../hooks/use-toast';
 import { Edit, Mail, Phone, Calendar, User, FileText, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { generatePatientSlug } from '../utils/patientSlug';
 
 const PatientProfile = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -119,6 +119,7 @@ const PatientProfile = () => {
   }
 
   const age = calculateAge(patient.date_of_birth);
+  const patientSlug = generatePatientSlug(patient);
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -291,9 +292,11 @@ const PatientProfile = () => {
         </CardHeader>
         <CardContent>
           <div className="flex gap-4">
-            <Button variant="outline" className="flex-1">
-              <FileText className="h-4 w-4 mr-2" />
-              Crear Formulario
+            <Button variant="outline" className="flex-1" asChild>
+              <Link to={`/paciente/${patientSlug}/forms`}>
+                <FileText className="h-4 w-4 mr-2" />
+                Gestionar Formularios
+              </Link>
             </Button>
             <Button variant="outline" className="flex-1">
               <FileText className="h-4 w-4 mr-2" />

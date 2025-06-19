@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/sonner"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
@@ -16,6 +15,7 @@ import Reports from "./pages/Reports"
 import NotFound from "./pages/NotFound"
 import DatabaseCleanup from "./pages/DatabaseCleanup"
 import Calendar from "./pages/Calendar"
+import PatientSpecificForms from "./pages/PatientSpecificForms"
 import React, { Component, ReactNode } from "react"
 
 // Create a stable QueryClient instance
@@ -91,7 +91,8 @@ function App() {
                 <Route path="patients" element={<Patients />} />
                 <Route path="patients/:slug" element={<PatientProfile />} />
                 <Route path="paciente/:slug" element={<PatientProfile />} />
-                <Route path="patients/:patientId/forms" element={<PatientForms />} />
+                <Route path="paciente/:slug/forms" element={<PatientSpecificForms />} />
+                <Route path="formularios" element={<PatientForms />} />
                 <Route path="reports" element={<Reports />} />
                 <Route path="reports/new" element={<NewReport />} />
                 <Route path="reports/:id" element={<ReportDetail />} />

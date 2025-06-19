@@ -1,4 +1,3 @@
-
 import { Outlet, Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { 
@@ -6,12 +5,14 @@ import {
   FileText, 
   BarChart3, 
   Calendar as CalendarIcon,
-  Settings 
+  Settings,
+  ClipboardList 
 } from "lucide-react";
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: BarChart3 },
   { name: "Pacientes", href: "/patients", icon: Users },
+  { name: "Formularios", href: "/formularios", icon: ClipboardList },
   { name: "Calendario", href: "/calendar", icon: CalendarIcon },
   { name: "Informes", href: "/reports", icon: FileText },
 ];
