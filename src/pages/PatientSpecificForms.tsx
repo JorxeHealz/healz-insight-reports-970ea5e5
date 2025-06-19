@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { usePatientBySlug } from '../hooks/usePatientBySlug';
 import { usePatientForms, useCreatePatientForm, useProcessFormWithN8N } from '../hooks/usePatientForms';
 import { Button } from '../components/ui/button';
@@ -79,7 +79,7 @@ const PatientSpecificForms = () => {
             No se pudo encontrar el paciente solicitado.
           </p>
           <Button asChild>
-            <link to="/patients">Volver a Pacientes</link>
+            <Link to="/patients">Volver a Pacientes</Link>
           </Button>
         </div>
       </div>
