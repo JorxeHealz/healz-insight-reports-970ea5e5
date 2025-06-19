@@ -28,13 +28,6 @@ export const ActionPlan: React.FC<ActionPlanProps> = ({ report }) => {
   // Usar los datos reales de report_action_plans en lugar del campo actionPlan vacío
   const actionPlans = report.actionPlans || [];
   
-  console.log('🔍 [ActionPlan] Report data:', {
-    reportId: report.id,
-    actionPlansCount: actionPlans.length,
-    actionPlans: actionPlans,
-    allCategories: actionPlans.map((plan: any) => plan.category)
-  });
-  
   // Agrupar los action plans por categoría y ordenar por prioridad
   const actionsByCategory = {
     foods: sortActionsByPriority(actionPlans.filter((plan: any) => plan.category === 'foods')),
@@ -44,17 +37,6 @@ export const ActionPlan: React.FC<ActionPlanProps> = ({ report }) => {
     therapy: sortActionsByPriority(actionPlans.filter((plan: any) => plan.category === 'therapy')),
     followup: sortActionsByPriority(actionPlans.filter((plan: any) => plan.category === 'followup'))
   };
-
-  console.log('🔍 [ActionPlan] Actions by category:', {
-    foods: actionsByCategory.foods.length,
-    supplements: actionsByCategory.supplements.length,
-    lifestyle: actionsByCategory.lifestyle.length,
-    activity: actionsByCategory.activity.length,
-    therapy: actionsByCategory.therapy.length,
-    followup: actionsByCategory.followup.length,
-    activityItems: actionsByCategory.activity,
-    therapyItems: actionsByCategory.therapy
-  });
 
   const actionCategories = [
     {

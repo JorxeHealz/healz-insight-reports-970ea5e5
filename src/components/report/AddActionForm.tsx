@@ -34,14 +34,6 @@ export const AddActionForm: React.FC<AddActionFormProps> = ({
     e.preventDefault();
     if (!formData.title.trim() || !formData.description.trim()) return;
 
-    console.log('🚀 [AddActionForm] Form submitted with data:', {
-      category,
-      reportId,
-      formId,
-      formData,
-      isActivityOrTherapy: category === 'activity' || category === 'therapy'
-    });
-
     const actionPlanData = {
       report_id: reportId,
       form_id: formId,
@@ -53,17 +45,8 @@ export const AddActionForm: React.FC<AddActionFormProps> = ({
       dosage: formData.dosage || undefined
     };
 
-    console.log('📤 [AddActionForm] Sending to createActionPlan:', actionPlanData);
-
     try {
-      const result = await createActionPlan.mutateAsync(actionPlanData);
-      
-      console.log('✅ [AddActionForm] Action plan created successfully:', {
-        category,
-        result,
-        formId,
-        reportId
-      });
+      await createActionPlan.mutateAsync(actionPlanData);
       
       // Reset form
       setFormData({
@@ -75,11 +58,7 @@ export const AddActionForm: React.FC<AddActionFormProps> = ({
       });
       onCancel();
     } catch (error) {
-      console.error('❌ [AddActionForm] Error creating action plan:', {
-        category,
-        error,
-        formData: actionPlanData
-      });
+      console.error('Error creating action plan:', error);
     }
   };
 

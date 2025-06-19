@@ -30,15 +30,6 @@ export const ActionPlanCategory: React.FC<ActionPlanCategoryProps> = ({
 }) => {
   const Icon = category.icon;
 
-  console.log(`🔍 [ActionPlanCategory] Rendering category "${category.id}":`, {
-    categoryId: category.id,
-    itemsCount: category.items.length,
-    items: category.items,
-    reportId,
-    formId,
-    isActivityOrTherapy: category.id === 'activity' || category.id === 'therapy'
-  });
-
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
@@ -51,10 +42,7 @@ export const ActionPlanCategory: React.FC<ActionPlanCategoryProps> = ({
         <Button
           size="sm"
           variant="outline"
-          onClick={() => {
-            console.log(`🚀 [ActionPlanCategory] Adding form for category: ${category.id}`);
-            setShowAddForm(category.id);
-          }}
+          onClick={() => setShowAddForm(category.id)}
           className="h-8 px-2"
         >
           <Plus className="h-3 w-3 mr-1" />
@@ -83,10 +71,7 @@ export const ActionPlanCategory: React.FC<ActionPlanCategoryProps> = ({
             category={category.id}
             reportId={reportId}
             formId={formId}
-            onCancel={() => {
-              console.log(`❌ [ActionPlanCategory] Cancelling form for category: ${category.id}`);
-              setShowAddForm(null);
-            }}
+            onCancel={() => setShowAddForm(null)}
           />
         )}
       </div>
