@@ -90,6 +90,7 @@ function App() {
                 <Route path="dashboard" element={<Dashboard />} />
                 <Route path="patients" element={<Patients />} />
                 <Route path="patients/:slug" element={<PatientProfile />} />
+                <Route path="paciente/:slug" element={<PatientProfile />} />
                 <Route path="patients/:patientId/forms" element={<PatientForms />} />
                 <Route path="reports" element={<Reports />} />
                 <Route path="reports/new" element={<NewReport />} />
