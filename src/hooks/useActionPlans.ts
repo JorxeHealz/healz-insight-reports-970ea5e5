@@ -29,27 +29,63 @@ export const useActionPlans = (reportId: string) => {
 
   const createActionPlan = useMutation({
     mutationFn: async (data: ActionPlanData) => {
+      console.log('🔍 [useActionPlans] Attempting to create action plan:', {
+        category: data.category,
+        title: data.title,
+        report_id: data.report_id,
+        form_id: data.form_id,
+        fullData: data
+      });
+
       const { data: result, error } = await supabase
         .from('report_action_plans')
         .insert(data)
         .select()
         .single();
 
-      if (error) throw error;
+      console.log('🔍 [useActionPlans] Supabase response:', {
+        success: !error,
+        error: error,
+        result: result,
+        category: data.category
+      });
+
+      if (error) {
+        console.error('❌ [useActionPlans] Error details:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code,
+          category: data.category
+        });
+        throw error;
+      }
+      
       return result;
     },
-    onSuccess: () => {
+    onSuccess: (result, variables) => {
+      console.log('✅ [useActionPlans] Successfully created action plan:', {
+        category: variables.category,
+        id: result?.id,
+        title: variables.title
+      });
+      
       queryClient.invalidateQueries({ queryKey: ['patient-report', reportId] });
       toast({
         title: 'Éxito',
-        description: 'Nueva acción agregada correctamente',
+        description: `Nueva acción agregada correctamente en ${variables.category}`,
       });
     },
-    onError: (error) => {
-      console.error('Error creating action plan:', error);
+    onError: (error, variables) => {
+      console.error('❌ [useActionPlans] Mutation failed:', {
+        category: variables.category,
+        error: error,
+        variables: variables
+      });
+      
       toast({
         title: 'Error',
-        description: 'No se pudo agregar la acción',
+        description: `No se pudo agregar la acción en ${variables.category}: ${error.message}`,
         variant: 'destructive',
       });
     },
@@ -57,12 +93,23 @@ export const useActionPlans = (reportId: string) => {
 
   const updateActionPlan = useMutation({
     mutationFn: async ({ id, ...updates }: UpdateActionPlanData) => {
+      console.log('🔍 [useActionPlans] Attempting to update action plan:', {
+        id: id,
+        updates: updates
+      });
+
       const { data: result, error } = await supabase
         .from('report_action_plans')
         .update(updates)
         .eq('id', id)
         .select()
         .single();
+
+      console.log('🔍 [useActionPlans] Update response:', {
+        success: !error,
+        error: error,
+        result: result
+      });
 
       if (error) throw error;
       return result;
@@ -86,6 +133,8 @@ export const useActionPlans = (reportId: string) => {
 
   const deleteActionPlan = useMutation({
     mutationFn: async (id: string) => {
+      console.log('🔍 [useActionPlans] Attempting to delete action plan:', { id });
+
       const { error } = await supabase
         .from('report_action_plans')
         .delete()
