@@ -15,10 +15,11 @@ export const generatePatientSlug = (patient: Patient): string => {
     .replace(/\s+/g, '-') // Reemplazar espacios con guiones
     .trim();
 
-  // Tomar los primeros 16 caracteres del ID para mayor unicidad
-  const shortId = patient.id.substring(0, 16);
+  // Usar los primeros 12 caracteres alfanuméricos del UUID (sin guiones)
+  const alphanumericId = patient.id.replace(/-/g, '');
+  const shortId = alphanumericId.substring(0, 12);
   
-  console.log('generatePatientSlug: Full ID:', patient.id, 'Short ID:', shortId, 'Length:', shortId.length);
+  console.log('generatePatientSlug: Full ID:', patient.id, 'Alphanumeric ID:', alphanumericId, 'Short ID:', shortId, 'Length:', shortId.length);
   
   return `${normalizedName}-${shortId}`;
 };
@@ -32,8 +33,9 @@ export const parsePatientIdFromSlug = (slug: string): string | null => {
   
   console.log('parsePatientIdFromSlug: Last part:', lastPart, 'Length:', lastPart?.length);
   
-  // Aceptar tanto 15 como 16 caracteres para compatibilidad con slugs existentes
-  if (lastPart && (lastPart.length === 15 || lastPart.length === 16)) {
+  // Aceptar cualquier longitud razonable para el ID (8-20 caracteres)
+  // Esto permite compatibilidad con slugs existentes de diferentes formatos
+  if (lastPart && lastPart.length >= 8 && lastPart.length <= 20) {
     console.log('parsePatientIdFromSlug: Valid short ID found:', lastPart);
     return lastPart;
   }
