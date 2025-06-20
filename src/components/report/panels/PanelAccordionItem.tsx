@@ -5,7 +5,8 @@ import { Badge } from '../../ui/badge';
 import { BiomarkerListItem } from './BiomarkerListItem';
 import { calculatePanelStats } from './PanelStatsCalculator';
 import { Biomarker } from '../biomarkers/types';
-import { AlertTriangle, Info } from 'lucide-react';
+import { AlertTriangle, Info, Check } from 'lucide-react';
+import { useFormSymptoms } from '../../../hooks/useFormSymptoms';
 
 type PanelAccordionItemProps = {
   panelName: string;
@@ -15,14 +16,17 @@ type PanelAccordionItemProps = {
     symptoms?: string[];
   };
   reportBiomarkers: Biomarker[] | undefined;
+  formId?: string;
 };
 
 export const PanelAccordionItem: React.FC<PanelAccordionItemProps> = ({
   panelName,
   panelData,
-  reportBiomarkers
+  reportBiomarkers,
+  formId
 }) => {
   const stats = calculatePanelStats(panelData.biomarkers, reportBiomarkers);
+  const { data: reportedSymptoms = [], isLoading: loadingSymptoms } = useFormSymptoms(formId);
   
   // Debug information
   React.useEffect(() => {
@@ -30,9 +34,24 @@ export const PanelAccordionItem: React.FC<PanelAccordionItemProps> = ({
       totalBiomarkers: panelData.biomarkers.length,
       stats,
       availableBiomarkers: reportBiomarkers?.length || 0,
-      symptomsCount: panelData.symptoms?.length || 0
+      symptomsCount: panelData.symptoms?.length || 0,
+      reportedSymptoms,
+      formId
     });
-  }, [panelName, panelData.biomarkers, stats, reportBiomarkers, panelData.symptoms]);
+  }, [panelName, panelData.biomarkers, stats, reportBiomarkers, panelData.symptoms, reportedSymptoms, formId]);
+
+  // Función para verificar si un síntoma fue reportado por el paciente
+  const isSymptomReported = (symptom: string): boolean => {
+    return reportedSymptoms.some(reported => 
+      reported.toLowerCase().includes(symptom.toLowerCase()) ||
+      symptom.toLowerCase().includes(reported.toLowerCase())
+    );
+  };
+
+  // Contar síntomas reportados
+  const reportedSymptomsCount = panelData.symptoms?.filter(symptom => 
+    isSymptomReported(symptom)
+  ).length || 0;
   
   return (
     <AccordionItem value={panelName}>
@@ -54,6 +73,14 @@ export const PanelAccordionItem: React.FC<PanelAccordionItemProps> = ({
                 {stats.alerts} en alerta
               </Badge>
             )}
+            {reportedSymptomsCount > 0 && (
+              <Badge 
+                variant="outline" 
+                className="text-xs bg-healz-orange/10 text-healz-orange border-healz-orange/30 hover:bg-healz-orange/20 rounded-md px-3 py-1 font-medium"
+              >
+                {reportedSymptomsCount} síntomas reportados
+              </Badge>
+            )}
           </div>
         </div>
       </AccordionTrigger>
@@ -73,18 +100,43 @@ export const PanelAccordionItem: React.FC<PanelAccordionItemProps> = ({
               <div className="flex items-center gap-2 mb-3">
                 <AlertTriangle className="h-4 w-4 text-healz-orange" />
                 <h4 className="font-medium text-healz-brown">Síntomas Clínicos Asociados</h4>
+                {reportedSymptomsCount > 0 && (
+                  <Badge variant="outline" className="text-xs bg-healz-orange/20 text-healz-orange border-healz-orange/50">
+                    {reportedSymptomsCount} reportados
+                  </Badge>
+                )}
               </div>
-              <div className="grid grid-cols-2 gap-2">
-                {panelData.symptoms.map((symptom, index) => (
-                  <div key={index} className="flex items-center gap-2">
-                    <div className="w-1.5 h-1.5 bg-healz-orange rounded-full flex-shrink-0"></div>
-                    <span className="text-xs text-healz-brown/80">{symptom}</span>
-                  </div>
-                ))}
+              <div className="grid grid-cols-1 gap-2">
+                {panelData.symptoms.map((symptom, index) => {
+                  const isReported = isSymptomReported(symptom);
+                  return (
+                    <div key={index} className={`flex items-center gap-2 p-2 rounded-md ${
+                      isReported ? 'bg-healz-orange/10 border border-healz-orange/30' : ''
+                    }`}>
+                      <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
+                        isReported ? 'bg-healz-orange' : 'bg-healz-brown/30'
+                      }`}></div>
+                      <span className={`text-xs ${
+                        isReported ? 'text-healz-brown font-medium' : 'text-healz-brown/80'
+                      }`}>
+                        {symptom}
+                      </span>
+                      {isReported && (
+                        <div className="ml-auto flex items-center gap-1">
+                          <Check className="h-3 w-3 text-healz-orange" />
+                          <span className="text-xs text-healz-orange font-medium">Reportado</span>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
               <div className="mt-3 pt-3 border-t border-healz-orange/20">
                 <p className="text-xs text-healz-brown/60 italic">
-                  Evalúe la presencia de estos síntomas en el paciente y correlacione con los valores de biomarcadores para identificar patrones clínicos relevantes.
+                  {reportedSymptomsCount > 0 
+                    ? `El paciente ha reportado ${reportedSymptomsCount} de estos síntomas en el formulario. Correlacione con los biomarcadores para confirmar el diagnóstico.`
+                    : 'Evalúe la presencia de estos síntomas en el paciente y correlacione con los valores de biomarcadores para identificar patrones clínicos relevantes.'
+                  }
                 </p>
               </div>
             </div>

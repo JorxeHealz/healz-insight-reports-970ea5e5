@@ -20,13 +20,14 @@ export const ReportPanels: React.FC<ReportPanelsProps> = ({ report }) => {
   React.useEffect(() => {
     console.log('ReportPanels debug:', {
       reportId: report.id,
+      formId: report.form_id,
       biomarkersCount: reportBiomarkers?.length || 0,
       isLoading,
       error: error?.message,
       panelsCount: Object.keys(panelDefinitions).length,
       biomarkerNames: reportBiomarkers?.map(b => b.name) || []
     });
-  }, [report.id, reportBiomarkers, isLoading, error]);
+  }, [report.id, report.form_id, reportBiomarkers, isLoading, error]);
 
   if (isLoading) {
     return (
@@ -69,7 +70,7 @@ export const ReportPanels: React.FC<ReportPanelsProps> = ({ report }) => {
                   Los paneles están organizados por objetivos clínicos específicos para facilitar la evaluación integral del paciente. Cada panel agrupa biomarcadores relacionados que permiten una interpretación contextualizada y la identificación de patrones clínicamente relevantes.
                 </p>
                 <p className="text-xs text-healz-brown/60 italic">
-                  Utilice la correlación entre síntomas reportados y valores de biomarcadores para orientar el diagnóstico y las recomendaciones terapéuticas.
+                  Los síntomas reportados por el paciente en el formulario se destacan automáticamente para facilitar la correlación con los biomarcadores y orientar el diagnóstico.
                 </p>
               </div>
             </div>
@@ -82,6 +83,7 @@ export const ReportPanels: React.FC<ReportPanelsProps> = ({ report }) => {
                 panelName={panelName}
                 panelData={panelData}
                 reportBiomarkers={reportBiomarkers}
+                formId={report.form_id}
               />
             ))}
           </Accordion>
