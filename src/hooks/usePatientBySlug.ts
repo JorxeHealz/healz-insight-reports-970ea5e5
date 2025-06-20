@@ -19,9 +19,10 @@ export const usePatientBySlug = (slug: string) => {
         throw new Error('Formato de slug inválido');
       }
 
-      console.log('usePatientBySlug: Extracted shortId:', shortId, 'Length:', shortId.length);
+      console.log('usePatientBySlug: Extracted shortId (without hyphens):', shortId, 'Length:', shortId.length);
 
-      // Usar la función SQL que acepta prefijos de cualquier longitud
+      // La función SQL ahora elimina automáticamente los guiones del UUID de la base de datos
+      // para hacer match con nuestro shortId sin guiones
       const { data, error } = await supabase.rpc('find_patient_by_short_id', {
         short_id: shortId
       });
@@ -39,7 +40,7 @@ export const usePatientBySlug = (slug: string) => {
       }
 
       const patient = data[0] as Patient;
-      console.log('usePatientBySlug: Found patient:', patient.first_name, patient.last_name, 'with ID:', patient.id);
+      console.log('usePatientBySlug: Found patient:', patient.first_name, patient.last_name, 'with full ID:', patient.id);
       return patient;
     },
     enabled: !!slug,
