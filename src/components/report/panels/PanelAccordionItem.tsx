@@ -28,18 +28,6 @@ export const PanelAccordionItem: React.FC<PanelAccordionItemProps> = ({
   const stats = calculatePanelStats(panelData.biomarkers, reportBiomarkers);
   const { data: reportedSymptoms = [], isLoading: loadingSymptoms } = useFormSymptoms(formId);
   
-  // Debug information
-  React.useEffect(() => {
-    console.log(`Panel "${panelName}":`, {
-      totalBiomarkers: panelData.biomarkers.length,
-      stats,
-      availableBiomarkers: reportBiomarkers?.length || 0,
-      symptomsCount: panelData.symptoms?.length || 0,
-      reportedSymptoms,
-      formId
-    });
-  }, [panelName, panelData.biomarkers, stats, reportBiomarkers, panelData.symptoms, reportedSymptoms, formId]);
-
   // Función para verificar si un síntoma fue reportado por el paciente
   const isSymptomReported = (symptom: string): boolean => {
     return reportedSymptoms.some(reported => 
@@ -48,10 +36,23 @@ export const PanelAccordionItem: React.FC<PanelAccordionItemProps> = ({
     );
   };
 
-  // Contar síntomas reportados
-  const reportedSymptomsCount = panelData.symptoms?.filter(symptom => 
+  // Filtrar solo los síntomas coincidentes (reportados por el paciente y presentes en el panel)
+  const coincidentSymptoms = panelData.symptoms?.filter(symptom => 
     isSymptomReported(symptom)
-  ).length || 0;
+  ) || [];
+  
+  // Debug information
+  React.useEffect(() => {
+    console.log(`Panel "${panelName}":`, {
+      totalBiomarkers: panelData.biomarkers.length,
+      stats,
+      availableBiomarkers: reportBiomarkers?.length || 0,
+      totalPanelSymptoms: panelData.symptoms?.length || 0,
+      reportedSymptoms,
+      coincidentSymptoms: coincidentSymptoms.length,
+      formId
+    });
+  }, [panelName, panelData.biomarkers, stats, reportBiomarkers, panelData.symptoms, reportedSymptoms, coincidentSymptoms.length, formId]);
   
   return (
     <AccordionItem value={panelName}>
@@ -73,71 +74,58 @@ export const PanelAccordionItem: React.FC<PanelAccordionItemProps> = ({
                 {stats.alerts} en alerta
               </Badge>
             )}
-            {reportedSymptomsCount > 0 && (
+            {coincidentSymptoms.length > 0 && (
               <Badge 
                 variant="outline" 
                 className="text-xs bg-healz-orange/10 text-healz-orange border-healz-orange/30 hover:bg-healz-orange/20 rounded-md px-3 py-1 font-medium"
               >
-                {reportedSymptomsCount} síntomas reportados
+                {coincidentSymptoms.length} síntomas
               </Badge>
             )}
           </div>
         </div>
       </AccordionTrigger>
       <AccordionContent>
-        <div className="p-4 text-sm space-y-6">
+        <div className="p-4 text-sm space-y-4">
           {/* Descripción del Panel */}
-          <div className="mb-4">
+          <div className="mb-3">
             <div className="flex items-start gap-2 mb-2">
               <Info className="h-4 w-4 text-healz-teal mt-0.5 flex-shrink-0" />
               <p className="text-healz-brown/70 text-sm leading-relaxed">{panelData.description}</p>
             </div>
           </div>
 
-          {/* Síntomas Asociados */}
-          {panelData.symptoms && panelData.symptoms.length > 0 && (
-            <div className="bg-healz-orange/5 border border-healz-orange/20 rounded-lg p-4">
-              <div className="flex items-center gap-2 mb-3">
+          {/* Síntomas Coincidentes */}
+          {coincidentSymptoms.length > 0 && (
+            <div className="bg-healz-orange/10 border border-healz-orange/30 rounded-lg p-3">
+              <div className="flex items-center gap-2 mb-2">
                 <AlertTriangle className="h-4 w-4 text-healz-orange" />
-                <h4 className="font-medium text-healz-brown">Síntomas Clínicos Asociados</h4>
-                {reportedSymptomsCount > 0 && (
-                  <Badge variant="outline" className="text-xs bg-healz-orange/20 text-healz-orange border-healz-orange/50">
-                    {reportedSymptomsCount} reportados
-                  </Badge>
-                )}
+                <h4 className="font-medium text-healz-brown">Síntomas Reportados por el Paciente</h4>
+                <Badge variant="outline" className="text-xs bg-healz-orange/20 text-healz-orange border-healz-orange/50">
+                  {coincidentSymptoms.length} coincidentes
+                </Badge>
               </div>
-              <div className="grid grid-cols-1 gap-2">
-                {panelData.symptoms.map((symptom, index) => {
-                  const isReported = isSymptomReported(symptom);
-                  return (
-                    <div key={index} className={`flex items-center gap-2 p-2 rounded-md ${
-                      isReported ? 'bg-healz-orange/10 border border-healz-orange/30' : ''
-                    }`}>
-                      <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
-                        isReported ? 'bg-healz-orange' : 'bg-healz-brown/30'
-                      }`}></div>
-                      <span className={`text-xs ${
-                        isReported ? 'text-healz-brown font-medium' : 'text-healz-brown/80'
-                      }`}>
-                        {symptom}
-                      </span>
-                      {isReported && (
-                        <div className="ml-auto flex items-center gap-1">
-                          <Check className="h-3 w-3 text-healz-orange" />
-                          <span className="text-xs text-healz-orange font-medium">Reportado</span>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
+              <div className="grid grid-cols-1 gap-1">
+                {coincidentSymptoms.map((symptom, index) => (
+                  <div key={index} className="flex items-center gap-2 p-2 bg-healz-orange/15 border border-healz-orange/40 rounded-md">
+                    <Check className="h-3 w-3 text-healz-orange flex-shrink-0" />
+                    <span className="text-xs text-healz-brown font-medium">
+                      {symptom}
+                    </span>
+                  </div>
+                ))}
               </div>
-              <div className="mt-3 pt-3 border-t border-healz-orange/20">
-                <p className="text-xs text-healz-brown/60 italic">
-                  {reportedSymptomsCount > 0 
-                    ? `El paciente ha reportado ${reportedSymptomsCount} de estos síntomas en el formulario. Correlacione con los biomarcadores para confirmar el diagnóstico.`
-                    : 'Evalúe la presencia de estos síntomas en el paciente y correlacione con los valores de biomarcadores para identificar patrones clínicos relevantes.'
-                  }
-                </p>
+            </div>
+          )}
+
+          {/* Mensaje cuando no hay síntomas coincidentes */}
+          {panelData.symptoms && panelData.symptoms.length > 0 && coincidentSymptoms.length === 0 && (
+            <div className="bg-healz-brown/5 border border-healz-brown/10 rounded-lg p-3">
+              <div className="flex items-center gap-2">
+                <Info className="h-4 w-4 text-healz-brown/50" />
+                <span className="text-xs text-healz-brown/60 italic">
+                  No se encontraron síntomas reportados por el paciente que coincidan con este panel clínico.
+                </span>
               </div>
             </div>
           )}
