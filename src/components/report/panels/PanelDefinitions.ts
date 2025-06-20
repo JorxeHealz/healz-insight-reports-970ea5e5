@@ -15,7 +15,7 @@ export const panelDefinitions = {
       'Insulina',
       'Adiponectina'
     ],
-    description: 'Las hormonas son los mensajeros de tu cuerpo, transportando señales a través de la sangre para activar órganos, piel, músculos y otros tejidos.',
+    description: 'Evaluación integral del sistema endocrino del paciente. Este panel permite identificar desequilibrios hormonales que pueden estar afectando múltiples sistemas corporales y la calidad de vida general.',
     symptoms: [
       'Energía baja',
       'Libido bajo',
@@ -47,7 +47,7 @@ export const panelDefinitions = {
       'Ferritina',
       'Ácido úrico'
     ],
-    description: 'La sensación de vitalidad refleja qué tan bien está funcionando tu cuerpo en general, hasta el nivel celular. A medida que la energía celular disminuye con la edad, también lo hace la vitalidad.',
+    description: 'Marcadores clave para evaluar el estado de energía celular y vitalidad general del paciente. Útil para identificar deficiencias nutricionales y disfunciones metabólicas que impactan el bienestar general.',
     symptoms: [
       'Energía baja',
       'Resistencia disminuida',
@@ -75,7 +75,7 @@ export const panelDefinitions = {
       'Ferritina',
       'Insulina'
     ],
-    description: 'La mejor manera de vivir mucho tiempo es no morir prematuramente. El infarto y el accidente cerebrovascular son causas principales de muerte prematura y los biomarcadores asociados pueden medirse y manejarse décadas antes.',
+    description: 'Panel esencial para la estratificación del riesgo cardiovascular. Permite identificar factores de riesgo modificables y planificar intervenciones preventivas tempranas antes de la manifestación clínica.',
     symptoms: [
       'Fatiga',
       'Dolor en el pecho',
@@ -109,7 +109,7 @@ export const panelDefinitions = {
       'Insulina',
       'Adiponectina'
     ],
-    description: 'La grasa corporal es posiblemente el factor más importante para la longevidad. Mantener un peso saludable mejora el bienestar psicológico y reduce el riesgo de enfermedades crónicas.',
+    description: 'Evaluación metabólica y hormonal para pacientes con objetivos de pérdida de peso. Identifica barreras metabólicas y permite personalizar estrategias terapéuticas basadas en el perfil individual del paciente.',
     symptoms: [
       'Exceso de grasa corporal',
       'Falta de aliento',
@@ -141,7 +141,7 @@ export const panelDefinitions = {
       'Estradiol',
       'Plomo'
     ],
-    description: 'Construir y mantener la fuerza no solo es crítico para sentirse bien y hacer las actividades que amas. También es uno de los factores más importantes en la esperanza de vida.',
+    description: 'Panel orientado a la evaluación de factores que influyen en la masa muscular, fuerza y rendimiento físico del paciente. Crucial para identificar deficiencias que limitan la capacidad funcional y la longevidad.',
     symptoms: [
       'Energía baja',
       'Rendimiento físico reducido',
@@ -171,7 +171,7 @@ export const panelDefinitions = {
       'Estradiol',
       'Insulina'
     ],
-    description: 'Las disminuciones en el rendimiento mental como pérdida de memoria, niebla mental y procesamiento más lento pueden mitigarse. Varios biomarcadores juegan un papel clave en mantener la función cerebral óptima.',
+    description: 'Marcadores relacionados con la función cognitiva y neuroprotección. Permite identificar factores de riesgo para deterioro cognitivo y optimizar la salud neurológica a largo plazo del paciente.',
     symptoms: [
       'Pérdida de memoria',
       'Niebla mental',
@@ -199,7 +199,7 @@ export const panelDefinitions = {
       'Hemoglobina',
       'Proteína C reactiva ultrasensible (hs-CRP)'
     ],
-    description: 'La salud sexual ha demostrado reducir el estrés, mejorar la longevidad y calidad de vida, e incluso ayudar a prevenir enfermedades cardíacas.',
+    description: 'Evaluación específica de la función reproductiva y sexual del paciente. Esencial para identificar desequilibrios hormonales que afectan la fertilidad, libido y función sexual general.',
     symptoms: [
       'Libido bajo',
       'Disfunción eréctil',
@@ -228,7 +228,7 @@ export const panelDefinitions = {
       'Ferritina',
       'Adiponectina'
     ],
-    description: 'El envejecimiento es un fenómeno complejo impulsado por varios procesos subyacentes en nuestro cuerpo. Al abordar proactivamente estos factores, es posible cambiar la trayectoria de cómo envejeces.',
+    description: 'Marcadores clave para la evaluación del envejecimiento biológico y la optimización de la longevidad saludable. Permite identificar procesos de envejecimiento acelerado y diseñar intervenciones anti-aging personalizadas.',
     symptoms: [
       'Fatiga crónica',
       'Energía baja',

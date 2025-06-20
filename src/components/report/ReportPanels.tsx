@@ -64,12 +64,12 @@ export const ReportPanels: React.FC<ReportPanelsProps> = ({ report }) => {
             <div className="flex items-start gap-3">
               <TrendingUp className="h-5 w-5 text-healz-teal mt-0.5 flex-shrink-0" />
               <div>
-                <h3 className="font-medium text-healz-brown mb-2">DEJA DE ADIVINAR, EMPIEZA A ABORDAR</h3>
+                <h3 className="font-medium text-healz-brown mb-2">ANÁLISIS CLÍNICO AVANZADO</h3>
                 <p className="text-sm text-healz-brown/70 mb-2">
-                  Utilizamos machine learning combinado con la experiencia de clínicos expertos para analizar 50+ biomarcadores que nos dicen cómo está funcionando tu cuerpo y dónde podemos optimizar tu salud.
+                  Los paneles están organizados por objetivos clínicos específicos para facilitar la evaluación integral del paciente. Cada panel agrupa biomarcadores relacionados que permiten una interpretación contextualizada y la identificación de patrones clínicamente relevantes.
                 </p>
                 <p className="text-xs text-healz-brown/60 italic">
-                  Los paneles están organizados por objetivos específicos de salud para facilitar la interpretación clínica y el seguimiento de síntomas relacionados.
+                  Utilice la correlación entre síntomas reportados y valores de biomarcadores para orientar el diagnóstico y las recomendaciones terapéuticas.
                 </p>
               </div>
             </div>

@@ -72,7 +72,7 @@ export const PanelAccordionItem: React.FC<PanelAccordionItemProps> = ({
             <div className="bg-healz-orange/5 border border-healz-orange/20 rounded-lg p-4">
               <div className="flex items-center gap-2 mb-3">
                 <AlertTriangle className="h-4 w-4 text-healz-orange" />
-                <h4 className="font-medium text-healz-brown">Síntomas Comunes Asociados</h4>
+                <h4 className="font-medium text-healz-brown">Síntomas Clínicos Asociados</h4>
               </div>
               <div className="grid grid-cols-2 gap-2">
                 {panelData.symptoms.map((symptom, index) => (
@@ -84,7 +84,7 @@ export const PanelAccordionItem: React.FC<PanelAccordionItemProps> = ({
               </div>
               <div className="mt-3 pt-3 border-t border-healz-orange/20">
                 <p className="text-xs text-healz-brown/60 italic">
-                  Si experimentas alguno de estos síntomas, revisa los biomarcadores de este panel para identificar posibles desequilibrios.
+                  Evalúe la presencia de estos síntomas en el paciente y correlacione con los valores de biomarcadores para identificar patrones clínicos relevantes.
                 </p>
               </div>
             </div>
@@ -92,7 +92,7 @@ export const PanelAccordionItem: React.FC<PanelAccordionItemProps> = ({
 
           {/* Lista de Biomarcadores */}
           <div>
-            <h4 className="font-medium text-healz-brown mb-3">Biomarcadores Analizados</h4>
+            <h4 className="font-medium text-healz-brown mb-3">Biomarcadores del Panel</h4>
             <div className="grid grid-cols-1 gap-3">
               {panelData.biomarkers.map(biomarkerName => (
                 <BiomarkerListItem 
