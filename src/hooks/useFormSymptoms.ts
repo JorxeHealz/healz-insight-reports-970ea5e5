@@ -29,16 +29,27 @@ export const useFormSymptoms = (formId: string | undefined) => {
         return [];
       }
 
+      console.log('useFormSymptoms: Found answers:', answers);
+
       // Obtener las preguntas para entender el contexto
       const questionIds = answers.map(answer => answer.question_id);
-      const { data: questions, error: questionsError } = await supabase
-        .from('form_questions')
-        .select('id, question_text, question_type, category')
-        .in('id', questionIds);
+      
+      let questions = [];
+      try {
+        const { data: questionsData, error: questionsError } = await supabase
+          .from('form_questions')
+          .select('id, question_text, question_type, category')
+          .in('id', questionIds);
 
-      if (questionsError) {
-        console.error('useFormSymptoms: Error fetching questions:', questionsError);
-        throw questionsError;
+        if (questionsError) {
+          console.warn('useFormSymptoms: Error fetching questions (might be using text IDs):', questionsError);
+          questions = [];
+        } else {
+          questions = questionsData || [];
+        }
+      } catch (err) {
+        console.warn('useFormSymptoms: Failed to fetch questions, using fallback approach');
+        questions = [];
       }
 
       // Filtrar respuestas que indican síntomas presentes
@@ -46,13 +57,11 @@ export const useFormSymptoms = (formId: string | undefined) => {
 
       answers.forEach(answer => {
         const question = questions?.find(q => q.id === answer.question_id);
-        if (!question) return;
-
-        // Buscar síntomas en la categoría de síntomas actuales
-        if (question.category === 'current_symptoms') {
+        
+        // Si encontramos la pregunta en la base de datos, usar el método original
+        if (question && question.category === 'current_symptoms') {
           // Para preguntas de tipo boolean (Sí/No)
           if (question.question_type === 'boolean' && answer.answer === 'true') {
-            // Extraer el síntoma del texto de la pregunta
             const symptomMatch = extractSymptomFromQuestion(question.question_text);
             if (symptomMatch) {
               reportedSymptoms.push(symptomMatch);
@@ -62,7 +71,7 @@ export const useFormSymptoms = (formId: string | undefined) => {
           // Para preguntas de escala (consideramos valores altos como síntomas presentes)
           if (question.question_type === 'scale') {
             const scaleValue = parseInt(answer.answer);
-            if (scaleValue >= 3) { // Umbral para considerar síntoma presente
+            if (scaleValue >= 3) {
               const symptomMatch = extractSymptomFromQuestion(question.question_text);
               if (symptomMatch) {
                 reportedSymptoms.push(symptomMatch);
@@ -80,11 +89,20 @@ export const useFormSymptoms = (formId: string | undefined) => {
               }
             }
           }
+        } else {
+          // Método alternativo: usar el question_id directamente para mapear síntomas
+          const symptomFromId = extractSymptomFromQuestionId(answer.question_id, answer.answer);
+          if (symptomFromId) {
+            reportedSymptoms.push(symptomFromId);
+          }
         }
       });
 
-      console.log('useFormSymptoms: Found reported symptoms:', reportedSymptoms);
-      return reportedSymptoms;
+      // Remover duplicados
+      const uniqueSymptoms = [...new Set(reportedSymptoms)];
+      
+      console.log('useFormSymptoms: Final reported symptoms:', uniqueSymptoms);
+      return uniqueSymptoms;
     },
     enabled: !!formId
   });
@@ -152,4 +170,113 @@ function extractSymptomFromQuestion(questionText: string): string | null {
   }
 
   return null;
+}
+
+// Nueva función para mapear síntomas basado en question_id
+function extractSymptomFromQuestionId(questionId: string, answer: string): string | null {
+  const lowerQuestionId = questionId.toLowerCase();
+  const lowerAnswer = answer.toLowerCase();
+  
+  // Mapeo directo basado en question_id
+  const questionIdToSymptom: Record<string, string> = {
+    'fatiga_cronica': 'Fatiga crónica',
+    'energia_baja': 'Energía baja',
+    'libido_bajo': 'Libido bajo',
+    'sueño_deficiente': 'Sueño deficiente',
+    'cambios_peso': 'Cambios de peso',
+    'perdida_cabello': 'Pérdida de cabello',
+    'sofocos': 'Sofocos',
+    'cambios_humor': 'Cambios de humor',
+    'niebla_mental': 'Niebla mental',
+    'dolor_pecho': 'Dolor en el pecho',
+    'falta_aliento': 'Falta de aliento',
+    'mareos': 'Mareos',
+    'resistencia_disminuida': 'Resistencia disminuida',
+    'motivacion_baja': 'Falta de motivación',
+    'enfermedades_frecuentes': 'Enfermedades frecuentes',
+    'dolor_articular': 'Dolor articular',
+    'memoria_perdida': 'Pérdida de memoria',
+    'concentracion_dificil': 'Dificultad para concentrarse',
+    'intolerancia_temperatura': 'Intolerancia al calor o frío'
+  };
+
+  // Buscar coincidencia directa por question_id
+  for (const [qId, symptom] of Object.entries(questionIdToSymptom)) {
+    if (lowerQuestionId.includes(qId)) {
+      // Verificar que la respuesta indique presencia del síntoma
+      if (shouldReportSymptom(answer)) {
+        return symptom;
+      }
+    }
+  }
+
+  // Búsqueda por palabras clave en question_id
+  const keywordMappings: Record<string, string> = {
+    'fatiga': 'Fatiga crónica',
+    'energia': 'Energía baja',
+    'libido': 'Libido bajo', 
+    'sueño': 'Sueño deficiente',
+    'peso': 'Cambios de peso',
+    'cabello': 'Pérdida de cabello',
+    'sofocos': 'Sofocos',
+    'humor': 'Cambios de humor',
+    'niebla': 'Niebla mental',
+    'pecho': 'Dolor en el pecho',
+    'aliento': 'Falta de aliento',
+    'mareo': 'Mareos',
+    'resistencia': 'Resistencia disminuida',
+    'motivacion': 'Falta de motivación',
+    'enfermedad': 'Enfermedades frecuentes',
+    'articular': 'Dolor articular',
+    'memoria': 'Pérdida de memoria',
+    'concentra': 'Dificultad para concentrarse'
+  };
+
+  for (const [keyword, symptom] of Object.entries(keywordMappings)) {
+    if (lowerQuestionId.includes(keyword)) {
+      if (shouldReportSymptom(answer)) {
+        return symptom;
+      }
+    }
+  }
+
+  return null;
+}
+
+// Función auxiliar para determinar si una respuesta indica presencia de síntoma
+function shouldReportSymptom(answer: string): boolean {
+  const lowerAnswer = answer.toLowerCase().trim();
+  
+  // Respuestas que indican presencia del síntoma
+  const positiveAnswers = [
+    'sí', 'si', 'yes', 'true', 
+    'frecuentemente', 'siempre', 'always', 'frequently',
+    'moderadamente', 'severamente', 'mucho', 'bastante'
+  ];
+  
+  // Respuestas que indican ausencia del síntoma
+  const negativeAnswers = [
+    'no', 'never', 'nunca', 'false',
+    'información no disponible', 'n/a', 'na',
+    'rara vez', 'rarely', 'poco', 'nada'
+  ];
+  
+  // Verificar respuestas positivas
+  if (positiveAnswers.some(pos => lowerAnswer.includes(pos))) {
+    return true;
+  }
+  
+  // Verificar respuestas negativas
+  if (negativeAnswers.some(neg => lowerAnswer.includes(neg))) {
+    return false;
+  }
+  
+  // Para respuestas numéricas (escalas), considerar >= 3 como positivo
+  const numericValue = parseInt(lowerAnswer);
+  if (!isNaN(numericValue)) {
+    return numericValue >= 3;
+  }
+  
+  // Para respuestas no categorizadas, considerar como positiva si no está vacía
+  return lowerAnswer.length > 0 && lowerAnswer !== '0';
 }

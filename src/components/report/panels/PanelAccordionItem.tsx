@@ -28,12 +28,34 @@ export const PanelAccordionItem: React.FC<PanelAccordionItemProps> = ({
   const stats = calculatePanelStats(panelData.biomarkers, reportBiomarkers);
   const { data: reportedSymptoms = [], isLoading: loadingSymptoms } = useFormSymptoms(formId);
   
-  // Función para verificar si un síntoma fue reportado por el paciente
+  // Función mejorada para verificar si un síntoma fue reportado por el paciente
   const isSymptomReported = (symptom: string): boolean => {
-    return reportedSymptoms.some(reported => 
-      reported.toLowerCase().includes(symptom.toLowerCase()) ||
-      symptom.toLowerCase().includes(reported.toLowerCase())
-    );
+    return reportedSymptoms.some(reported => {
+      const normalizedReported = reported.toLowerCase().trim();
+      const normalizedSymptom = symptom.toLowerCase().trim();
+      
+      // Coincidencia exacta
+      if (normalizedReported === normalizedSymptom) {
+        return true;
+      }
+      
+      // Coincidencia parcial (una palabra clave importante)
+      const keywordsReported = normalizedReported.split(/\s+/);
+      const keywordsSymptom = normalizedSymptom.split(/\s+/);
+      
+      // Buscar palabras clave importantes
+      for (const keywordReported of keywordsReported) {
+        if (keywordReported.length >= 4) { // Solo palabras de 4+ caracteres
+          for (const keywordSymptom of keywordsSymptom) {
+            if (keywordSymptom.includes(keywordReported) || keywordReported.includes(keywordSymptom)) {
+              return true;
+            }
+          }
+        }
+      }
+      
+      return false;
+    });
   };
 
   // Filtrar solo los síntomas coincidentes (reportados por el paciente y presentes en el panel)
@@ -50,7 +72,12 @@ export const PanelAccordionItem: React.FC<PanelAccordionItemProps> = ({
       totalPanelSymptoms: panelData.symptoms?.length || 0,
       reportedSymptoms,
       coincidentSymptoms: coincidentSymptoms.length,
-      formId
+      formId,
+      panelSymptoms: panelData.symptoms,
+      matchingDetails: panelData.symptoms?.map(symptom => ({
+        symptom,
+        matches: isSymptomReported(symptom)
+      }))
     });
   }, [panelName, panelData.biomarkers, stats, reportBiomarkers, panelData.symptoms, reportedSymptoms, coincidentSymptoms.length, formId]);
   
