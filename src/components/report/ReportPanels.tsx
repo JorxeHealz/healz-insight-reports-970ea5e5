@@ -6,6 +6,7 @@ import { BiomarkerStatus } from './BiomarkerStatus';
 import { useReportBiomarkers } from '../../hooks/useReportBiomarkers';
 import { panelDefinitions } from './panels/PanelDefinitions';
 import { PanelAccordionItem } from './panels/PanelAccordionItem';
+import { Target, TrendingUp } from 'lucide-react';
 
 type ReportPanelsProps = {
   report: any;
@@ -50,17 +51,29 @@ export const ReportPanels: React.FC<ReportPanelsProps> = ({ report }) => {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg text-healz-brown">
-            Paneles de Biomarcadores
+          <CardTitle className="text-lg text-healz-brown flex items-center gap-2">
+            <Target className="h-5 w-5 text-healz-teal" />
+            Paneles por Objetivos de Salud
             <span className="text-sm font-normal text-healz-brown/50 ml-2">
               ({reportBiomarkers?.length || 0} biomarcadores disponibles)
             </span>
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-healz-brown/70 mb-4">
-            Vista agrupada de biomarcadores por paneles de laboratorio específicos
-          </p>
+          <div className="mb-4 p-4 bg-healz-teal/5 border border-healz-teal/20 rounded-lg">
+            <div className="flex items-start gap-3">
+              <TrendingUp className="h-5 w-5 text-healz-teal mt-0.5 flex-shrink-0" />
+              <div>
+                <h3 className="font-medium text-healz-brown mb-2">DEJA DE ADIVINAR, EMPIEZA A ABORDAR</h3>
+                <p className="text-sm text-healz-brown/70 mb-2">
+                  Utilizamos machine learning combinado con la experiencia de clínicos expertos para analizar 50+ biomarcadores que nos dicen cómo está funcionando tu cuerpo y dónde podemos optimizar tu salud.
+                </p>
+                <p className="text-xs text-healz-brown/60 italic">
+                  Los paneles están organizados por objetivos específicos de salud para facilitar la interpretación clínica y el seguimiento de síntomas relacionados.
+                </p>
+              </div>
+            </div>
+          </div>
           
           <Accordion type="single" collapsible className="w-full">
             {Object.entries(panelDefinitions).map(([panelName, panelData]) => (
