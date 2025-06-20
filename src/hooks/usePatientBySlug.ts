@@ -16,17 +16,24 @@ export const usePatientBySlug = (slug: string) => {
         throw new Error('Slug inválido');
       }
 
-      // Usar una consulta SQL raw que funcione correctamente con UUIDs
+      console.log('usePatientBySlug: Searching for patient with shortId:', shortId);
+
+      // Usar la función SQL mejorada que ahora es más específica
       const { data, error } = await supabase.rpc('find_patient_by_short_id', {
         short_id: shortId
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('usePatientBySlug: Database error:', error);
+        throw error;
+      }
       
       if (!data || !Array.isArray(data) || data.length === 0) {
+        console.log('usePatientBySlug: No patient found for shortId:', shortId);
         throw new Error('Paciente no encontrado');
       }
 
+      console.log('usePatientBySlug: Found patient:', data[0]);
       return data[0] as Patient;
     },
     enabled: !!slug,
