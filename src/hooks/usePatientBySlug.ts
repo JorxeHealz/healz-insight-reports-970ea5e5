@@ -10,15 +10,18 @@ export const usePatientBySlug = (slug: string) => {
   return useQuery({
     queryKey: ['patient', 'slug', slug],
     queryFn: async () => {
+      console.log('usePatientBySlug: Starting search for slug:', slug);
+      
       const shortId = parsePatientIdFromSlug(slug);
       
       if (!shortId) {
-        throw new Error('Slug inválido');
+        console.error('usePatientBySlug: Invalid slug format:', slug);
+        throw new Error('Formato de slug inválido');
       }
 
-      console.log('usePatientBySlug: Searching for patient with shortId:', shortId);
+      console.log('usePatientBySlug: Extracted shortId:', shortId, 'Length:', shortId.length);
 
-      // Usar la función SQL actualizada que ahora busca con 16 caracteres
+      // Usar la función SQL que acepta prefijos de cualquier longitud
       const { data, error } = await supabase.rpc('find_patient_by_short_id', {
         short_id: shortId
       });
@@ -28,13 +31,16 @@ export const usePatientBySlug = (slug: string) => {
         throw error;
       }
       
+      console.log('usePatientBySlug: Database response:', data);
+      
       if (!data || !Array.isArray(data) || data.length === 0) {
         console.log('usePatientBySlug: No patient found for shortId:', shortId);
         throw new Error('Paciente no encontrado');
       }
 
-      console.log('usePatientBySlug: Found patient:', data[0]);
-      return data[0] as Patient;
+      const patient = data[0] as Patient;
+      console.log('usePatientBySlug: Found patient:', patient.first_name, patient.last_name, 'with ID:', patient.id);
+      return patient;
     },
     enabled: !!slug,
   });

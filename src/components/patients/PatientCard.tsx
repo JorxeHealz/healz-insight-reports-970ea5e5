@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import type { Tables } from '../../integrations/supabase/types';
@@ -62,9 +61,10 @@ export const PatientCard = ({ patient, onEdit }: PatientCardProps) => {
     }
   };
 
-  // Generar el slug con 16 caracteres para navegación correcta
+  // Generar el slug para navegación
   const patientSlug = generatePatientSlug(patient);
   console.log('PatientCard: Generated slug for patient', patient.first_name, patient.last_name, ':', patientSlug);
+  console.log('PatientCard: Patient ID:', patient.id, 'Short ID length:', patient.id.substring(0, 16).length);
 
   return (
     <>
@@ -77,6 +77,9 @@ export const PatientCard = ({ patient, onEdit }: PatientCardProps) => {
                 <Link 
                   to={`/paciente/${patientSlug}`}
                   className="font-semibold text-healz-brown hover:text-healz-teal transition-colors"
+                  onClick={(e) => {
+                    console.log('PatientCard: Navigating to slug:', patientSlug);
+                  }}
                 >
                   {patient.first_name} {patient.last_name}
                 </Link>
