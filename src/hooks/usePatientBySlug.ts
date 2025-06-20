@@ -18,7 +18,7 @@ export const usePatientBySlug = (slug: string) => {
 
       console.log('usePatientBySlug: Searching for patient with shortId:', shortId);
 
-      // Usar la función SQL mejorada que ahora es más específica
+      // Usar la función SQL actualizada que ahora busca con 16 caracteres
       const { data, error } = await supabase.rpc('find_patient_by_short_id', {
         short_id: shortId
       });

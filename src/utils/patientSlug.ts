@@ -15,18 +15,18 @@ export const generatePatientSlug = (patient: Patient): string => {
     .replace(/\s+/g, '-') // Reemplazar espacios con guiones
     .trim();
 
-  // Tomar los primeros 12 caracteres del ID para mayor unicidad
-  const shortId = patient.id.substring(0, 12);
+  // Tomar los primeros 16 caracteres del ID para mayor unicidad
+  const shortId = patient.id.substring(0, 16);
   
   return `${normalizedName}-${shortId}`;
 };
 
 export const parsePatientIdFromSlug = (slug: string): string | null => {
-  // El ID está en los últimos 12 caracteres después del último guión
+  // El ID está en los últimos 16 caracteres después del último guión
   const parts = slug.split('-');
   const lastPart = parts[parts.length - 1];
   
-  if (lastPart && lastPart.length === 12) {
+  if (lastPart && lastPart.length === 16) {
     return lastPart;
   }
   

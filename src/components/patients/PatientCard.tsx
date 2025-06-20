@@ -62,7 +62,9 @@ export const PatientCard = ({ patient, onEdit }: PatientCardProps) => {
     }
   };
 
+  // Generar el slug con 16 caracteres para navegación correcta
   const patientSlug = generatePatientSlug(patient);
+  console.log('PatientCard: Generated slug for patient', patient.first_name, patient.last_name, ':', patientSlug);
 
   return (
     <>
