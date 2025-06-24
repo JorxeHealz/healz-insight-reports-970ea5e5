@@ -33,50 +33,35 @@ serve(async (req) => {
       );
     }
 
+    console.log(`Processing form ${form_id} for n8n`);
+
     // Verificar que el formulario existe y está completado
     const { data: form, error: formError } = await supabaseClient
       .from('patient_forms')
       .select(`
         *,
-        patients!inner(*)
+        patients!inner(
+          id,
+          first_name,
+          last_name,
+          email,
+          age,
+          gender
+        )
       `)
       .eq('id', form_id)
       .eq('status', 'completed')
       .single();
 
     if (formError || !form) {
+      console.error('Form not found or not completed:', formError);
       return new Response(
         JSON.stringify({ error: 'Form not found or not completed' }),
         { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Obtener respuestas del formulario
-    const { data: answers, error: answersError } = await supabaseClient
-      .from('questionnaire_answers')
-      .select(`
-        *,
-        form_questions!inner(*)
-      `)
-      .eq('form_id', form_id);
-
-    if (answersError) {
-      console.error('Error fetching answers:', answersError);
-      return new Response(
-        JSON.stringify({ error: 'Failed to fetch form answers' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    // Obtener archivos del formulario
-    const { data: files, error: filesError } = await supabaseClient
-      .from('form_files')
-      .select('*')
-      .eq('form_id', form_id);
-
-    if (filesError) {
-      console.error('Error fetching files:', filesError);
-    }
+    console.log(`Found completed form for patient: ${form.patients.first_name} ${form.patients.last_name}`);
 
     // Crear entrada en la cola de procesamiento
     const { data: queueEntry, error: queueError } = await supabaseClient
@@ -98,8 +83,11 @@ serve(async (req) => {
       );
     }
 
-    // Preparar datos para n8n con credenciales de Supabase para acceso directo
-    const patientData = {
+    console.log(`Created queue entry ${queueEntry.id} for form ${form_id}`);
+
+    // Preparar datos mínimos para n8n
+    const minimalData = {
+      form_id: form_id,
       patient: {
         id: form.patient_id,
         name: `${form.patients.first_name} ${form.patients.last_name}`,
@@ -107,26 +95,9 @@ serve(async (req) => {
         age: form.patients.age || null,
         gender: form.patients.gender || null
       },
-      form: {
-        id: form_id,
-        token: form.form_token,
-        completed_at: form.completed_at,
-        created_at: form.created_at
-      },
-      answers: answers?.map(answer => ({
-        question_id: answer.question_id,
-        question_text: answer.form_questions?.question_text,
-        question_category: answer.form_questions?.category,
-        answer: answer.answer,
-        answer_type: answer.answer_type
-      })) || [],
-      files: files?.map(file => ({
-        id: file.id,
-        name: file.file_name,
-        url: file.file_url,
-        type: file.file_type,
-        size: file.file_size
-      })) || [],
+      form_token: form.form_token,
+      completed_at: form.completed_at,
+      created_at: form.created_at,
       processing: {
         queue_id: queueEntry.id
       },
@@ -134,6 +105,14 @@ serve(async (req) => {
         url: Deno.env.get('SUPABASE_URL'),
         service_role_key: Deno.env.get('SUPABASE_SERVICE_ROLE_KEY'),
         completion_webhook_url: `${Deno.env.get('SUPABASE_URL')?.replace('/rest/v1', '')}/functions/v1/n8n-processing-complete`
+      },
+      instructions: {
+        message: "Use the provided Supabase credentials to extract all form answers and files. Call the completion webhook when done.",
+        queries_to_run: [
+          "SELECT * FROM questionnaire_answers WHERE form_id = '" + form_id + "'",
+          "SELECT * FROM form_files WHERE form_id = '" + form_id + "'",
+          "SELECT * FROM form_questions WHERE form_id = '" + form_id + "'"
+        ]
       }
     };
 
@@ -146,21 +125,23 @@ serve(async (req) => {
       })
       .eq('id', queueEntry.id);
 
-    // Enviar datos a n8n
+    // Enviar datos mínimos a n8n
     const webhookUrl = n8n_webhook_url || Deno.env.get('N8N_WEBHOOK_URL');
     
     if (webhookUrl) {
       try {
+        console.log(`Sending minimal data to n8n webhook: ${webhookUrl}`);
+        
         const n8nResponse = await fetch(webhookUrl, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify(patientData)
+          body: JSON.stringify(minimalData)
         });
 
         if (!n8nResponse.ok) {
-          throw new Error(`N8N webhook failed: ${n8nResponse.status}`);
+          throw new Error(`N8N webhook failed: ${n8nResponse.status} - ${await n8nResponse.text()}`);
         }
 
         const n8nResult = await n8nResponse.json();
@@ -173,7 +154,7 @@ serve(async (req) => {
             .eq('id', queueEntry.id);
         }
 
-        console.log(`Successfully sent form ${form_id} to n8n webhook for OCR processing`);
+        console.log(`Successfully sent form ${form_id} to n8n webhook for processing`);
 
       } catch (webhookError) {
         console.error('Error calling n8n webhook:', webhookError);
@@ -193,16 +174,25 @@ serve(async (req) => {
           { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
+    } else {
+      console.error('No webhook URL provided');
+      return new Response(
+        JSON.stringify({ error: 'No webhook URL configured' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
-
-    // NO marcamos el formulario como "processed" aquí - N8N lo hará cuando termine el OCR
 
     return new Response(
       JSON.stringify({
         success: true,
-        message: 'Form sent to n8n for OCR processing',
+        message: 'Form data sent to n8n for processing',
         queue_id: queueEntry.id,
-        note: 'N8N will update the form status to "processed" after completing OCR and saving biomarkers'
+        sent_data: {
+          form_id: form_id,
+          patient_name: minimalData.patient.name,
+          patient_email: minimalData.patient.email
+        },
+        note: 'N8N will extract all form data using Supabase credentials and update status when complete'
       }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
@@ -210,7 +200,7 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error in process-form-n8n:', error);
     return new Response(
-      JSON.stringify({ error: 'Internal server error' }),
+      JSON.stringify({ error: 'Internal server error', details: error.message }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
