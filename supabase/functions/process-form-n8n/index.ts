@@ -13,6 +13,10 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  console.log('🚀 Starting process-form-n8n function');
+  console.log('Request method:', req.method);
+  console.log('Request headers:', Object.fromEntries(req.headers.entries()));
+
   try {
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
@@ -24,18 +28,38 @@ serve(async (req) => {
       }
     );
 
-    const { form_id, n8n_webhook_url } = await req.json();
+    console.log('✅ Supabase client created successfully');
+
+    let requestBody;
+    try {
+      requestBody = await req.json();
+      console.log('📝 Request body parsed:', JSON.stringify(requestBody, null, 2));
+    } catch (parseError) {
+      console.error('❌ Error parsing request body:', parseError);
+      return new Response(
+        JSON.stringify({ error: 'Invalid JSON in request body', details: parseError.message }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const { form_id, n8n_webhook_url } = requestBody;
+
+    console.log('🔍 Extracted parameters:');
+    console.log('- form_id:', form_id);
+    console.log('- n8n_webhook_url:', n8n_webhook_url);
 
     if (!form_id) {
+      console.error('❌ Missing form_id parameter');
       return new Response(
         JSON.stringify({ error: 'form_id is required' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log(`Processing form ${form_id} for n8n`);
+    console.log(`🔎 Processing form ${form_id} for n8n`);
 
     // Verificar que el formulario existe y está completado
+    console.log('📊 Querying database for form...');
     const { data: form, error: formError } = await supabaseClient
       .from('patient_forms')
       .select(`
@@ -45,7 +69,6 @@ serve(async (req) => {
           first_name,
           last_name,
           email,
-          age,
           gender
         )
       `)
@@ -53,17 +76,52 @@ serve(async (req) => {
       .eq('status', 'completed')
       .single();
 
-    if (formError || !form) {
-      console.error('Form not found or not completed:', formError);
+    if (formError) {
+      console.error('❌ Database query error:', JSON.stringify(formError, null, 2));
+      return new Response(
+        JSON.stringify({ 
+          error: 'Database query failed', 
+          details: formError.message,
+          code: formError.code,
+          hint: formError.hint 
+        }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (!form) {
+      console.error('❌ Form not found or not completed');
+      console.log('🔍 Checking if form exists with any status...');
+      
+      // Check if form exists at all
+      const { data: anyForm, error: anyFormError } = await supabaseClient
+        .from('patient_forms')
+        .select('id, status, patient_id')
+        .eq('id', form_id)
+        .single();
+
+      if (anyFormError) {
+        console.error('❌ Form does not exist at all:', anyFormError);
+      } else {
+        console.log('📋 Form exists with status:', anyForm?.status);
+        console.log('📋 Form patient_id:', anyForm?.patient_id);
+      }
+
       return new Response(
         JSON.stringify({ error: 'Form not found or not completed' }),
         { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log(`Found completed form for patient: ${form.patients.first_name} ${form.patients.last_name}`);
+    console.log('✅ Found completed form:');
+    console.log('- Patient ID:', form.patient_id);
+    console.log('- Patient name:', `${form.patients.first_name} ${form.patients.last_name}`);
+    console.log('- Patient email:', form.patients.email);
+    console.log('- Form status:', form.status);
+    console.log('- Form token:', form.form_token);
 
     // Crear entrada en la cola de procesamiento
+    console.log('📝 Creating processing queue entry...');
     const { data: queueEntry, error: queueError } = await supabaseClient
       .from('processing_queue')
       .insert({
@@ -76,14 +134,14 @@ serve(async (req) => {
       .single();
 
     if (queueError) {
-      console.error('Error creating queue entry:', queueError);
+      console.error('❌ Error creating queue entry:', JSON.stringify(queueError, null, 2));
       return new Response(
-        JSON.stringify({ error: 'Failed to create processing queue entry' }),
+        JSON.stringify({ error: 'Failed to create processing queue entry', details: queueError.message }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log(`Created queue entry ${queueEntry.id} for form ${form_id}`);
+    console.log('✅ Created queue entry:', queueEntry.id);
 
     // Preparar datos mínimos para n8n
     const minimalData = {
@@ -92,7 +150,6 @@ serve(async (req) => {
         id: form.patient_id,
         name: `${form.patients.first_name} ${form.patients.last_name}`,
         email: form.patients.email,
-        age: form.patients.age || null,
         gender: form.patients.gender || null
       },
       form_token: form.form_token,
@@ -116,8 +173,11 @@ serve(async (req) => {
       }
     };
 
+    console.log('📦 Prepared minimal data for n8n:', JSON.stringify(minimalData, null, 2));
+
     // Actualizar cola como "processing"
-    await supabaseClient
+    console.log('🔄 Updating queue status to processing...');
+    const { error: updateError } = await supabaseClient
       .from('processing_queue')
       .update({ 
         status: 'processing',
@@ -125,62 +185,104 @@ serve(async (req) => {
       })
       .eq('id', queueEntry.id);
 
+    if (updateError) {
+      console.error('⚠️ Warning: Could not update queue status:', updateError);
+    } else {
+      console.log('✅ Queue status updated to processing');
+    }
+
     // Enviar datos mínimos a n8n
     const webhookUrl = n8n_webhook_url || Deno.env.get('N8N_WEBHOOK_URL');
     
-    if (webhookUrl) {
-      try {
-        console.log(`Sending minimal data to n8n webhook: ${webhookUrl}`);
-        
-        const n8nResponse = await fetch(webhookUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(minimalData)
-        });
-
-        if (!n8nResponse.ok) {
-          throw new Error(`N8N webhook failed: ${n8nResponse.status} - ${await n8nResponse.text()}`);
-        }
-
-        const n8nResult = await n8nResponse.json();
-        
-        // Actualizar con ID de ejecución de n8n si está disponible
-        if (n8nResult.execution_id) {
-          await supabaseClient
-            .from('processing_queue')
-            .update({ n8n_execution_id: n8nResult.execution_id })
-            .eq('id', queueEntry.id);
-        }
-
-        console.log(`Successfully sent form ${form_id} to n8n webhook for processing`);
-
-      } catch (webhookError) {
-        console.error('Error calling n8n webhook:', webhookError);
-        
-        // Marcar como fallido
-        await supabaseClient
-          .from('processing_queue')
-          .update({ 
-            status: 'failed',
-            error_message: webhookError.message,
-            completed_at: new Date().toISOString()
-          })
-          .eq('id', queueEntry.id);
-
-        return new Response(
-          JSON.stringify({ error: 'Failed to call n8n webhook', details: webhookError.message }),
-          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-    } else {
-      console.error('No webhook URL provided');
+    if (!webhookUrl) {
+      console.error('❌ No webhook URL provided');
       return new Response(
         JSON.stringify({ error: 'No webhook URL configured' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
+    console.log(`🌐 Calling n8n webhook: ${webhookUrl}`);
+    console.log('📤 Payload size:', JSON.stringify(minimalData).length, 'characters');
+
+    try {
+      const webhookResponse = await fetch(webhookUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(minimalData)
+      });
+
+      console.log('📡 Webhook response status:', webhookResponse.status);
+      console.log('📡 Webhook response headers:', Object.fromEntries(webhookResponse.headers.entries()));
+
+      if (!webhookResponse.ok) {
+        const errorText = await webhookResponse.text();
+        console.error('❌ N8N webhook failed with status:', webhookResponse.status);
+        console.error('❌ N8N webhook error response:', errorText);
+        
+        throw new Error(`N8N webhook failed: ${webhookResponse.status} - ${errorText}`);
+      }
+
+      let n8nResult;
+      try {
+        const responseText = await webhookResponse.text();
+        console.log('📥 Raw webhook response:', responseText);
+        
+        if (responseText) {
+          n8nResult = JSON.parse(responseText);
+          console.log('✅ Parsed n8n response:', JSON.stringify(n8nResult, null, 2));
+        } else {
+          console.log('ℹ️ Empty response from n8n webhook');
+          n8nResult = {};
+        }
+      } catch (parseError) {
+        console.error('⚠️ Could not parse n8n response as JSON:', parseError);
+        n8nResult = { raw_response: await webhookResponse.text() };
+      }
+      
+      // Actualizar con ID de ejecución de n8n si está disponible
+      if (n8nResult.execution_id) {
+        console.log('🔄 Updating queue with n8n execution ID:', n8nResult.execution_id);
+        await supabaseClient
+          .from('processing_queue')
+          .update({ n8n_execution_id: n8nResult.execution_id })
+          .eq('id', queueEntry.id);
+      }
+
+      console.log('🎉 Successfully sent form to n8n webhook');
+
+    } catch (webhookError) {
+      console.error('❌ Error calling n8n webhook:', webhookError);
+      console.error('❌ Webhook error details:', {
+        name: webhookError.name,
+        message: webhookError.message,
+        stack: webhookError.stack
+      });
+      
+      // Marcar como fallido
+      console.log('🔄 Marking queue entry as failed...');
+      await supabaseClient
+        .from('processing_queue')
+        .update({ 
+          status: 'failed',
+          error_message: webhookError.message,
+          completed_at: new Date().toISOString()
+        })
+        .eq('id', queueEntry.id);
+
+      return new Response(
+        JSON.stringify({ 
+          error: 'Failed to call n8n webhook', 
+          details: webhookError.message,
+          queue_id: queueEntry.id 
+        }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log('✅ Process completed successfully');
 
     return new Response(
       JSON.stringify({
@@ -198,9 +300,19 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error('Error in process-form-n8n:', error);
+    console.error('💥 Unexpected error in process-form-n8n:', error);
+    console.error('💥 Error details:', {
+      name: error.name,
+      message: error.message,
+      stack: error.stack
+    });
+    
     return new Response(
-      JSON.stringify({ error: 'Internal server error', details: error.message }),
+      JSON.stringify({ 
+        error: 'Internal server error', 
+        details: error.message,
+        type: error.name 
+      }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
