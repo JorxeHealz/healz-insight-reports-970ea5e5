@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { usePatientForms, useCreatePatientForm, useProcessFormWithN8N } from '../hooks/usePatientForms';
 import { Plus } from 'lucide-react';
@@ -37,7 +36,7 @@ const PatientForms = () => {
     try {
       await processForm.mutateAsync({ 
         form_id: formId,
-        n8n_webhook_url: 'https://joinhealz.app.n8n.cloud/webhook-test/formulario'
+        n8n_webhook_url: 'https://joinhealz.app.n8n.cloud/webhook/formulario'
       });
       toast({
         title: "Formulario enviado a n8n",
