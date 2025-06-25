@@ -15,7 +15,6 @@ serve(async (req) => {
 
   console.log('🚀 Starting process-form-n8n function');
   console.log('Request method:', req.method);
-  console.log('Request headers:', Object.fromEntries(req.headers.entries()));
 
   try {
     const supabaseClient = createClient(
@@ -58,32 +57,22 @@ serve(async (req) => {
 
     console.log(`🔎 Processing form ${form_id} for n8n`);
 
-    // Verificar que el formulario existe y está completado
-    console.log('📊 Querying database for form...');
+    // PASO 1: Primero obtener el formulario de forma simple
+    console.log('📊 Step 1: Querying form data...');
     const { data: form, error: formError } = await supabaseClient
       .from('patient_forms')
-      .select(`
-        *,
-        patients!inner(
-          id,
-          first_name,
-          last_name,
-          email,
-          gender
-        )
-      `)
+      .select('*')
       .eq('id', form_id)
       .eq('status', 'completed')
       .single();
 
     if (formError) {
-      console.error('❌ Database query error:', JSON.stringify(formError, null, 2));
+      console.error('❌ Form query error:', JSON.stringify(formError, null, 2));
       return new Response(
         JSON.stringify({ 
-          error: 'Database query failed', 
+          error: 'Failed to fetch form data', 
           details: formError.message,
-          code: formError.code,
-          hint: formError.hint 
+          code: formError.code
         }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
@@ -91,34 +80,43 @@ serve(async (req) => {
 
     if (!form) {
       console.error('❌ Form not found or not completed');
-      console.log('🔍 Checking if form exists with any status...');
-      
-      // Check if form exists at all
-      const { data: anyForm, error: anyFormError } = await supabaseClient
-        .from('patient_forms')
-        .select('id, status, patient_id')
-        .eq('id', form_id)
-        .single();
-
-      if (anyFormError) {
-        console.error('❌ Form does not exist at all:', anyFormError);
-      } else {
-        console.log('📋 Form exists with status:', anyForm?.status);
-        console.log('📋 Form patient_id:', anyForm?.patient_id);
-      }
-
       return new Response(
         JSON.stringify({ error: 'Form not found or not completed' }),
         { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log('✅ Found completed form:');
-    console.log('- Patient ID:', form.patient_id);
-    console.log('- Patient name:', `${form.patients.first_name} ${form.patients.last_name}`);
-    console.log('- Patient email:', form.patients.email);
-    console.log('- Form status:', form.status);
-    console.log('- Form token:', form.form_token);
+    console.log('✅ Found form:', form.id, 'for patient:', form.patient_id);
+
+    // PASO 2: Ahora obtener los datos del paciente por separado
+    console.log('👤 Step 2: Querying patient data...');
+    const { data: patient, error: patientError } = await supabaseClient
+      .from('patients')
+      .select('id, first_name, last_name, email, gender')
+      .eq('id', form.patient_id)
+      .single();
+
+    if (patientError) {
+      console.error('❌ Patient query error:', JSON.stringify(patientError, null, 2));
+      return new Response(
+        JSON.stringify({ 
+          error: 'Failed to fetch patient data', 
+          details: patientError.message,
+          patient_id: form.patient_id
+        }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (!patient) {
+      console.error('❌ Patient not found for ID:', form.patient_id);
+      return new Response(
+        JSON.stringify({ error: 'Patient not found', patient_id: form.patient_id }),
+        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log('✅ Found patient:', `${patient.first_name} ${patient.last_name}`);
 
     // Crear entrada en la cola de procesamiento
     console.log('📝 Creating processing queue entry...');
@@ -147,10 +145,10 @@ serve(async (req) => {
     const minimalData = {
       form_id: form_id,
       patient: {
-        id: form.patient_id,
-        name: `${form.patients.first_name} ${form.patients.last_name}`,
-        email: form.patients.email,
-        gender: form.patients.gender || null
+        id: patient.id,
+        name: `${patient.first_name} ${patient.last_name}`,
+        email: patient.email,
+        gender: patient.gender || null
       },
       form_token: form.form_token,
       completed_at: form.completed_at,
@@ -173,7 +171,7 @@ serve(async (req) => {
       }
     };
 
-    console.log('📦 Prepared minimal data for n8n:', JSON.stringify(minimalData, null, 2));
+    console.log('📦 Prepared data for n8n - Patient:', minimalData.patient.name);
 
     // Actualizar cola como "processing"
     console.log('🔄 Updating queue status to processing...');
@@ -215,7 +213,6 @@ serve(async (req) => {
       });
 
       console.log('📡 Webhook response status:', webhookResponse.status);
-      console.log('📡 Webhook response headers:', Object.fromEntries(webhookResponse.headers.entries()));
 
       if (!webhookResponse.ok) {
         const errorText = await webhookResponse.text();
@@ -255,11 +252,6 @@ serve(async (req) => {
 
     } catch (webhookError) {
       console.error('❌ Error calling n8n webhook:', webhookError);
-      console.error('❌ Webhook error details:', {
-        name: webhookError.name,
-        message: webhookError.message,
-        stack: webhookError.stack
-      });
       
       // Marcar como fallido
       console.log('🔄 Marking queue entry as failed...');
