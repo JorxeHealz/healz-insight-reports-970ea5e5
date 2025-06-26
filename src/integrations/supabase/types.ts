@@ -1144,7 +1144,7 @@ export type Database = {
           biomarker_name: string
           unit: string
           description: string
-          category: string
+          category: string[]
           panel: string[]
           conventional_min: number
           conventional_max: number

@@ -17,7 +17,7 @@ export const useReportBiomarkers = (reportId: string | undefined) => {
 
       console.log('useReportBiomarkers: Fetching biomarkers for report:', reportId);
 
-      // Use RPC function to execute the SQL query that we know works
+      // Use RPC function to execute the SQL query - now with correct category type
       const { data: rawData, error: biomarkersError } = await supabase
         .rpc('get_report_biomarkers', { p_report_id: reportId });
 
@@ -42,14 +42,14 @@ export const useReportBiomarkers = (reportId: string | undefined) => {
         const numericValue = typeof row.value === 'string' ? parseFloat(row.value) : row.value;
         
         // Create biomarker info object from the flat row data
-        // Handle panel field as array (after migration)
+        // Now category is correctly handled as text[] from the database
         const biomarkerInfo = {
           id: row.biomarker_id,
           name: row.biomarker_name,
           unit: row.unit,
           description: row.description,
-          category: row.category,
-          panel: Array.isArray(row.panel) ? row.panel : (row.panel ? [row.panel] : null), // Handle both array and string cases
+          category: row.category, // This is now text[] as expected
+          panel: Array.isArray(row.panel) ? row.panel : (row.panel ? [row.panel] : null),
           conventional_min: row.conventional_min,
           conventional_max: row.conventional_max,
           optimal_min: row.optimal_min,
