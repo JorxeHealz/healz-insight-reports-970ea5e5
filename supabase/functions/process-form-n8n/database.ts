@@ -91,3 +91,43 @@ export async function updateQueueStatus(supabaseClient: any, queueId: string, st
     console.log(`✅ Queue status updated to ${status}`);
   }
 }
+
+export async function cleanupStuckProcessingEntries(supabaseClient: any) {
+  console.log('🧹 Cleaning up stuck processing entries...');
+  
+  // Mark entries that have been "processing" for more than 30 minutes as failed
+  const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000).toISOString();
+  
+  const { data: stuckEntries, error: selectError } = await supabaseClient
+    .from('processing_queue')
+    .select('id, form_id')
+    .eq('status', 'processing')
+    .lt('started_at', thirtyMinutesAgo);
+
+  if (selectError) {
+    console.error('⚠️ Error selecting stuck entries:', selectError);
+    return;
+  }
+
+  if (stuckEntries && stuckEntries.length > 0) {
+    console.log(`🔄 Found ${stuckEntries.length} stuck entries to clean up`);
+    
+    const { error: updateError } = await supabaseClient
+      .from('processing_queue')
+      .update({
+        status: 'failed',
+        error_message: 'Processing timeout - cleaned up by system',
+        completed_at: new Date().toISOString()
+      })
+      .eq('status', 'processing')
+      .lt('started_at', thirtyMinutesAgo);
+
+    if (updateError) {
+      console.error('⚠️ Error cleaning up stuck entries:', updateError);
+    } else {
+      console.log(`✅ Cleaned up ${stuckEntries.length} stuck processing entries`);
+    }
+  } else {
+    console.log('ℹ️ No stuck processing entries found');
+  }
+}

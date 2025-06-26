@@ -1,9 +1,14 @@
-
 import { MinimalFormData } from './types.ts';
 
 export function buildDynamicWebhookUrl(baseUrl: string | undefined, formId: string): string {
   const baseWebhookUrl = baseUrl || 'https://joinhealz.app.n8n.cloud/webhook';
-  return `${baseWebhookUrl}/formulario/${formId}`;
+  
+  // Check if the base URL already ends with '/formulario'
+  if (baseWebhookUrl.endsWith('/formulario')) {
+    return `${baseWebhookUrl}/${formId}`;
+  } else {
+    return `${baseWebhookUrl}/formulario/${formId}`;
+  }
 }
 
 export function prepareMinimalData(form: any, patient: any, queueEntry: any): MinimalFormData {
@@ -38,7 +43,7 @@ export function prepareMinimalData(form: any, patient: any, queueEntry: any): Mi
 }
 
 export async function callN8nWebhook(webhookUrl: string, data: MinimalFormData): Promise<any> {
-  console.log(`🌐 Calling n8n webhook with dynamic URL: ${webhookUrl}`);
+  console.log(`🌐 Calling n8n webhook with corrected URL: ${webhookUrl}`);
   console.log('📤 Payload size:', JSON.stringify(data).length, 'characters');
   console.log(`🎯 Processing form ID: ${data.form_id} for patient: ${data.patient.name}`);
 
@@ -51,7 +56,7 @@ export async function callN8nWebhook(webhookUrl: string, data: MinimalFormData):
   });
 
   console.log('📡 Webhook response status:', webhookResponse.status);
-  console.log('📡 Dynamic URL used:', webhookUrl);
+  console.log('📡 Corrected URL used:', webhookUrl);
 
   if (!webhookResponse.ok) {
     const errorText = await webhookResponse.text();

@@ -2,7 +2,7 @@
 import { serve } from "https://deno.land/std@0.208.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { ProcessFormRequest } from './types.ts';
-import { getFormData, getPatientData, createQueueEntry, updateQueueStatus } from './database.ts';
+import { getFormData, getPatientData, createQueueEntry, updateQueueStatus, cleanupStuckProcessingEntries } from './database.ts';
 import { buildDynamicWebhookUrl, prepareMinimalData, callN8nWebhook } from './webhook.ts';
 
 const corsHeaders = {
@@ -32,6 +32,9 @@ serve(async (req) => {
 
     console.log('✅ Supabase client created successfully');
 
+    // Clean up stuck processing entries before starting new processing
+    await cleanupStuckProcessingEntries(supabaseClient);
+
     let requestBody: ProcessFormRequest;
     try {
       requestBody = await req.json();
@@ -58,14 +61,15 @@ serve(async (req) => {
       );
     }
 
-    console.log(`🔎 Processing form ${form_id} for n8n with dynamic URL`);
+    console.log(`🔎 Processing form ${form_id} for n8n with corrected URL generation`);
 
     // Get form and patient data
     const form = await getFormData(supabaseClient, form_id);
     const patient = await getPatientData(supabaseClient, form.patient_id);
 
-    // Build dynamic webhook URL
+    // Build corrected dynamic webhook URL
     const dynamicWebhookUrl = buildDynamicWebhookUrl(n8n_webhook_url, form_id);
+    console.log('🔗 Generated corrected webhook URL:', dynamicWebhookUrl);
 
     // Create queue entry
     const queueEntry = await createQueueEntry(supabaseClient, form_id, form.patient_id, dynamicWebhookUrl);
@@ -79,7 +83,7 @@ serve(async (req) => {
     await updateQueueStatus(supabaseClient, queueEntry.id, 'processing');
 
     try {
-      // Call n8n webhook
+      // Call n8n webhook with corrected URL
       const n8nResult = await callN8nWebhook(dynamicWebhookUrl, minimalData);
       
       // Update with n8n execution ID if available
@@ -90,7 +94,7 @@ serve(async (req) => {
         });
       }
 
-      console.log('🎉 Successfully sent form to n8n webhook');
+      console.log('🎉 Successfully sent form to n8n webhook with corrected URL');
       console.log('🎯 Form processed:', form_id);
 
     } catch (webhookError) {
@@ -114,13 +118,13 @@ serve(async (req) => {
       );
     }
 
-    console.log('✅ Process completed successfully');
-    console.log('🎯 Dynamic URL processing successful for form:', form_id);
+    console.log('✅ Process completed successfully with corrected URL');
+    console.log('🎯 Corrected URL processing successful for form:', form_id);
 
     return new Response(
       JSON.stringify({
         success: true,
-        message: 'Form data sent to n8n for processing with dynamic URL',
+        message: 'Form data sent to n8n for processing with corrected URL',
         queue_id: queueEntry.id,
         webhook_url: dynamicWebhookUrl,
         sent_data: {
