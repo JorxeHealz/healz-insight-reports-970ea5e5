@@ -1,17 +1,18 @@
+
 import { MinimalFormData } from './types.ts';
 
-export function buildDynamicWebhookUrl(baseUrl: string | undefined, formId: string): string {
+export function buildStaticWebhookUrl(baseUrl: string | undefined): string {
   const baseWebhookUrl = baseUrl || 'https://joinhealz.app.n8n.cloud/webhook';
   
-  // Check if the base URL already ends with '/formulario'
+  // Always return the base URL with /formulario path (static)
   if (baseWebhookUrl.endsWith('/formulario')) {
-    return `${baseWebhookUrl}/${formId}`;
+    return baseWebhookUrl;
   } else {
-    return `${baseWebhookUrl}/formulario/${formId}`;
+    return `${baseWebhookUrl}/formulario`;
   }
 }
 
-export function prepareMinimalData(form: any, patient: any, queueEntry: any): MinimalFormData {
+export function prepareMinimalData(form: any, patient: any, queueEntry: any, pdfUrl?: string): MinimalFormData {
   return {
     form_id: form.id,
     patient: {
@@ -23,6 +24,7 @@ export function prepareMinimalData(form: any, patient: any, queueEntry: any): Mi
     form_token: form.form_token,
     completed_at: form.completed_at,
     created_at: form.created_at,
+    pdf_url: pdfUrl,
     processing: {
       queue_id: queueEntry.id
     },
@@ -43,9 +45,10 @@ export function prepareMinimalData(form: any, patient: any, queueEntry: any): Mi
 }
 
 export async function callN8nWebhook(webhookUrl: string, data: MinimalFormData): Promise<any> {
-  console.log(`🌐 Calling n8n webhook with corrected URL: ${webhookUrl}`);
+  console.log(`🌐 Calling n8n webhook with static URL: ${webhookUrl}`);
   console.log('📤 Payload size:', JSON.stringify(data).length, 'characters');
   console.log(`🎯 Processing form ID: ${data.form_id} for patient: ${data.patient.name}`);
+  console.log(`📎 PDF URL included: ${data.pdf_url ? 'Yes' : 'No'}`);
 
   const webhookResponse = await fetch(webhookUrl, {
     method: 'POST',
@@ -56,7 +59,7 @@ export async function callN8nWebhook(webhookUrl: string, data: MinimalFormData):
   });
 
   console.log('📡 Webhook response status:', webhookResponse.status);
-  console.log('📡 Corrected URL used:', webhookUrl);
+  console.log('📡 Static URL used:', webhookUrl);
 
   if (!webhookResponse.ok) {
     const errorText = await webhookResponse.text();

@@ -2,8 +2,8 @@
 import { serve } from "https://deno.land/std@0.208.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { ProcessFormRequest } from './types.ts';
-import { getFormData, getPatientData, createQueueEntry, updateQueueStatus, cleanupStuckProcessingEntries } from './database.ts';
-import { buildDynamicWebhookUrl, prepareMinimalData, callN8nWebhook } from './webhook.ts';
+import { getFormData, getPatientData, getPdfUrl, createQueueEntry, updateQueueStatus, cleanupStuckProcessingEntries } from './database.ts';
+import { buildStaticWebhookUrl, prepareMinimalData, callN8nWebhook } from './webhook.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -61,30 +61,32 @@ serve(async (req) => {
       );
     }
 
-    console.log(`🔎 Processing form ${form_id} for n8n with corrected URL generation`);
+    console.log(`🔎 Processing form ${form_id} for n8n with static URL approach`);
 
-    // Get form and patient data
+    // Get form, patient data, and PDF URL
     const form = await getFormData(supabaseClient, form_id);
     const patient = await getPatientData(supabaseClient, form.patient_id);
+    const pdfUrl = await getPdfUrl(supabaseClient, form_id);
 
-    // Build corrected dynamic webhook URL
-    const dynamicWebhookUrl = buildDynamicWebhookUrl(n8n_webhook_url, form_id);
-    console.log('🔗 Generated corrected webhook URL:', dynamicWebhookUrl);
+    // Build static webhook URL
+    const staticWebhookUrl = buildStaticWebhookUrl(n8n_webhook_url);
+    console.log('🔗 Generated static webhook URL:', staticWebhookUrl);
 
     // Create queue entry
-    const queueEntry = await createQueueEntry(supabaseClient, form_id, form.patient_id, dynamicWebhookUrl);
+    const queueEntry = await createQueueEntry(supabaseClient, form_id, form.patient_id, staticWebhookUrl);
 
-    // Prepare data for n8n
-    const minimalData = prepareMinimalData(form, patient, queueEntry);
+    // Prepare data for n8n (now includes PDF URL)
+    const minimalData = prepareMinimalData(form, patient, queueEntry, pdfUrl);
 
     console.log('📦 Prepared data for n8n - Patient:', minimalData.patient.name);
+    console.log('📎 PDF URL:', pdfUrl ? 'Available' : 'Not available');
 
     // Update queue status to processing
     await updateQueueStatus(supabaseClient, queueEntry.id, 'processing');
 
     try {
-      // Call n8n webhook with corrected URL
-      const n8nResult = await callN8nWebhook(dynamicWebhookUrl, minimalData);
+      // Call n8n webhook with static URL and form_id + pdf_url in body
+      const n8nResult = await callN8nWebhook(staticWebhookUrl, minimalData);
       
       // Update with n8n execution ID if available
       if (n8nResult.execution_id) {
@@ -94,12 +96,12 @@ serve(async (req) => {
         });
       }
 
-      console.log('🎉 Successfully sent form to n8n webhook with corrected URL');
+      console.log('🎉 Successfully sent form to n8n webhook with static URL');
       console.log('🎯 Form processed:', form_id);
 
     } catch (webhookError) {
       console.error('❌ Error calling n8n webhook:', webhookError);
-      console.error('❌ Failed URL:', dynamicWebhookUrl);
+      console.error('❌ Failed URL:', staticWebhookUrl);
       console.error('❌ Form ID:', form_id);
       
       // Mark as failed
@@ -112,25 +114,26 @@ serve(async (req) => {
           error: 'Failed to call n8n webhook', 
           details: webhookError.message,
           queue_id: queueEntry.id,
-          attempted_url: dynamicWebhookUrl
+          attempted_url: staticWebhookUrl
         }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log('✅ Process completed successfully with corrected URL');
-    console.log('🎯 Corrected URL processing successful for form:', form_id);
+    console.log('✅ Process completed successfully with static URL');
+    console.log('🎯 Static URL processing successful for form:', form_id);
 
     return new Response(
       JSON.stringify({
         success: true,
-        message: 'Form data sent to n8n for processing with corrected URL',
+        message: 'Form data sent to n8n for processing with static URL',
         queue_id: queueEntry.id,
-        webhook_url: dynamicWebhookUrl,
+        webhook_url: staticWebhookUrl,
         sent_data: {
           form_id: form_id,
           patient_name: minimalData.patient.name,
-          patient_email: minimalData.patient.email
+          patient_email: minimalData.patient.email,
+          pdf_url: pdfUrl
         },
         note: 'N8N will extract all form data using Supabase credentials and update status when complete'
       }),

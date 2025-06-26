@@ -46,6 +46,29 @@ export async function getPatientData(supabaseClient: any, patientId: string) {
   return patient;
 }
 
+export async function getPdfUrl(supabaseClient: any, formId: string): Promise<string | null> {
+  console.log('📄 Step 3: Querying PDF URL for form:', formId);
+  
+  const { data: report, error: reportError } = await supabaseClient
+    .from('reports')
+    .select('pdf_url')
+    .eq('form_id', formId)
+    .maybeSingle();
+
+  if (reportError) {
+    console.error('⚠️ Error querying PDF URL:', JSON.stringify(reportError, null, 2));
+    return null;
+  }
+
+  if (report && report.pdf_url) {
+    console.log('✅ Found PDF URL:', report.pdf_url);
+    return report.pdf_url;
+  } else {
+    console.log('ℹ️ No PDF URL found for form:', formId);
+    return null;
+  }
+}
+
 export async function createQueueEntry(supabaseClient: any, formId: string, patientId: string, webhookUrl: string) {
   console.log('📝 Creating processing queue entry...');
   const { data: queueEntry, error: queueError } = await supabaseClient

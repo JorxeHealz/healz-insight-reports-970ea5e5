@@ -15,6 +15,7 @@ export interface MinimalFormData {
   form_token: string;
   completed_at: string;
   created_at: string;
+  pdf_url?: string;
   processing: {
     queue_id: string;
   };
