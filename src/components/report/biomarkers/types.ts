@@ -22,14 +22,14 @@ export interface BiomarkerInfoData {
   lowLevels?: string;
 }
 
-// Updated types to match the actual database structure
+// Updated types to match the actual database structure with category as TEXT[]
 export interface BiomarkerRow {
   id: string;
   name: string;
   unit: string;
   description: string | null;
-  category: string;
-  panel: string[] | null; // Changed from string to string[] to handle array
+  category: string[]; // Changed from string to string[] to handle array of categories
+  panel: string[] | null;
   conventional_min: number;
   conventional_max: number;
   optimal_min: number;

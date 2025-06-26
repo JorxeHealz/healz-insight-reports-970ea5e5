@@ -111,7 +111,7 @@ export type Database = {
       }
       biomarkers: {
         Row: {
-          category: string
+          category: string[]
           conventional_max: number
           conventional_min: number
           created_at: string
@@ -125,7 +125,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
-          category?: string
+          category?: string[]
           conventional_max?: number
           conventional_min?: number
           created_at?: string
@@ -139,7 +139,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
-          category?: string
+          category?: string[]
           conventional_max?: number
           conventional_min?: number
           created_at?: string
