@@ -47,24 +47,63 @@ export async function getPatientData(supabaseClient: any, patientId: string) {
 }
 
 export async function getPdfUrl(supabaseClient: any, formId: string): Promise<string | null> {
-  console.log('📄 Step 3: Querying PDF URL for form:', formId);
+  console.log('📄 Step 3: Querying PDF from Storage for form:', formId);
   
-  const { data: report, error: reportError } = await supabaseClient
-    .from('reports')
-    .select('pdf_url')
-    .eq('form_id', formId)
-    .maybeSingle();
+  try {
+    // List files in the form's folder within patient-files bucket
+    const { data: files, error: listError } = await supabaseClient.storage
+      .from('patient-files')
+      .list(`${formId}/`, {
+        limit: 100,
+        sortBy: { column: 'created_at', order: 'desc' }
+      });
 
-  if (reportError) {
-    console.error('⚠️ Error querying PDF URL:', JSON.stringify(reportError, null, 2));
-    return null;
-  }
+    if (listError) {
+      console.error('⚠️ Error listing files from storage:', JSON.stringify(listError, null, 2));
+      return null;
+    }
 
-  if (report && report.pdf_url) {
-    console.log('✅ Found PDF URL:', report.pdf_url);
-    return report.pdf_url;
-  } else {
-    console.log('ℹ️ No PDF URL found for form:', formId);
+    if (!files || files.length === 0) {
+      console.log('ℹ️ No files found in storage for form:', formId);
+      return null;
+    }
+
+    // Find PDF files
+    const pdfFiles = files.filter(file => 
+      file.name && file.name.toLowerCase().endsWith('.pdf')
+    );
+
+    if (pdfFiles.length === 0) {
+      console.log('ℹ️ No PDF files found for form:', formId);
+      return null;
+    }
+
+    // Get the first (most recent) PDF file
+    const pdfFile = pdfFiles[0];
+    const filePath = `${formId}/${pdfFile.name}`;
+    
+    console.log('📎 Found PDF file:', pdfFile.name);
+
+    // Generate signed URL for the PDF (valid for 1 hour)
+    const { data: signedUrl, error: urlError } = await supabaseClient.storage
+      .from('patient-files')
+      .createSignedUrl(filePath, 3600); // 1 hour expiry
+
+    if (urlError) {
+      console.error('⚠️ Error creating signed URL:', JSON.stringify(urlError, null, 2));
+      return null;
+    }
+
+    if (signedUrl && signedUrl.signedUrl) {
+      console.log('✅ Generated signed PDF URL:', signedUrl.signedUrl);
+      return signedUrl.signedUrl;
+    } else {
+      console.log('ℹ️ No signed URL generated for form:', formId);
+      return null;
+    }
+
+  } catch (error) {
+    console.error('💥 Unexpected error getting PDF URL:', error);
     return null;
   }
 }
