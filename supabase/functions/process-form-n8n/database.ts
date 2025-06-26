@@ -1,4 +1,3 @@
-
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 export async function getFormData(supabaseClient: any, formId: string) {
@@ -48,10 +47,19 @@ export async function getPatientData(supabaseClient: any, patientId: string) {
 
 export async function getPdfUrl(supabaseClient: any, formId: string): Promise<string | null> {
   console.log('📄 Step 3: Querying PDF from Storage for form:', formId);
+  console.log('🔍 Using service role key for admin access to storage');
   
   try {
+    // Create a new client with service role key for admin access
+    const adminClient = createClient(
+      Deno.env.get('SUPABASE_URL') || '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || ''
+    );
+
+    console.log('📂 Listing files in patient-files bucket for folder:', `${formId}/`);
+    
     // List files in the form's folder within patient-files bucket
-    const { data: files, error: listError } = await supabaseClient.storage
+    const { data: files, error: listError } = await adminClient.storage
       .from('patient-files')
       .list(`${formId}/`, {
         limit: 100,
@@ -60,7 +68,17 @@ export async function getPdfUrl(supabaseClient: any, formId: string): Promise<st
 
     if (listError) {
       console.error('⚠️ Error listing files from storage:', JSON.stringify(listError, null, 2));
+      console.error('⚠️ Storage error details:', {
+        message: listError.message,
+        error: listError.error,
+        statusCode: listError.statusCode
+      });
       return null;
+    }
+
+    console.log('📋 Files found in storage:', files ? files.length : 0);
+    if (files && files.length > 0) {
+      console.log('📋 File details:', files.map(f => ({ name: f.name, size: f.metadata?.size, created: f.created_at })));
     }
 
     if (!files || files.length === 0) {
@@ -73,6 +91,11 @@ export async function getPdfUrl(supabaseClient: any, formId: string): Promise<st
       file.name && file.name.toLowerCase().endsWith('.pdf')
     );
 
+    console.log('📄 PDF files found:', pdfFiles.length);
+    if (pdfFiles.length > 0) {
+      console.log('📄 PDF files details:', pdfFiles.map(f => ({ name: f.name, size: f.metadata?.size })));
+    }
+
     if (pdfFiles.length === 0) {
       console.log('ℹ️ No PDF files found for form:', formId);
       return null;
@@ -82,28 +105,39 @@ export async function getPdfUrl(supabaseClient: any, formId: string): Promise<st
     const pdfFile = pdfFiles[0];
     const filePath = `${formId}/${pdfFile.name}`;
     
-    console.log('📎 Found PDF file:', pdfFile.name);
+    console.log('📎 Selected PDF file:', pdfFile.name);
+    console.log('📎 Full file path:', filePath);
 
     // Generate signed URL for the PDF (valid for 1 hour)
-    const { data: signedUrl, error: urlError } = await supabaseClient.storage
+    console.log('🔐 Creating signed URL for file:', filePath);
+    const { data: signedUrl, error: urlError } = await adminClient.storage
       .from('patient-files')
       .createSignedUrl(filePath, 3600); // 1 hour expiry
 
     if (urlError) {
       console.error('⚠️ Error creating signed URL:', JSON.stringify(urlError, null, 2));
+      console.error('⚠️ URL error details:', {
+        message: urlError.message,
+        error: urlError.error,
+        statusCode: urlError.statusCode
+      });
       return null;
     }
+
+    console.log('🔐 Signed URL response:', signedUrl);
 
     if (signedUrl && signedUrl.signedUrl) {
       console.log('✅ Generated signed PDF URL:', signedUrl.signedUrl);
       return signedUrl.signedUrl;
     } else {
       console.log('ℹ️ No signed URL generated for form:', formId);
+      console.log('ℹ️ SignedUrl object:', signedUrl);
       return null;
     }
 
   } catch (error) {
     console.error('💥 Unexpected error getting PDF URL:', error);
+    console.error('💥 Error stack:', error.stack);
     return null;
   }
 }
