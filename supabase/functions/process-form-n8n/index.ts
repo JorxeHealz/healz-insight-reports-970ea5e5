@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.208.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -55,7 +54,7 @@ serve(async (req) => {
       );
     }
 
-    console.log(`🔎 Processing form ${form_id} for n8n`);
+    console.log(`🔎 Processing form ${form_id} for n8n with dynamic URL`);
 
     // PASO 1: Primero obtener el formulario de forma simple
     console.log('📊 Step 1: Querying form data...');
@@ -189,22 +188,16 @@ serve(async (req) => {
       console.log('✅ Queue status updated to processing');
     }
 
-    // Enviar datos mínimos a n8n
-    const webhookUrl = n8n_webhook_url || Deno.env.get('N8N_WEBHOOK_URL');
+    // Construir URL dinámica del webhook con form_id
+    const baseWebhookUrl = n8n_webhook_url || 'https://joinhealz.app.n8n.cloud/webhook';
+    const dynamicWebhookUrl = `${baseWebhookUrl}/formulario/${form_id}`;
     
-    if (!webhookUrl) {
-      console.error('❌ No webhook URL provided');
-      return new Response(
-        JSON.stringify({ error: 'No webhook URL configured' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    console.log(`🌐 Calling n8n webhook: ${webhookUrl}`);
+    console.log(`🌐 Calling n8n webhook with dynamic URL: ${dynamicWebhookUrl}`);
     console.log('📤 Payload size:', JSON.stringify(minimalData).length, 'characters');
+    console.log(`🎯 Processing form ID: ${form_id} for patient: ${minimalData.patient.name}`);
 
     try {
-      const webhookResponse = await fetch(webhookUrl, {
+      const webhookResponse = await fetch(dynamicWebhookUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -213,11 +206,13 @@ serve(async (req) => {
       });
 
       console.log('📡 Webhook response status:', webhookResponse.status);
+      console.log('📡 Dynamic URL used:', dynamicWebhookUrl);
 
       if (!webhookResponse.ok) {
         const errorText = await webhookResponse.text();
         console.error('❌ N8N webhook failed with status:', webhookResponse.status);
         console.error('❌ N8N webhook error response:', errorText);
+        console.error('❌ Failed URL:', dynamicWebhookUrl);
         
         throw new Error(`N8N webhook failed: ${webhookResponse.status} - ${errorText}`);
       }
@@ -249,9 +244,12 @@ serve(async (req) => {
       }
 
       console.log('🎉 Successfully sent form to n8n webhook');
+      console.log('🎯 Form processed:', form_id);
 
     } catch (webhookError) {
       console.error('❌ Error calling n8n webhook:', webhookError);
+      console.error('❌ Failed URL:', dynamicWebhookUrl);
+      console.error('❌ Form ID:', form_id);
       
       // Marcar como fallido
       console.log('🔄 Marking queue entry as failed...');
@@ -268,19 +266,22 @@ serve(async (req) => {
         JSON.stringify({ 
           error: 'Failed to call n8n webhook', 
           details: webhookError.message,
-          queue_id: queueEntry.id 
+          queue_id: queueEntry.id,
+          attempted_url: dynamicWebhookUrl
         }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
     console.log('✅ Process completed successfully');
+    console.log('🎯 Dynamic URL processing successful for form:', form_id);
 
     return new Response(
       JSON.stringify({
         success: true,
-        message: 'Form data sent to n8n for processing',
+        message: 'Form data sent to n8n for processing with dynamic URL',
         queue_id: queueEntry.id,
+        webhook_url: dynamicWebhookUrl,
         sent_data: {
           form_id: form_id,
           patient_name: minimalData.patient.name,
