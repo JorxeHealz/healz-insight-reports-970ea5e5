@@ -41,17 +41,17 @@ export function Layout() {
 
   return (
     <div className="min-h-screen bg-healz-cream">
-      <div className="flex">
-        {/* Sidebar */}
-        <div className="w-64 bg-white shadow-lg">
-          <div className="p-6">
-            <div className="flex items-center space-x-2">
-              <BarChart3 className="h-8 w-8 text-healz-red" />
-              <span className="text-xl font-bold text-healz-brown">Healz Reports</span>
-            </div>
+      {/* Header horizontal */}
+      <header className="bg-white shadow-lg">
+        <div className="flex items-center justify-between px-6 py-4">
+          {/* Logo */}
+          <div className="flex items-center space-x-2">
+            <BarChart3 className="h-8 w-8 text-healz-red" />
+            <span className="text-xl font-bold text-healz-brown">Healz Reports</span>
           </div>
-          
-          <nav className="mt-6">
+
+          {/* Navegación horizontal */}
+          <nav className="flex items-center space-x-1">
             {navigationItems.map((item) => {
               const isActive = location.pathname === item.href || 
                 (item.href !== '/' && location.pathname.startsWith(item.href));
@@ -60,34 +60,34 @@ export function Layout() {
                 <Link
                   key={item.name}
                   to={item.href}
-                  className={`flex items-center px-6 py-3 text-sm font-medium transition-colors ${
+                  className={`flex items-center px-4 py-2 text-sm font-medium rounded-md transition-colors ${
                     isActive
-                      ? 'bg-healz-red/10 text-healz-red border-r-2 border-healz-red'
+                      ? 'bg-healz-red/10 text-healz-red'
                       : 'text-healz-brown hover:bg-healz-cream hover:text-healz-red'
                   }`}
                 >
-                  <item.icon className="mr-3 h-5 w-5" />
+                  <item.icon className="mr-2 h-4 w-4" />
                   {item.name}
                 </Link>
               );
             })}
 
-            {/* Recursos Dropdown */}
+            {/* Dropdown Recursos */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button
-                  className={`w-full flex items-center px-6 py-3 text-sm font-medium transition-colors ${
+                  className={`flex items-center px-4 py-2 text-sm font-medium rounded-md transition-colors ${
                     isResourcesActive
-                      ? 'bg-healz-red/10 text-healz-red border-r-2 border-healz-red'
+                      ? 'bg-healz-red/10 text-healz-red'
                       : 'text-healz-brown hover:bg-healz-cream hover:text-healz-red'
                   }`}
                 >
-                  <FolderOpen className="mr-3 h-5 w-5" />
+                  <FolderOpen className="mr-2 h-4 w-4" />
                   Recursos
-                  <ChevronDown className="ml-auto h-4 w-4" />
+                  <ChevronDown className="ml-1 h-4 w-4" />
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent side="right" align="start" className="w-48 bg-white shadow-lg border">
+              <DropdownMenuContent align="end" className="w-48 bg-white shadow-lg border z-50">
                 {resourcesItems.map((item) => {
                   const isActive = location.pathname === item.href || 
                     (item.href !== '/' && location.pathname.startsWith(item.href));
@@ -111,28 +111,26 @@ export function Layout() {
               </DropdownMenuContent>
             </DropdownMenu>
 
-          </nav>
-          
-          <div className="absolute bottom-0 w-64 p-6">
+            {/* Limpieza DB */}
             <Link
               to="/limpieza"
-              className={`flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+              className={`flex items-center px-4 py-2 text-sm font-medium rounded-md transition-colors ${
                 location.pathname === '/limpieza'
                   ? 'bg-healz-red/10 text-healz-red'
                   : 'text-healz-brown/60 hover:bg-healz-cream hover:text-healz-red'
               }`}
             >
-              <Settings className="mr-3 h-4 w-4" />
+              <Settings className="mr-2 h-4 w-4" />
               Limpieza DB
             </Link>
-          </div>
+          </nav>
         </div>
+      </header>
 
-        {/* Main content */}
-        <div className="flex-1 overflow-auto">
-          <Outlet />
-        </div>
-      </div>
+      {/* Contenido principal */}
+      <main className="flex-1">
+        <Outlet />
+      </main>
     </div>
   );
 }
