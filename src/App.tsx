@@ -13,7 +13,7 @@ import Calendar from '@/pages/Calendar';
 import Reports from '@/pages/Reports';
 import NewReport from '@/pages/NewReport';
 import ReportDetail from '@/pages/ReportDetail';
-import PatientAnalytics from '@/pages/PatientAnalytics';
+import { PatientAnalytics } from '@/pages/PatientAnalytics';
 import DatabaseCleanup from '@/pages/DatabaseCleanup';
 import NotFound from '@/pages/NotFound';
 import './App.css';
