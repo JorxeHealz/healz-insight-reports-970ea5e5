@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
 import { Button } from '../ui/button';
@@ -124,8 +125,8 @@ export const PatientAnalyticsTable = ({
                 </TableHeader>
                 <TableBody>
                   {analytics.map((analytic) => {
-                    // Button is available for 'uploaded' or 'failed' status
-                    const canProcess = analytic.status === 'uploaded' || analytic.status === 'failed';
+                    // Button is available for all statuses except 'processed'
+                    const canProcess = analytic.status !== 'processed';
                     const isCurrentlyProcessing = processingIds.includes(analytic.id);
                     
                     return (
@@ -166,7 +167,8 @@ export const PatientAnalyticsTable = ({
                                 ) : (
                                   <>
                                     <Play className="h-4 w-4 mr-1" />
-                                    {analytic.status === 'failed' ? 'Reintentar' : 'Procesar'}
+                                    {analytic.status === 'failed' ? 'Reintentar' : 
+                                     analytic.status === 'processing' ? 'Reprocesar' : 'Procesar'}
                                   </>
                                 )}
                               </Button>
