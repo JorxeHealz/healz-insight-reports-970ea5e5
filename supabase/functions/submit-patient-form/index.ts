@@ -1,171 +1,113 @@
 
-import { serve } from "https://deno.land/std@0.208.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { FormSubmissionRequest } from "./types.ts";
-import { processFiles, updateAnswersWithFiles } from "./fileUtils.ts";
-import { prepareAnswersForInsertion, saveFileRecords } from "./formProcessor.ts";
-import { callN8nWebhook } from "./webhookUtils.ts";
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { processFormData } from './formProcessor.ts'
+import { uploadFiles } from './fileUtils.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+}
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response('ok', { headers: corsHeaders })
   }
 
   try {
-    const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '', // Usar service role para formularios públicos
-    );
-
-    const { form_token, answers, files_data }: FormSubmissionRequest = await req.json();
-
-    console.log('Received form submission:', { 
-      form_token, 
-      answersCount: Object.keys(answers || {}).length, 
-      filesDataCount: Object.keys(files_data || {}).length 
-    });
-
-    if (!form_token || !answers) {
-      return new Response(
-        JSON.stringify({ error: 'form_token and answers are required' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    // Verificar que el formulario existe y no ha expirado
-    const { data: form, error: formError } = await supabaseClient
-      .from('patient_forms')
-      .select('*')
-      .eq('form_token', form_token)
-      .eq('status', 'pending')
-      .single();
-
-    if (formError || !form) {
-      console.error('Form not found:', formError);
-      return new Response(
-        JSON.stringify({ error: 'Form not found or already completed' }),
-        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    // Verificar que el formulario no ha expirado
-    if (new Date(form.expires_at) < new Date()) {
-      console.log('Form expired, updating status');
-      await supabaseClient
-        .from('patient_forms')
-        .update({ status: 'expired' })
-        .eq('id', form.id);
-
-      return new Response(
-        JSON.stringify({ error: 'Form has expired' }),
-        { status: 410, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    // Obtener las preguntas del formulario
-    const { data: questions, error: questionsError } = await supabaseClient
-      .from('form_questions')
-      .select('*')
-      .eq('is_active', true)
-      .order('order_number');
-
-    if (questionsError) {
-      console.error('Error fetching questions:', questionsError);
-      return new Response(
-        JSON.stringify({ error: 'Failed to fetch form questions' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    console.log('Found questions:', questions?.length);
-
-    // Validar respuestas requeridas
-    const missingRequired = questions
-      .filter(q => q.required && q.question_type !== 'file')
-      .filter(q => !answers[q.id] || answers[q.id].toString().trim() === '');
-
-    if (missingRequired.length > 0) {
-      console.log('Missing required answers:', missingRequired.map(q => q.question_text));
-      return new Response(
-        JSON.stringify({ 
-          error: 'Missing required answers',
-          missing_questions: missingRequired.map(q => q.question_text)
-        }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    // Procesar archivos si los hay
-    const uploadedFiles = await processFiles(supabaseClient, files_data || {}, form.id);
+    console.log('🚀 Starting submit-patient-form function')
     
-    // Actualizar respuestas con URLs de archivos
-    const updatedAnswers = updateAnswersWithFiles(answers, files_data || {}, uploadedFiles);
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    
+    const supabase = createClient(supabaseUrl, supabaseServiceKey)
+    console.log('✅ Supabase client created successfully')
 
-    // Insertar respuestas
-    const answersToInsert = prepareAnswersForInsertion(updatedAnswers, questions, form);
-
-    console.log('Inserting answers:', answersToInsert.length);
-
-    const { error: answersError } = await supabaseClient
-      .from('questionnaire_answers')
-      .insert(answersToInsert);
-
-    if (answersError) {
-      console.error('Error inserting answers:', answersError);
-      return new Response(
-        JSON.stringify({ error: 'Failed to save answers' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+    const formData = await req.formData()
+    const formToken = formData.get('form_token') as string
+    
+    if (!formToken) {
+      throw new Error('Form token is required')
     }
 
-    console.log('Answers inserted successfully');
+    console.log('📝 Processing form token:', formToken)
 
-    // Guardar información de archivos en form_files
-    await saveFileRecords(supabaseClient, uploadedFiles, form);
+    // Get form information
+    const { data: formRecord, error: formError } = await supabase
+      .from('patient_forms')
+      .select('*, patients(*)')
+      .eq('form_token', formToken)
+      .eq('status', 'pending')
+      .single()
 
-    // Marcar formulario como completado
-    const { error: updateError } = await supabaseClient
+    if (formError || !formRecord) {
+      console.error('❌ Form not found or already completed:', formError)
+      throw new Error('Form not found or already completed')
+    }
+
+    const patient = Array.isArray(formRecord.patients) ? formRecord.patients[0] : formRecord.patients
+    console.log('👤 Found patient:', patient.first_name, patient.last_name)
+
+    // Process form responses
+    const responses = await processFormData(formData, formRecord.id, patient.id, supabase)
+    console.log(`✅ Processed ${responses.length} form responses`)
+
+    // Handle file uploads if any
+    const files = formData.getAll('files') as File[]
+    let uploadedFiles: any[] = []
+    
+    if (files && files.length > 0) {
+      console.log(`📎 Processing ${files.length} files`)
+      uploadedFiles = await uploadFiles(files, formRecord.id, patient.id, supabase)
+      console.log(`✅ Uploaded ${uploadedFiles.length} files`)
+    }
+
+    // Mark form as completed
+    const { error: updateError } = await supabase
       .from('patient_forms')
       .update({ 
         status: 'completed',
         completed_at: new Date().toISOString()
       })
-      .eq('id', form.id);
+      .eq('id', formRecord.id)
 
     if (updateError) {
-      console.error('Error updating form status:', updateError);
-      return new Response(
-        JSON.stringify({ error: 'Failed to complete form' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      console.error('❌ Error updating form status:', updateError)
+      throw updateError
     }
 
-    console.log(`Form ${form_token} completed successfully for patient ${form.patient_id}. Files uploaded: ${uploadedFiles.length}`);
+    console.log('✅ Form marked as completed')
 
-    // Llamar al webhook de n8n después de completar exitosamente el formulario
-    await callN8nWebhook(form.id);
-
+    // Return success response without n8n processing
     return new Response(
       JSON.stringify({
         success: true,
-        message: 'Form submitted successfully',
-        form_id: form.id,
-        files_uploaded: uploadedFiles.length
+        message: 'Formulario enviado correctamente',
+        form_id: formRecord.id,
+        responses_count: responses.length,
+        files_count: uploadedFiles.length
       }),
-      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+      { 
+        headers: { 
+          ...corsHeaders, 
+          'Content-Type': 'application/json' 
+        } 
+      }
+    )
 
   } catch (error) {
-    console.error('Error in submit-patient-form:', error);
+    console.error('❌ Error in submit-patient-form:', error)
     return new Response(
-      JSON.stringify({ error: 'Internal server error', details: error.message }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+      JSON.stringify({ 
+        error: error.message || 'Error processing form submission'
+      }),
+      { 
+        status: 400, 
+        headers: { 
+          ...corsHeaders, 
+          'Content-Type': 'application/json' 
+        } 
+      }
+    )
   }
-});
+})

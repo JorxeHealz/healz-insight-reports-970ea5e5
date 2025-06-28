@@ -283,6 +283,53 @@ export type Database = {
         }
         Relationships: []
       }
+      patient_analytics: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          file_name: string
+          file_url: string
+          id: string
+          notes: string | null
+          patient_id: string
+          status: string
+          updated_at: string
+          upload_date: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          file_name: string
+          file_url: string
+          id?: string
+          notes?: string | null
+          patient_id: string
+          status?: string
+          updated_at?: string
+          upload_date?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          file_name?: string
+          file_url?: string
+          id?: string
+          notes?: string | null
+          patient_id?: string
+          status?: string
+          updated_at?: string
+          upload_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patient_analytics_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       patient_assignments: {
         Row: {
           created_at: string
@@ -321,6 +368,7 @@ export type Database = {
       }
       patient_biomarkers: {
         Row: {
+          analytics_id: string | null
           biomarker_id: string
           created_at: string
           created_by: string | null
@@ -335,6 +383,7 @@ export type Database = {
           value: number
         }
         Insert: {
+          analytics_id?: string | null
           biomarker_id: string
           created_at?: string
           created_by?: string | null
@@ -349,6 +398,7 @@ export type Database = {
           value: number
         }
         Update: {
+          analytics_id?: string | null
           biomarker_id?: string
           created_at?: string
           created_by?: string | null
@@ -363,6 +413,13 @@ export type Database = {
           value?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "patient_biomarkers_analytics_id_fkey"
+            columns: ["analytics_id"]
+            isOneToOne: false
+            referencedRelation: "patient_analytics"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "patient_biomarkers_biomarker_id_fkey"
             columns: ["biomarker_id"]
@@ -1140,6 +1197,7 @@ export type Database = {
           created_at: string
           created_by: string
           form_id: string
+          analytics_id: string
           report_id: string
           biomarker_name: string
           unit: string

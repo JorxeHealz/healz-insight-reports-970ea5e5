@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Copy, Eye, Clock, AlertTriangle } from 'lucide-react';
+import { Copy, Eye, AlertTriangle } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from '../ui/card';
 import { Badge } from '../ui/badge';
@@ -13,23 +13,18 @@ interface PatientFormsTableProps {
   patientName: string;
   onCopyLink: (token: string, patientName: string) => void;
   onViewResults: (form: PatientForm) => void;
-  onProcessForm: (formId: string) => void;
-  isProcessing: boolean;
 }
 
 export const PatientFormsTable = ({ 
   forms, 
   patientName, 
   onCopyLink, 
-  onViewResults, 
-  onProcessForm, 
-  isProcessing 
+  onViewResults
 }: PatientFormsTableProps) => {
   const getStatusBadge = (status: string) => {
     const statusConfig = {
       pending: { label: 'Pendiente', color: 'bg-yellow-100 text-yellow-800' },
       completed: { label: 'Completado', color: 'bg-green-100 text-green-800' },
-      processed: { label: 'Procesado', color: 'bg-blue-100 text-blue-800' },
       expired: { label: 'Expirado', color: 'bg-red-100 text-red-800' }
     };
 
@@ -149,33 +144,6 @@ export const PatientFormsTable = ({
                                 </TooltipTrigger>
                                 <TooltipContent>
                                   <p>Copiar enlace del formulario</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
-                          )}
-                          
-                          {form.status === 'completed' && (
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      onProcessForm(form.id);
-                                    }}
-                                    disabled={isProcessing}
-                                  >
-                                    {isProcessing ? (
-                                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-solid border-current border-r-transparent" />
-                                    ) : (
-                                      <Clock className="h-4 w-4" />
-                                    )}
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <p>Procesar con n8n</p>
                                 </TooltipContent>
                               </Tooltip>
                             </TooltipProvider>

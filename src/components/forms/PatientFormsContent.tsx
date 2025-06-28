@@ -9,9 +9,7 @@ interface PatientFormsContentProps {
   isLoading: boolean;
   error: Error | null;
   onCopyLink: (token: string, patientName: string) => void;
-  onProcessForm: (formId: string) => void;
   onViewResults: (form: PatientForm) => void;
-  isProcessing: boolean;
   allFormsCount: number;
 }
 
@@ -20,9 +18,7 @@ export const PatientFormsContent = ({
   isLoading, 
   error, 
   onCopyLink, 
-  onProcessForm, 
   onViewResults, 
-  isProcessing,
   allFormsCount 
 }: PatientFormsContentProps) => {
   if (isLoading) {
@@ -62,9 +58,7 @@ export const PatientFormsContent = ({
                 key={form.id}
                 form={form}
                 onCopyLink={onCopyLink}
-                onProcessForm={onProcessForm}
                 onViewResults={onViewResults}
-                isProcessing={isProcessing}
               />
             ))}
           </TableBody>
