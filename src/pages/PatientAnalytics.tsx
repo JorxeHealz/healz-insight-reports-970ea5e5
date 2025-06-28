@@ -1,34 +1,26 @@
 
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { usePatients } from '@/hooks/usePatients';
-import { usePatientAnalytics } from '@/hooks/usePatientAnalytics';
+import { usePatientAnalytics, useProcessAnalytics } from '@/hooks/usePatientAnalytics';
 import { PatientAnalyticsTable } from '@/components/analytics/PatientAnalyticsTable';
 import { UploadAnalyticsDialog } from '@/components/analytics/UploadAnalyticsDialog';
-import { ProcessAnalyticsDialog } from '@/components/analytics/ProcessAnalyticsDialog';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
 import { Plus, Upload, Users } from 'lucide-react';
+import { toast } from '@/hooks/use-toast';
 
 export const PatientAnalytics = () => {
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
-  const [processDialogOpen, setProcessDialogOpen] = useState(false);
-  const [selectedAnalyticsId, setSelectedAnalyticsId] = useState<string | null>(null);
+  const [processingIds, setProcessingIds] = useState<string[]>([]);
 
   const { data: patients, isLoading: patientsLoading } = usePatients();
   const { data: analytics, isLoading: analyticsLoading, refetch } = usePatientAnalytics();
+  const processMutation = useProcessAnalytics();
 
   const handleUploadSuccess = () => {
     refetch();
     setUploadDialogOpen(false);
-  };
-
-  const handleProcessSuccess = () => {
-    refetch();
-    setProcessDialogOpen(false);
   };
 
   const handleUploadClick = (patientId: string) => {
@@ -36,9 +28,33 @@ export const PatientAnalytics = () => {
     setUploadDialogOpen(true);
   };
 
-  const handleProcessClick = (analyticsId: string) => {
-    setSelectedAnalyticsId(analyticsId);
-    setProcessDialogOpen(true);
+  const handleProcessClick = async (analyticsId: string) => {
+    // Add to processing list
+    setProcessingIds(prev => [...prev, analyticsId]);
+    
+    try {
+      await processMutation.mutateAsync({
+        analyticsId,
+        webhookUrl: 'https://joinhealz.app.n8n.cloud/webhook/analitica'
+      });
+
+      toast({
+        title: "Éxito",
+        description: "Procesamiento iniciado correctamente",
+      });
+
+      refetch();
+    } catch (error: any) {
+      console.error('Process error:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Error al iniciar el procesamiento",
+        variant: "destructive",
+      });
+    } finally {
+      // Remove from processing list
+      setProcessingIds(prev => prev.filter(id => id !== analyticsId));
+    }
   };
 
   return (
@@ -105,6 +121,7 @@ export const PatientAnalytics = () => {
         isLoading={analyticsLoading || patientsLoading}
         onUploadClick={handleUploadClick}
         onProcessClick={handleProcessClick}
+        processingIds={processingIds}
       />
 
       <UploadAnalyticsDialog
@@ -113,14 +130,6 @@ export const PatientAnalytics = () => {
         patientId={selectedPatientId}
         patients={patients || []}
         onSuccess={handleUploadSuccess}
-      />
-
-      <ProcessAnalyticsDialog
-        open={processDialogOpen}
-        onOpenChange={setProcessDialogOpen}
-        analyticsId={selectedAnalyticsId}
-        analytics={analytics || []}
-        onSuccess={handleProcessSuccess}
       />
     </div>
   );

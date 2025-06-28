@@ -4,7 +4,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '.
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { Upload, Play, Eye, Download } from 'lucide-react';
+import { Upload, Play, Eye, Loader2 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { PatientAnalytics } from '../../hooks/usePatientAnalytics';
@@ -16,6 +16,7 @@ interface PatientAnalyticsTableProps {
   isLoading: boolean;
   onUploadClick: (patientId: string) => void;
   onProcessClick: (analyticsId: string) => void;
+  processingIds: string[];
 }
 
 export const PatientAnalyticsTable = ({
@@ -23,7 +24,8 @@ export const PatientAnalyticsTable = ({
   patients,
   isLoading,
   onUploadClick,
-  onProcessClick
+  onProcessClick,
+  processingIds
 }: PatientAnalyticsTableProps) => {
   const getStatusBadge = (status: string) => {
     const statusConfig = {
@@ -122,59 +124,73 @@ export const PatientAnalyticsTable = ({
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {analytics.map((analytic) => (
-                    <TableRow key={analytic.id}>
-                      <TableCell className="font-medium">
-                        {getPatientName(analytic.patient_id)}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center space-x-2">
-                          <span className="truncate max-w-xs">{analytic.file_name}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        {getStatusBadge(analytic.status)}
-                      </TableCell>
-                      <TableCell className="text-sm text-gray-500">
-                        {formatDistanceToNow(new Date(analytic.upload_date), { 
-                          addSuffix: true, 
-                          locale: es 
-                        })}
-                      </TableCell>
-                      <TableCell className="text-sm text-gray-500 max-w-xs truncate">
-                        {analytic.notes || '-'}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-2">
-                          {analytic.status === 'uploaded' && (
+                  {analytics.map((analytic) => {
+                    const isProcessing = processingIds.includes(analytic.id);
+                    
+                    return (
+                      <TableRow key={analytic.id}>
+                        <TableCell className="font-medium">
+                          {getPatientName(analytic.patient_id)}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center space-x-2">
+                            <span className="truncate max-w-xs">{analytic.file_name}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          {getStatusBadge(analytic.status)}
+                        </TableCell>
+                        <TableCell className="text-sm text-gray-500">
+                          {formatDistanceToNow(new Date(analytic.upload_date), { 
+                            addSuffix: true, 
+                            locale: es 
+                          })}
+                        </TableCell>
+                        <TableCell className="text-sm text-gray-500 max-w-xs truncate">
+                          {analytic.notes || '-'}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-2">
+                            {analytic.status === 'uploaded' && (
+                              <Button
+                                size="sm"
+                                onClick={() => onProcessClick(analytic.id)}
+                                disabled={isProcessing}
+                              >
+                                {isProcessing ? (
+                                  <>
+                                    <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                                    Procesando...
+                                  </>
+                                ) : (
+                                  <>
+                                    <Play className="h-4 w-4 mr-1" />
+                                    Procesar
+                                  </>
+                                )}
+                              </Button>
+                            )}
+                            
                             <Button
+                              variant="outline"
                               size="sm"
-                              onClick={() => onProcessClick(analytic.id)}
+                              onClick={() => window.open(analytic.file_url, '_blank')}
                             >
-                              <Play className="h-4 w-4 mr-1" />
-                              Procesar
+                              <Eye className="h-4 w-4" />
                             </Button>
-                          )}
-                          
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => window.open(analytic.file_url, '_blank')}
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                          
-                          <Button
-                            variant="outline" 
-                            size="sm"
-                            onClick={() => onUploadClick(analytic.patient_id)}
-                          >
-                            <Upload className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                            
+                            <Button
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => onUploadClick(analytic.patient_id)}
+                            >
+                              <Upload className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </div>
