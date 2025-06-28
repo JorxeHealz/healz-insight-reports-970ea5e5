@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
 import { Button } from '../ui/button';
@@ -125,7 +124,9 @@ export const PatientAnalyticsTable = ({
                 </TableHeader>
                 <TableBody>
                   {analytics.map((analytic) => {
-                    const isProcessing = processingIds.includes(analytic.id);
+                    // Button is available for 'uploaded' or 'failed' status
+                    const canProcess = analytic.status === 'uploaded' || analytic.status === 'failed';
+                    const isCurrentlyProcessing = processingIds.includes(analytic.id);
                     
                     return (
                       <TableRow key={analytic.id}>
@@ -151,13 +152,13 @@ export const PatientAnalyticsTable = ({
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-2">
-                            {analytic.status === 'uploaded' && (
+                            {canProcess && (
                               <Button
                                 size="sm"
                                 onClick={() => onProcessClick(analytic.id)}
-                                disabled={isProcessing}
+                                disabled={isCurrentlyProcessing}
                               >
-                                {isProcessing ? (
+                                {isCurrentlyProcessing ? (
                                   <>
                                     <Loader2 className="h-4 w-4 mr-1 animate-spin" />
                                     Procesando...
@@ -165,7 +166,7 @@ export const PatientAnalyticsTable = ({
                                 ) : (
                                   <>
                                     <Play className="h-4 w-4 mr-1" />
-                                    Procesar
+                                    {analytic.status === 'failed' ? 'Reintentar' : 'Procesar'}
                                   </>
                                 )}
                               </Button>
