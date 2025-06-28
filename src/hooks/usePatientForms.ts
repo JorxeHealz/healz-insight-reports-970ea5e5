@@ -56,31 +56,6 @@ export const useCreatePatientForm = () => {
   });
 };
 
-export const useProcessFormWithN8N = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async ({ form_id, n8n_webhook_url }: { form_id: string; n8n_webhook_url?: string }) => {
-      console.log('Processing form with n8n:', form_id);
-
-      const { data, error } = await supabase.functions.invoke('process-form-n8n', {
-        body: { form_id, n8n_webhook_url }
-      });
-
-      if (error) {
-        console.error('Error processing form with n8n:', error);
-        throw error;
-      }
-
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['patient-forms'] });
-      queryClient.invalidateQueries({ queryKey: ['processing-queue'] });
-    }
-  });
-};
-
 export const useFormByToken = (token: string) => {
   return useQuery({
     queryKey: ['form-by-token', token],
