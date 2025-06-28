@@ -17,7 +17,7 @@ export const useReportBiomarkers = (reportId: string | undefined) => {
 
       console.log('useReportBiomarkers: Fetching biomarkers for report:', reportId);
 
-      // Use RPC function to execute the SQL query - now with correct category type
+      // Use RPC function to execute the SQL query - now with simplified structure
       const { data: rawData, error: biomarkersError } = await supabase
         .rpc('get_report_biomarkers', { p_report_id: reportId });
 
@@ -37,18 +37,17 @@ export const useReportBiomarkers = (reportId: string | undefined) => {
         return [];
       }
 
-      // Transform the RPC result into Biomarker format
+      // Transform the RPC result into Biomarker format with simplified structure
       const transformedBiomarkers: Biomarker[] = rawData.map((row: any) => {
         const numericValue = typeof row.value === 'string' ? parseFloat(row.value) : row.value;
         
         // Create biomarker info object from the flat row data
-        // Now category is correctly handled as text[] from the database
         const biomarkerInfo = {
           id: row.biomarker_id,
           name: row.biomarker_name,
           unit: row.unit,
           description: row.description,
-          category: row.category, // This is now text[] as expected
+          category: row.category,
           panel: Array.isArray(row.panel) ? row.panel : (row.panel ? [row.panel] : null),
           conventional_min: row.conventional_min,
           conventional_max: row.conventional_max,
@@ -74,8 +73,7 @@ export const useReportBiomarkers = (reportId: string | undefined) => {
           rawValue: numericValue,
           unit: biomarkerInfo.unit || '',
           biomarkerData: biomarkerInfo,
-          collectedAt: row.date,
-          notes: row.notes
+          collectedAt: row.date
         };
         
         console.log('useReportBiomarkers: Transformed biomarker:', result);

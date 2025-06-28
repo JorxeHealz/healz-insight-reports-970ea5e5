@@ -15,7 +15,6 @@ interface ProcessingCompleteRequest {
     value: number;
     unit: string;
     date?: string;
-    notes?: string;
   }>;
   error_message?: string;
 }
@@ -108,7 +107,7 @@ serve(async (req) => {
             continue
           }
 
-          // Insert patient biomarker
+          // Insert patient biomarker with simplified structure
           const { error: insertError } = await supabase
             .from('patient_biomarkers')
             .insert({
@@ -116,9 +115,7 @@ serve(async (req) => {
               biomarker_id: biomarkerDef.id,
               analytics_id: analytics_id,
               value: biomarkerData.value,
-              date: biomarkerData.date ? new Date(biomarkerData.date) : new Date(),
-              notes: biomarkerData.notes,
-              is_out_of_range: false // TODO: Calculate based on ranges
+              date: biomarkerData.date ? new Date(biomarkerData.date) : new Date()
             })
 
           if (insertError) {

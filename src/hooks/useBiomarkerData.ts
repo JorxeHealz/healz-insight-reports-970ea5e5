@@ -12,7 +12,7 @@ export const useBiomarkerData = (patientId: string) => {
     queryFn: async (): Promise<Biomarker[]> => {
       console.log('Fetching biomarker data for patient:', patientId);
       
-      // Fetch patient biomarkers with biomarker details
+      // Fetch patient biomarkers with biomarker details using simplified structure
       const { data: patientBiomarkers, error } = await supabase
         .from('patient_biomarkers')
         .select(`
@@ -21,6 +21,9 @@ export const useBiomarkerData = (patientId: string) => {
           biomarker_id,
           value,
           date,
+          analytics_id,
+          created_at,
+          created_by,
           biomarkers (
             id,
             name,

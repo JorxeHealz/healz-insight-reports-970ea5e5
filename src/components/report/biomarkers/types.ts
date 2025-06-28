@@ -6,12 +6,10 @@ export interface Biomarker {
   valueWithUnit: string;
   status: 'optimal' | 'caution' | 'outOfRange';
   collectedAgo: string;
-  // Fix: Make rawValue consistently number since we parse it
   rawValue: number;
   unit: string;
   biomarkerData?: BiomarkerRow;
   collectedAt: string;
-  notes?: string;
 }
 
 export interface BiomarkerInfoData {
@@ -28,7 +26,7 @@ export interface BiomarkerRow {
   name: string;
   unit: string;
   description: string | null;
-  category: string[]; // Changed from string to string[] to handle array of categories
+  category: string[];
   panel: string[] | null;
   conventional_min: number;
   conventional_max: number;
@@ -38,6 +36,7 @@ export interface BiomarkerRow {
   updated_at: string;
 }
 
+// Simplified PatientBiomarkerData interface without removed columns
 export interface PatientBiomarkerData {
   id: string;
   patient_id: string;

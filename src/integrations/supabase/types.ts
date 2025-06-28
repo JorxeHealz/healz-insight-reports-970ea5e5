@@ -373,13 +373,8 @@ export type Database = {
           created_at: string
           created_by: string | null
           date: string
-          form_id: string | null
           id: string
-          is_out_of_range: boolean
-          notes: string | null
           patient_id: string
-          report_id: string | null
-          trend: Database["public"]["Enums"]["trend"] | null
           value: number
         }
         Insert: {
@@ -388,13 +383,8 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           date?: string
-          form_id?: string | null
           id?: string
-          is_out_of_range?: boolean
-          notes?: string | null
           patient_id: string
-          report_id?: string | null
-          trend?: Database["public"]["Enums"]["trend"] | null
           value: number
         }
         Update: {
@@ -403,13 +393,8 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           date?: string
-          form_id?: string | null
           id?: string
-          is_out_of_range?: boolean
-          notes?: string | null
           patient_id?: string
-          report_id?: string | null
-          trend?: Database["public"]["Enums"]["trend"] | null
           value?: number
         }
         Relationships: [
@@ -435,24 +420,10 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "patient_biomarkers_form_id_fkey"
-            columns: ["form_id"]
-            isOneToOne: false
-            referencedRelation: "patient_forms"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "patient_biomarkers_patient_id_fkey"
             columns: ["patient_id"]
             isOneToOne: false
             referencedRelation: "patients"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "patient_biomarkers_report_id_fkey"
-            columns: ["report_id"]
-            isOneToOne: false
-            referencedRelation: "reports"
             referencedColumns: ["id"]
           },
         ]
@@ -1191,14 +1162,9 @@ export type Database = {
           biomarker_id: string
           value: number
           date: string
-          is_out_of_range: boolean
-          trend: Database["public"]["Enums"]["trend"]
-          notes: string
           created_at: string
           created_by: string
-          form_id: string
           analytics_id: string
-          report_id: string
           biomarker_name: string
           unit: string
           description: string
