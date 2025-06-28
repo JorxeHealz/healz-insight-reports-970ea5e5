@@ -66,42 +66,37 @@ serve(async (req) => {
 
     console.log('✅ Analytics status updated to processing')
 
-    // Create signed URL for the file
-    const filePath = analyticsData.file_url.split('/').pop()
+    // Extract file path from the file_url
+    // Expected format: https://domain/storage/v1/object/public/patient-files/path/file.pdf
+    const urlParts = analyticsData.file_url.split('/storage/v1/object/public/patient-files/')
+    if (urlParts.length !== 2) {
+      throw new Error('Invalid file URL format')
+    }
+    
+    const filePath = urlParts[1] // This should be like "patient-id/filename.pdf"
+    console.log('📁 Extracted file path:', filePath)
+
+    // Create signed URL for the file with 1 hour expiration
     const { data: signedUrlData, error: signedUrlError } = await supabase.storage
       .from('patient-files')
-      .createSignedUrl(`analytics/${analyticsData.patient_id}/${filePath}`, 3600)
+      .createSignedUrl(filePath, 3600) // 3600 seconds = 1 hour
 
     if (signedUrlError) {
       console.error('❌ Error creating signed URL:', signedUrlError)
       throw signedUrlError
     }
 
-    console.log('🔐 Created signed URL for file access')
+    console.log('🔐 Created signed URL for file access (1h expiration)')
 
-    // Prepare payload for N8N
+    // Prepare simplified payload for N8N
     const payload = {
-      analytics_id: analyticsData.id,
-      patient: {
-        id: patient.id,
-        name: `${patient.first_name} ${patient.last_name}`,
-        email: patient.email,
-        date_of_birth: patient.date_of_birth,
-        gender: patient.gender
-      },
-      file: {
-        name: analyticsData.file_name,
-        url: signedUrlData.signedUrl,
-        upload_date: analyticsData.upload_date
-      },
-      notes: analyticsData.notes,
-      callback_url: `${supabaseUrl}/functions/v1/analytics-processing-complete`,
-      supabase_url: supabaseUrl,
-      timestamp: new Date().toISOString()
+      patient_id: patient.id,
+      download_url: signedUrlData.signedUrl,
+      analytics_id: analyticsData.id
     }
 
     console.log('📤 Sending payload to N8N webhook:', webhookUrl)
-    console.log('📊 Payload size:', JSON.stringify(payload).length, 'characters')
+    console.log('📊 Payload:', payload)
 
     // Call N8N webhook
     const webhookResponse = await fetch(webhookUrl, {
