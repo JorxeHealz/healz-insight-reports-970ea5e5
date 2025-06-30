@@ -14,7 +14,7 @@ export const PatientFormsBreadcrumb = ({ patientName, patientSlug }: PatientForm
       <BreadcrumbList>
         <BreadcrumbItem>
           <BreadcrumbLink asChild>
-            <Link to="/patients">Pacientes</Link>
+            <Link to="/pacientes">Pacientes</Link>
           </BreadcrumbLink>
         </BreadcrumbItem>
         <BreadcrumbSeparator />
