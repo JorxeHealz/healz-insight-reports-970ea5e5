@@ -1,3 +1,4 @@
+
 import { supabase } from '../lib/supabase';
 
 export const fetchReportData = async (reportId: string) => {
@@ -35,36 +36,13 @@ export const fetchReportData = async (reportId: string) => {
 };
 
 export const fetchReportBiomarkers = async (reportId: string) => {
-  // Primero intentar obtener biomarcadores por report_id (nueva columna)
-  const { data: reportBiomarkers } = await supabase
-    .from('patient_biomarkers')
-    .select(`
-      *,
-      biomarker:biomarkers(*)
-    `)
-    .eq('report_id', reportId)
-    .order('date', { ascending: false });
+  // Use the updated RPC function that only uses category (no panel column)
+  const { data: reportBiomarkers, error } = await supabase
+    .rpc('get_report_biomarkers', { p_report_id: reportId });
 
-  // Si no hay biomarcadores con report_id, usar form_id como fallback
-  if (!reportBiomarkers || reportBiomarkers.length === 0) {
-    const { data: reportData } = await supabase
-      .from('reports')
-      .select('form_id')
-      .eq('id', reportId)
-      .single();
-
-    if (reportData?.form_id) {
-      const { data: fallbackBiomarkers } = await supabase
-        .from('patient_biomarkers')
-        .select(`
-          *,
-          biomarker:biomarkers(*)
-        `)
-        .eq('form_id', reportData.form_id)
-        .order('date', { ascending: false });
-
-      return fallbackBiomarkers || [];
-    }
+  if (error) {
+    console.error('Error fetching report biomarkers:', error);
+    throw error;
   }
 
   return reportBiomarkers || [];
@@ -120,3 +98,4 @@ export const fetchReportSummarySections = async (reportId: string, formId: strin
 
   return data || [];
 };
+

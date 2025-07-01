@@ -111,6 +111,7 @@ export type Database = {
       }
       biomarkers: {
         Row: {
+          aliases: string[] | null
           category: string[]
           conventional_max: number
           conventional_min: number
@@ -120,11 +121,11 @@ export type Database = {
           name: string
           optimal_max: number
           optimal_min: number
-          panel: string[] | null
           unit: string
           updated_at: string
         }
         Insert: {
+          aliases?: string[] | null
           category?: string[]
           conventional_max?: number
           conventional_min?: number
@@ -134,11 +135,11 @@ export type Database = {
           name: string
           optimal_max?: number
           optimal_min?: number
-          panel?: string[] | null
           unit: string
           updated_at?: string
         }
         Update: {
+          aliases?: string[] | null
           category?: string[]
           conventional_max?: number
           conventional_min?: number
@@ -148,7 +149,6 @@ export type Database = {
           name?: string
           optimal_max?: number
           optimal_min?: number
-          panel?: string[] | null
           unit?: string
           updated_at?: string
         }
@@ -1169,7 +1169,6 @@ export type Database = {
           unit: string
           description: string
           category: string[]
-          panel: string[]
           conventional_min: number
           conventional_max: number
           optimal_min: number

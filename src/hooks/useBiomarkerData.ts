@@ -1,4 +1,5 @@
 
+
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import { evaluateBiomarkerStatus, formatBiomarkerValue } from '../utils/biomarkerEvaluation';
@@ -30,7 +31,6 @@ export const useBiomarkerData = (patientId: string) => {
             unit,
             description,
             category,
-            panel,
             conventional_min,
             conventional_max,
             optimal_min,
@@ -103,3 +103,4 @@ export const useBiomarkerData = (patientId: string) => {
     enabled: !!patientId
   });
 };
+

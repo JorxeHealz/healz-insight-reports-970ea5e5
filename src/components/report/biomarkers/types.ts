@@ -1,4 +1,5 @@
 
+
 import { Database } from '../../../types/supabase';
 
 export interface Biomarker {
@@ -26,8 +27,7 @@ export interface BiomarkerRow {
   name: string;
   unit: string;
   description: string | null;
-  category: string[];
-  panel: string[] | null;
+  category: string[]; // category now contains panel information
   conventional_min: number;
   conventional_max: number;
   optimal_min: number;
@@ -45,3 +45,4 @@ export interface PatientBiomarkerData {
   date: string;
   biomarker: BiomarkerRow;
 }
+
