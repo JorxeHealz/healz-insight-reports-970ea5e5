@@ -109,6 +109,30 @@ export type Database = {
           },
         ]
       }
+      biomakers_pdf_not_found: {
+        Row: {
+          created_at: string
+          id: number
+          name_original: string | null
+          unit: string | null
+          value: number | null
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+          name_original?: string | null
+          unit?: string | null
+          value?: number | null
+        }
+        Update: {
+          created_at?: string
+          id?: number
+          name_original?: string | null
+          unit?: string | null
+          value?: number | null
+        }
+        Relationships: []
+      }
       biomarkers: {
         Row: {
           aliases: string[] | null

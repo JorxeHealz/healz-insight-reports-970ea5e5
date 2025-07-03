@@ -2,18 +2,11 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { Patient } from '../../types/supabase';
+import { PatientForm } from '../../types/forms';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
-
-interface PatientForm {
-  id: string;
-  created_at: string;
-  completed_at: string | null;
-  status: string;
-  form_token: string;
-}
 
 interface FormSelectorProps {
   patient: Patient;

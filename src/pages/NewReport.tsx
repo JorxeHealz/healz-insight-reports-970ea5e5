@@ -8,16 +8,9 @@ import { DataReview } from '../components/reports/DataReview';
 import { DiagnosisGeneration } from '../components/reports/DiagnosisGeneration';
 import { ReportPreview } from '../components/reports/ReportPreview';
 import { Patient, Diagnosis } from '../types/supabase';
+import { PatientForm } from '../types/forms';
 import { pdf } from '@react-pdf/renderer';
 import { ReportPDF } from '../components/reports/ReportPDF';
-
-interface PatientForm {
-  id: string;
-  created_at: string;
-  completed_at: string | null;
-  status: string;
-  form_token: string;
-}
 
 type Step = 'patient' | 'form' | 'data' | 'diagnosis' | 'report';
 

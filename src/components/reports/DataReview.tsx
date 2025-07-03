@@ -1,22 +1,16 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { Patient } from '../../types/supabase';
+import { PatientForm } from '../../types/forms';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { calculateAge } from '../../utils/dateUtils';
 import { evaluateBiomarkerStatus, formatBiomarkerValue } from '../../utils/biomarkerEvaluation';
 import { BiomarkerStatusBadge } from '../report/biomarkers/BiomarkerStatusBadge';
+import { PatientSymptomsSummary } from './PatientSymptomsSummary';
 import { ArrowUp, ArrowDown, Minus } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
-
-interface PatientForm {
-  id: string;
-  created_at: string;
-  completed_at: string | null;
-  status: string;
-  form_token: string;
-}
 
 interface DataReviewProps {
   patient: Patient;
@@ -307,6 +301,9 @@ export const DataReview = ({ patient, selectedForm, onBack, onNext, isLoading }:
           </div>
         </div>
       )}
+
+      {/* Contexto del paciente y síntomas */}
+      <PatientSymptomsSummary patient={patient} selectedForm={selectedForm} />
 
       {loading ? (
         <div className="text-center py-8">
