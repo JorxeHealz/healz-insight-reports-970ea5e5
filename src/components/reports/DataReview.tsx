@@ -105,29 +105,12 @@ export const DataReview = ({ patient, selectedForm, onBack, onNext, isLoading }:
         const mostRecentAnalyticsId = recentAnalytics[0].analytics_id;
         console.log('Most recent analytics_id:', mostRecentAnalyticsId);
 
-        // Now fetch biomarkers with explicit JOIN using the specific analytics_id
+        // Use the database function to get biomarkers with proper JOIN
         const { data: biomarkerData, error: biomarkerError } = await supabase
-          .from('patient_biomarkers')
-          .select(`
-            id,
-            patient_id,
-            biomarker_id,
-            value,
-            date,
-            analytics_id,
-            biomarkers!inner (
-              id,
-              name,
-              unit,
-              optimal_min,
-              optimal_max,
-              conventional_min,
-              conventional_max
-            )
-          `)
-          .eq('patient_id', patient.id)
-          .eq('analytics_id', mostRecentAnalyticsId)
-          .order('date', { ascending: false });
+          .rpc('get_patient_biomarkers_by_analytics', {
+            p_patient_id: patient.id,
+            p_analytics_id: mostRecentAnalyticsId
+          });
 
         if (biomarkerError) {
           console.error('Error fetching biomarkers:', biomarkerError);
@@ -142,39 +125,45 @@ export const DataReview = ({ patient, selectedForm, onBack, onNext, isLoading }:
           return;
         }
 
-        // Transform data with simplified trend calculation
+        // Transform data from database function result
         const transformedBiomarkers: BiomarkerData[] = biomarkerData.map((pb) => {
-          const biomarkerInfo = Array.isArray(pb.biomarkers) ? pb.biomarkers[0] : pb.biomarkers;
-          
-          if (!biomarkerInfo) {
+          // The database function returns biomarker info directly in the row
+          if (!pb.biomarker_name) {
             console.warn('Missing biomarker info for:', pb.id);
             return null;
           }
 
-          // Evaluate status using a proper BiomarkerRow structure
+          // Create biomarker row for evaluation
           const biomarkerRow = {
-            ...biomarkerInfo,
-            description: null,
-            category: [] as string[],
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
+            id: pb.biomarker_id,
+            name: pb.biomarker_name,
+            unit: pb.unit,
+            optimal_min: pb.optimal_min,
+            optimal_max: pb.optimal_max,
+            conventional_min: pb.conventional_min,
+            conventional_max: pb.conventional_max,
+            description: pb.description,
+            category: pb.category || [],
+            created_at: pb.biomarker_created_at,
+            updated_at: pb.biomarker_updated_at
           };
+          
           const evaluation = evaluateBiomarkerStatus(pb.value, biomarkerRow);
 
           return {
             id: pb.id,
-            name: biomarkerInfo.name,
+            name: pb.biomarker_name,
             value: pb.value,
-            unit: biomarkerInfo.unit,
+            unit: pb.unit,
             date: pb.date,
             status: evaluation.status,
             trend: null, // Simplified - no trend calculation for now
-            analytics_id: pb.analytics_id!,
+            analytics_id: pb.analytics_id,
             biomarker_data: {
-              optimal_min: biomarkerInfo.optimal_min,
-              optimal_max: biomarkerInfo.optimal_max,
-              conventional_min: biomarkerInfo.conventional_min,
-              conventional_max: biomarkerInfo.conventional_max
+              optimal_min: pb.optimal_min,
+              optimal_max: pb.optimal_max,
+              conventional_min: pb.conventional_min,
+              conventional_max: pb.conventional_max
             }
           } as BiomarkerData;
         }).filter(Boolean) as BiomarkerData[];

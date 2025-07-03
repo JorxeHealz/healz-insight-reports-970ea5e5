@@ -1157,6 +1157,29 @@ export type Database = {
           creator_name: string
         }[]
       }
+      get_patient_biomarkers_by_analytics: {
+        Args: { p_patient_id: string; p_analytics_id: string }
+        Returns: {
+          id: string
+          patient_id: string
+          biomarker_id: string
+          value: number
+          date: string
+          created_at: string
+          created_by: string
+          analytics_id: string
+          biomarker_name: string
+          unit: string
+          description: string
+          category: string[]
+          conventional_min: number
+          conventional_max: number
+          optimal_min: number
+          optimal_max: number
+          biomarker_created_at: string
+          biomarker_updated_at: string
+        }[]
+      }
       get_report_biomarkers: {
         Args: { p_report_id: string }
         Returns: {
