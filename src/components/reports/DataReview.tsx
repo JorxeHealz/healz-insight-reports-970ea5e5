@@ -80,9 +80,12 @@ export const DataReview = ({ patient, selectedForm, onBack, onNext, isLoading }:
   useEffect(() => {
     const fetchBiomarkerData = async () => {
       try {
-        console.log('Fetching biomarkers for patient:', patient.id);
+        console.log('=== DEBUGGING BIOMARKERS FOR JORGE RUIZ ===');
+        console.log('Patient ID received:', patient.id);
+        console.log('Patient name:', patient.first_name, patient.last_name);
         
         // First, get the most recent analytics_id for this patient
+        console.log('Step 1: Fetching recent analytics...');
         const { data: recentAnalytics, error: analyticsError } = await supabase
           .from('patient_biomarkers')
           .select('analytics_id, date')
@@ -91,45 +94,87 @@ export const DataReview = ({ patient, selectedForm, onBack, onNext, isLoading }:
           .order('date', { ascending: false })
           .limit(1);
 
+        console.log('Analytics query result:', { data: recentAnalytics, error: analyticsError });
+
         if (analyticsError) {
-          console.error('Error fetching analytics:', analyticsError);
+          console.error('ERROR in analytics query:', analyticsError);
           throw analyticsError;
         }
 
         if (!recentAnalytics || recentAnalytics.length === 0) {
-          console.log('No analytics data found for patient');
+          console.log('❌ NO ANALYTICS DATA FOUND - This might be the issue!');
+          console.log('Checking all patient_biomarkers for this patient...');
+          
+          // Debug: Check if there are ANY biomarkers for this patient
+          const { data: allBiomarkers, error: allError } = await supabase
+            .from('patient_biomarkers')
+            .select('id, analytics_id, date')
+            .eq('patient_id', patient.id);
+            
+          console.log('All biomarkers for patient:', allBiomarkers);
+          console.log('Total count:', allBiomarkers?.length || 0);
+          
+          if (allBiomarkers && allBiomarkers.length > 0) {
+            console.log('Analytics IDs found:', [...new Set(allBiomarkers.map(b => b.analytics_id))]);
+          }
+          
           setBiomarkers([]);
           return;
         }
 
         const mostRecentAnalyticsId = recentAnalytics[0].analytics_id;
-        console.log('Most recent analytics_id:', mostRecentAnalyticsId);
+        console.log('✅ Most recent analytics_id:', mostRecentAnalyticsId);
+        console.log('✅ Most recent date:', recentAnalytics[0].date);
 
         // Use the database function to get biomarkers with proper JOIN
+        console.log('Step 2: Calling RPC function...');
         const { data: biomarkerData, error: biomarkerError } = await supabase
           .rpc('get_patient_biomarkers_by_analytics', {
             p_patient_id: patient.id,
             p_analytics_id: mostRecentAnalyticsId
           });
 
+        console.log('RPC function result:', { 
+          dataLength: biomarkerData?.length || 0, 
+          error: biomarkerError,
+          firstRecord: biomarkerData?.[0] || null
+        });
+
         if (biomarkerError) {
-          console.error('Error fetching biomarkers:', biomarkerError);
+          console.error('ERROR in RPC function:', biomarkerError);
           throw biomarkerError;
         }
 
-        console.log('Raw biomarker data received:', biomarkerData?.length || 0, 'records');
-
         if (!biomarkerData || biomarkerData.length === 0) {
-          console.log('No biomarker data found');
+          console.log('❌ NO BIOMARKER DATA FROM RPC - This is the issue!');
+          console.log('Expected 62 records but got 0');
           setBiomarkers([]);
           return;
         }
 
+        console.log('✅ Step 3: Processing', biomarkerData.length, 'biomarker records...');
+
         // Transform data from database function result
-        const transformedBiomarkers: BiomarkerData[] = biomarkerData.map((pb) => {
+        let transformationErrors = 0;
+        const transformedBiomarkers: BiomarkerData[] = biomarkerData.map((pb, index) => {
+          console.log(`Processing record ${index + 1}:`, {
+            id: pb.id,
+            biomarker_name: pb.biomarker_name,
+            value: pb.value,
+            unit: pb.unit,
+            has_ranges: !!(pb.optimal_min && pb.optimal_max)
+          });
+
           // The database function returns biomarker info directly in the row
           if (!pb.biomarker_name) {
-            console.warn('Missing biomarker info for:', pb.id);
+            console.warn('❌ Missing biomarker_name for record:', pb.id);
+            transformationErrors++;
+            return null;
+          }
+
+          if (!pb.unit) {
+            console.warn('❌ Missing unit for record:', pb.biomarker_name);
+            transformationErrors++;
             return null;
           }
 
@@ -148,9 +193,16 @@ export const DataReview = ({ patient, selectedForm, onBack, onNext, isLoading }:
             updated_at: pb.biomarker_updated_at
           };
           
-          const evaluation = evaluateBiomarkerStatus(pb.value, biomarkerRow);
+          console.log(`Evaluating status for ${pb.biomarker_name}:`, {
+            value: pb.value,
+            optimal_range: `${pb.optimal_min}-${pb.optimal_max}`,
+            conventional_range: `${pb.conventional_min}-${pb.conventional_max}`
+          });
 
-          return {
+          const evaluation = evaluateBiomarkerStatus(pb.value, biomarkerRow);
+          console.log(`Status result:`, evaluation);
+
+          const result = {
             id: pb.id,
             name: pb.biomarker_name,
             value: pb.value,
@@ -166,9 +218,16 @@ export const DataReview = ({ patient, selectedForm, onBack, onNext, isLoading }:
               conventional_max: pb.conventional_max
             }
           } as BiomarkerData;
+
+          console.log(`✅ Successfully transformed:`, result.name);
+          return result;
         }).filter(Boolean) as BiomarkerData[];
 
-        console.log('Transformed biomarkers:', transformedBiomarkers.length);
+        console.log('=== TRANSFORMATION SUMMARY ===');
+        console.log('Original records:', biomarkerData.length);
+        console.log('Transformation errors:', transformationErrors);
+        console.log('Successfully transformed:', transformedBiomarkers.length);
+        console.log('First few transformed records:', transformedBiomarkers.slice(0, 3));
         
         const sortedBiomarkers = sortBiomarkersByStatus(transformedBiomarkers);
         setBiomarkers(sortedBiomarkers);
