@@ -80,8 +80,33 @@ export const DataReview = ({ patient, selectedForm, onBack, onNext, isLoading }:
   useEffect(() => {
     const fetchBiomarkerData = async () => {
       try {
-        // Fetch patient biomarkers with biomarker details, filtered by analytics_id
-        const { data: patientBiomarkers, error } = await supabase
+        console.log('Fetching biomarkers for patient:', patient.id);
+        
+        // First, get the most recent analytics_id for this patient
+        const { data: recentAnalytics, error: analyticsError } = await supabase
+          .from('patient_biomarkers')
+          .select('analytics_id, date')
+          .eq('patient_id', patient.id)
+          .not('analytics_id', 'is', null)
+          .order('date', { ascending: false })
+          .limit(1);
+
+        if (analyticsError) {
+          console.error('Error fetching analytics:', analyticsError);
+          throw analyticsError;
+        }
+
+        if (!recentAnalytics || recentAnalytics.length === 0) {
+          console.log('No analytics data found for patient');
+          setBiomarkers([]);
+          return;
+        }
+
+        const mostRecentAnalyticsId = recentAnalytics[0].analytics_id;
+        console.log('Most recent analytics_id:', mostRecentAnalyticsId);
+
+        // Now fetch biomarkers with explicit JOIN using the specific analytics_id
+        const { data: biomarkerData, error: biomarkerError } = await supabase
           .from('patient_biomarkers')
           .select(`
             id,
@@ -90,7 +115,7 @@ export const DataReview = ({ patient, selectedForm, onBack, onNext, isLoading }:
             value,
             date,
             analytics_id,
-            biomarkers (
+            biomarkers!inner (
               id,
               name,
               unit,
@@ -101,95 +126,67 @@ export const DataReview = ({ patient, selectedForm, onBack, onNext, isLoading }:
             )
           `)
           .eq('patient_id', patient.id)
-          .not('analytics_id', 'is', null)
+          .eq('analytics_id', mostRecentAnalyticsId)
           .order('date', { ascending: false });
 
-        if (error) throw error;
+        if (biomarkerError) {
+          console.error('Error fetching biomarkers:', biomarkerError);
+          throw biomarkerError;
+        }
 
-        if (!patientBiomarkers || patientBiomarkers.length === 0) {
+        console.log('Raw biomarker data received:', biomarkerData?.length || 0, 'records');
+
+        if (!biomarkerData || biomarkerData.length === 0) {
+          console.log('No biomarker data found');
           setBiomarkers([]);
           return;
         }
 
-        // Group by analytics_id to get the most recent complete analysis
-        const analyticGroups = patientBiomarkers.reduce((groups, pb) => {
-          const analyticsId = pb.analytics_id!;
-          if (!groups[analyticsId]) {
-            groups[analyticsId] = [];
+        // Transform data with simplified trend calculation
+        const transformedBiomarkers: BiomarkerData[] = biomarkerData.map((pb) => {
+          const biomarkerInfo = Array.isArray(pb.biomarkers) ? pb.biomarkers[0] : pb.biomarkers;
+          
+          if (!biomarkerInfo) {
+            console.warn('Missing biomarker info for:', pb.id);
+            return null;
           }
-          groups[analyticsId].push(pb);
-          return groups;
-        }, {} as Record<string, typeof patientBiomarkers>);
 
-        // Get the most recent analytics_id (should be first due to ordering)
-        const mostRecentAnalyticsId = Object.keys(analyticGroups)[0];
-        const recentBiomarkers = analyticGroups[mostRecentAnalyticsId] || [];
+          // Evaluate status using a proper BiomarkerRow structure
+          const biomarkerRow = {
+            ...biomarkerInfo,
+            description: null,
+            category: [] as string[],
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          };
+          const evaluation = evaluateBiomarkerStatus(pb.value, biomarkerRow);
 
-        // Calculate trends by comparing with previous values
-        const biomarkerDataWithTrends = await Promise.all(
-          recentBiomarkers.map(async (pb) => {
-            const biomarkerInfo = Array.isArray(pb.biomarkers) ? pb.biomarkers[0] : pb.biomarkers;
-            
-            if (!biomarkerInfo) return null;
-
-            // Get previous value for trend calculation
-            const { data: previousValues } = await supabase
-              .from('patient_biomarkers')
-              .select('value, date')
-              .eq('patient_id', patient.id)
-              .eq('biomarker_id', pb.biomarker_id)
-              .lt('date', pb.date)
-              .order('date', { ascending: false })
-              .limit(1);
-
-            let trend: BiomarkerData['trend'] = null;
-            if (previousValues && previousValues.length > 0) {
-              const prevValue = previousValues[0].value;
-              if (pb.value > prevValue) {
-                trend = 'increasing';
-              } else if (pb.value < prevValue) {
-                trend = 'decreasing';
-              } else {
-                trend = 'stable';
-              }
+          return {
+            id: pb.id,
+            name: biomarkerInfo.name,
+            value: pb.value,
+            unit: biomarkerInfo.unit,
+            date: pb.date,
+            status: evaluation.status,
+            trend: null, // Simplified - no trend calculation for now
+            analytics_id: pb.analytics_id!,
+            biomarker_data: {
+              optimal_min: biomarkerInfo.optimal_min,
+              optimal_max: biomarkerInfo.optimal_max,
+              conventional_min: biomarkerInfo.conventional_min,
+              conventional_max: biomarkerInfo.conventional_max
             }
+          } as BiomarkerData;
+        }).filter(Boolean) as BiomarkerData[];
 
-            // Evaluate status using a proper BiomarkerRow structure
-            const biomarkerRow = {
-              ...biomarkerInfo,
-              description: null,
-              category: [] as string[],
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString()
-            };
-            const evaluation = evaluateBiomarkerStatus(pb.value, biomarkerRow);
-
-            return {
-              id: pb.id,
-              name: biomarkerInfo.name,
-              value: pb.value,
-              unit: biomarkerInfo.unit,
-              date: pb.date,
-              status: evaluation.status,
-              trend,
-              analytics_id: pb.analytics_id!,
-              biomarker_data: {
-                optimal_min: biomarkerInfo.optimal_min,
-                optimal_max: biomarkerInfo.optimal_max,
-                conventional_min: biomarkerInfo.conventional_min,
-                conventional_max: biomarkerInfo.conventional_max
-              }
-            } as BiomarkerData;
-          })
-        );
-
-        const validBiomarkers = biomarkerDataWithTrends.filter(Boolean) as BiomarkerData[];
-        const sortedBiomarkers = sortBiomarkersByStatus(validBiomarkers);
+        console.log('Transformed biomarkers:', transformedBiomarkers.length);
         
+        const sortedBiomarkers = sortBiomarkersByStatus(transformedBiomarkers);
         setBiomarkers(sortedBiomarkers);
+        
       } catch (err: any) {
         console.error('Error fetching biomarker data:', err);
-        setError('No se pudieron cargar los datos del paciente');
+        setError('No se pudieron cargar los datos del paciente: ' + (err.message || 'Error desconocido'));
       } finally {
         setLoading(false);
       }
