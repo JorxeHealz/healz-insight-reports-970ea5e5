@@ -108,23 +108,19 @@ export const PatientSymptomsSummary = ({ patient, selectedForm }: PatientSymptom
 
   const processSymptoms = (answers: FormAnswer[]) => {
     const symptomQuestions = [
-      { id: 'fatigue', label: 'Fatiga constante' },
-      { id: 'weight_changes', label: 'Cambios de peso inexplicables' },
-      { id: 'sugar_cravings', label: 'Antojos de azúcar' },
-      { id: 'brain_fog', label: 'Niebla mental' },
-      { id: 'mood_swings', label: 'Cambios de humor' },
-      { id: 'sleep_issues', label: 'Problemas de sueño' },
-      { id: 'digestive_issues', label: 'Problemas digestivos' },
-      { id: 'joint_pain', label: 'Dolor articular' },
-      { id: 'headaches', label: 'Dolores de cabeza' },
-      { id: 'low_libido', label: 'Libido bajo' }
+      { id: 'da8f4aec-3e48-4f26-b256-d9a1b2a21948', label: 'Fatiga constante' },
+      { id: '0e8d3a04-db88-462e-9f9d-98278026c1c1', label: 'Cambios de peso inexplicables' },
+      { id: '67a1a14f-002e-49af-95ee-13dfa8685434', label: 'Antojos de azúcar' },
+      { id: 'd7804d5c-30b5-4da7-91f7-785635190e08', label: 'Niebla mental' },
+      { id: '1f75a5b8-2359-4d8b-b7c9-b007666e1d7c', label: 'Problemas de sueño' },
+      { id: 'cb6a7723-bfd9-4772-b381-5e1855d57e27', label: 'Dolor articular' }
     ];
 
     const processedSymptoms: ProcessedSymptom[] = [];
 
     symptomQuestions.forEach(symptomQ => {
       const answer = answers.find(a => a.question_id === symptomQ.id);
-      if (answer && answer.answer && answer.answer !== 'Nunca') {
+      if (answer && answer.answer && answer.answer !== 'Nunca' && answer.answer !== 'No') {
         processedSymptoms.push({
           symptom: symptomQ.label,
           intensity: answer.answer,
@@ -140,23 +136,23 @@ export const PatientSymptomsSummary = ({ patient, selectedForm }: PatientSymptom
     const getAnswer = (questionId: string) => 
       answers.find(a => a.question_id === questionId)?.answer || '';
 
-    const weight = parseFloat(getAnswer('weight')) || 0;
-    const height = parseFloat(getAnswer('height')) || 0;
+    const weight = parseFloat(getAnswer('72c56c04-dddc-4e9a-80c1-adcc204ba45a')) || 0;
+    const height = parseFloat(getAnswer('d4e3b709-0e4c-4d35-8666-137d4633db19')) || 0;
     const age = patient.date_of_birth ? calculateAge(patient.date_of_birth) : 0;
 
     const context: PatientContext = {
       age,
       gender: patient.gender,
-      weight: getAnswer('weight'),
-      height: getAnswer('height'),
+      weight: getAnswer('72c56c04-dddc-4e9a-80c1-adcc204ba45a'),
+      height: getAnswer('d4e3b709-0e4c-4d35-8666-137d4633db19'),
       bmi: weight && height ? calculateBMI(weight, height) : 0,
-      stress_level: getAnswer('stress_level'),
-      main_goal: getAnswer('main_goal'),
-      commitment: getAnswer('commitment_level'),
-      diet: getAnswer('diet_type'),
-      exercise: getAnswer('exercise_frequency'),
+      stress_level: getAnswer('038ed544-5a89-4725-88a1-c9dcdb39d3cd'),
+      main_goal: getAnswer('3eb197cb-d503-4c88-9332-b87e48a8e89f'),
+      commitment: getAnswer('083566ff-697b-42ef-9125-6f7e61354337'),
+      diet: getAnswer('f68af0c0-2c3d-457f-a062-0cd0c0b8304c'),
+      exercise: getAnswer('c5d08f0a-8251-4e17-a912-cab74726c394'),
       sleep_hours: getAnswer('sleep_hours'),
-      sleep_quality: getAnswer('sleep_quality')
+      sleep_quality: getAnswer('2e13c541-d53d-4fed-929c-e88e1e8cb35e')
     };
 
     setPatientContext(context);
