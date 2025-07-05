@@ -706,6 +706,7 @@ export type Database = {
           id: string
           priority: string
           report_id: string
+          structured_content: Json | null
           title: string
         }
         Insert: {
@@ -718,6 +719,7 @@ export type Database = {
           id?: string
           priority?: string
           report_id: string
+          structured_content?: Json | null
           title: string
         }
         Update: {
@@ -730,6 +732,7 @@ export type Database = {
           id?: string
           priority?: string
           report_id?: string
+          structured_content?: Json | null
           title?: string
         }
         Relationships: [

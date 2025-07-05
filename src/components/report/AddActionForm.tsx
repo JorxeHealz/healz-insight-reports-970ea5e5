@@ -11,13 +11,15 @@ type AddActionFormProps = {
   category: string;
   reportId: string;
   formId: string;
+  supportsDosage?: boolean;
   onCancel: () => void;
 };
 
 export const AddActionForm: React.FC<AddActionFormProps> = ({ 
   category, 
   reportId, 
-  formId, 
+  formId,
+  supportsDosage = true,
   onCancel 
 }) => {
   const [formData, setFormData] = useState({
@@ -97,20 +99,22 @@ export const AddActionForm: React.FC<AddActionFormProps> = ({
           required
         />
         
-        <div className="grid grid-cols-2 gap-2">
-          <Input
-            value={formData.dosage}
-            onChange={(e) => setFormData({ ...formData, dosage: e.target.value })}
-            placeholder="Dosis (opcional)"
-            className="text-xs"
-          />
-          <Input
-            value={formData.duration}
-            onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
-            placeholder="Duración (opcional)"
-            className="text-xs"
-          />
-        </div>
+        {supportsDosage && (
+          <div className="grid grid-cols-2 gap-2">
+            <Input
+              value={formData.dosage}
+              onChange={(e) => setFormData({ ...formData, dosage: e.target.value })}
+              placeholder="Dosis (opcional)"
+              className="text-xs"
+            />
+            <Input
+              value={formData.duration}
+              onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
+              placeholder="Duración (opcional)"
+              className="text-xs"
+            />
+          </div>
+        )}
         
         <div className="flex gap-2">
           <Button

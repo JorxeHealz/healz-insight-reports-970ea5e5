@@ -12,6 +12,7 @@ type ActionPlanCategoryProps = {
     icon: React.ComponentType<{ className?: string }>;
     items: any[];
     color: string;
+    supportsDosage?: boolean;
   };
   reportId: string;
   formId: string;
@@ -57,6 +58,7 @@ export const ActionPlanCategory: React.FC<ActionPlanCategoryProps> = ({
               key={item.id}
               item={item}
               reportId={reportId}
+              supportsDosage={category.supportsDosage}
               onDelete={onDeleteAction}
             />
           ))
@@ -71,6 +73,7 @@ export const ActionPlanCategory: React.FC<ActionPlanCategoryProps> = ({
             category={category.id}
             reportId={reportId}
             formId={formId}
+            supportsDosage={category.supportsDosage}
             onCancel={() => setShowAddForm(null)}
           />
         )}
