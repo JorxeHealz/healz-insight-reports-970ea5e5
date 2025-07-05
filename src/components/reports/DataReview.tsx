@@ -11,6 +11,7 @@ import { PatientSymptomsSummary } from './PatientSymptomsSummary';
 import { ArrowUp, ArrowDown, Minus } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { useToast } from '@/components/ui/use-toast';
 
 interface DataReviewProps {
   patient: Patient;
@@ -70,6 +71,54 @@ export const DataReview = ({ patient, selectedForm, onBack, onNext, isLoading }:
   const [biomarkers, setBiomarkers] = useState<BiomarkerData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [analyticsId, setAnalyticsId] = useState<string | null>(null);
+  const { toast } = useToast();
+
+  const handleGenerateDiagnosis = async () => {
+    if (!analyticsId) {
+      toast({
+        title: "Error",
+        description: "No se ha encontrado el ID de analítica. Espere a que se carguen los datos.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const webhookData = {
+        patient_id: patient.id,
+        form_id: selectedForm?.id || null,
+        analytics_id: analyticsId,
+      };
+
+      console.log('Enviando datos al webhook:', webhookData);
+
+      const response = await fetch('https://joinhealz.app.n8n.cloud/webhook/healz-diagnosis', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(webhookData),
+      });
+
+      if (response.ok) {
+        toast({
+          title: "Éxito",
+          description: "Se ha iniciado la generación del diagnóstico",
+        });
+        onNext(); // Continuar al siguiente paso
+      } else {
+        throw new Error(`Error ${response.status}: ${response.statusText}`);
+      }
+    } catch (error) {
+      console.error('Error calling webhook:', error);
+      toast({
+        title: "Error",
+        description: "No se pudo generar el diagnóstico. Por favor, inténtelo de nuevo.",
+        variant: "destructive",
+      });
+    }
+  };
 
   useEffect(() => {
     const fetchBiomarkerData = async () => {
@@ -117,6 +166,7 @@ export const DataReview = ({ patient, selectedForm, onBack, onNext, isLoading }:
         }
 
         const mostRecentAnalyticsId = recentAnalytics[0].analytics_id;
+        setAnalyticsId(mostRecentAnalyticsId);
         console.log('✅ Most recent analytics_id:', mostRecentAnalyticsId);
         console.log('✅ Most recent date:', recentAnalytics[0].date);
 
@@ -375,8 +425,8 @@ export const DataReview = ({ patient, selectedForm, onBack, onNext, isLoading }:
               Atrás
             </Button>
             <Button
-              onClick={onNext}
-              disabled={isLoading}
+              onClick={handleGenerateDiagnosis}
+              disabled={isLoading || !analyticsId}
             >
               {isLoading ? 'Generando diagnóstico...' : 'Generar diagnóstico'}
             </Button>
