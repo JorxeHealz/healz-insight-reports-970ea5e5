@@ -168,7 +168,7 @@ export type Diagnosis = {
   vitalityScore: number;     // 0-100
   riskScore: number;         // 0-100
   riskProfile: Record<
-    "cardio"|"mental"|"adrenal"|"metabolic",
+    "hormonas"|"vitalidad"|"riesgo_cardiaco"|"perdida_peso"|"fuerza"|"salud_cerebral"|"salud_sexual"|"longevidad",
     "low"|"medium"|"high"
   >;
   summary: string;           // 3-5 líneas markdown
