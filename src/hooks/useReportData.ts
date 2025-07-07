@@ -7,7 +7,8 @@ import {
   fetchReportActionPlans,
   fetchReportComments,
   fetchReportSymptoms,
-  fetchReportSummarySections
+  fetchReportSummarySections,
+  fetchReportKeyFindings
 } from './useReportQueries';
 import {
   transformBiomarkers,
@@ -49,6 +50,9 @@ export const useReportData = (reportId: string | undefined) => {
       // Get summary sections using both report_id and form_id
       const summarySections = await fetchReportSummarySections(reportId, reportData.form_id);
 
+      // Get key findings using both report_id and form_id
+      const keyFindings = await fetchReportKeyFindings(reportId, reportData.form_id);
+
       console.log('Report data loaded:', {
         reportData,
         biomarkers: reportBiomarkers?.length,
@@ -56,7 +60,8 @@ export const useReportData = (reportId: string | undefined) => {
         actionPlans: actionPlans?.length,
         clinicalNotes: clinicalNotes?.length,
         symptoms: symptoms?.length,
-        summarySections: summarySections?.length
+        summarySections: summarySections?.length,
+        keyFindings: keyFindings?.length
       });
 
       // Extract patient data
@@ -94,6 +99,9 @@ export const useReportData = (reportId: string | undefined) => {
         transformedActionPlan,
         transformedSummarySections
       );
+
+      // Add key findings to the report
+      transformedReport.keyFindings = keyFindings;
 
       console.log('Transformed report:', transformedReport);
       return transformedReport;

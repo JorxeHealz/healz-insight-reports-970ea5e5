@@ -98,3 +98,14 @@ export const fetchReportSummarySections = async (reportId: string, formId: strin
   return data || [];
 };
 
+export const fetchReportKeyFindings = async (reportId: string, formId: string) => {
+  const { data } = await supabase
+    .from('report_key_findings')
+    .select('*')
+    .eq('report_id', reportId)
+    .eq('form_id', formId)
+    .order('order_index', { ascending: true });
+
+  return data || [];
+};
+

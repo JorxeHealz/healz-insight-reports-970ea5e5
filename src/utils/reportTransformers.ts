@@ -151,7 +151,8 @@ export const buildTransformedReport = (
     manualNotes: reportData.manual_notes,
     // Cambiar de actionPlan a actionPlans para usar el array completo
     actionPlans: transformedActionPlan,
-    summarySections: summarySections
+    summarySections: summarySections,
+    keyFindings: [] // This will be populated in useReportData
   };
 };
 
