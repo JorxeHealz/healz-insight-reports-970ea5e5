@@ -58,14 +58,25 @@ export const fetchReportRiskProfiles = async (reportId: string, formId: string) 
 };
 
 export const fetchReportActionPlans = async (reportId: string, formId: string) => {
-  const { data } = await supabase
-    .from('report_action_plans')
-    .select('*')
-    .eq('report_id', reportId)
-    .eq('form_id', formId)
-    .order('priority', { ascending: false });
+  // Fetch from all specialized action plan tables
+  const [foods, lifestyle, activity, supplements, therapy, followup] = await Promise.all([
+    supabase.from('report_action_plans_foods').select('*').eq('report_id', reportId).eq('form_id', formId).order('priority', { ascending: false }),
+    supabase.from('report_action_plans_lifestyle').select('*').eq('report_id', reportId).eq('form_id', formId).order('priority', { ascending: false }),
+    supabase.from('report_action_plans_activity').select('*').eq('report_id', reportId).eq('form_id', formId).order('priority', { ascending: false }),
+    supabase.from('report_action_plans_supplements').select('*').eq('report_id', reportId).eq('form_id', formId).order('priority', { ascending: false }),
+    supabase.from('report_action_plans_therapy').select('*').eq('report_id', reportId).eq('form_id', formId).order('priority', { ascending: false }),
+    supabase.from('report_action_plans_followup').select('*').eq('report_id', reportId).eq('form_id', formId).order('priority', { ascending: false })
+  ]);
 
-  return data || [];
+  // Combine all results with category labels
+  return {
+    foods: foods.data || [],
+    lifestyle: lifestyle.data || [],
+    activity: activity.data || [],
+    supplements: supplements.data || [],
+    therapy: therapy.data || [],
+    followup: followup.data || []
+  };
 };
 
 export const fetchReportComments = async (reportId: string, formId: string) => {

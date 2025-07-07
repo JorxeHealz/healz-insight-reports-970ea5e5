@@ -57,7 +57,7 @@ export const useReportData = (reportId: string | undefined) => {
         reportData,
         biomarkers: reportBiomarkers?.length,
         riskProfiles: riskProfiles?.length,
-        actionPlans: actionPlans?.length,
+        actionPlans: actionPlans ? Object.keys(actionPlans).length : 0,
         clinicalNotes: clinicalNotes?.length,
         symptoms: symptoms?.length,
         summarySections: summarySections?.length,

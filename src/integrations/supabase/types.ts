@@ -757,6 +757,372 @@ export type Database = {
           },
         ]
       }
+      report_action_plans_activity: {
+        Row: {
+          activity_type: string | null
+          created_at: string
+          equipment_needed: string[] | null
+          form_id: string
+          frequency_per_week: number | null
+          id: string
+          intensity_level: string | null
+          priority: string
+          progression_plan: string | null
+          report_id: string
+          rest_periods: string | null
+          session_duration: string | null
+          specific_exercises: string[] | null
+        }
+        Insert: {
+          activity_type?: string | null
+          created_at?: string
+          equipment_needed?: string[] | null
+          form_id: string
+          frequency_per_week?: number | null
+          id?: string
+          intensity_level?: string | null
+          priority?: string
+          progression_plan?: string | null
+          report_id: string
+          rest_periods?: string | null
+          session_duration?: string | null
+          specific_exercises?: string[] | null
+        }
+        Update: {
+          activity_type?: string | null
+          created_at?: string
+          equipment_needed?: string[] | null
+          form_id?: string
+          frequency_per_week?: number | null
+          id?: string
+          intensity_level?: string | null
+          priority?: string
+          progression_plan?: string | null
+          report_id?: string
+          rest_periods?: string | null
+          session_duration?: string | null
+          specific_exercises?: string[] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "report_action_plans_activity_form_id_fkey"
+            columns: ["form_id"]
+            isOneToOne: false
+            referencedRelation: "patient_forms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "report_action_plans_activity_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      report_action_plans_followup: {
+        Row: {
+          created_at: string
+          escalation_criteria: string[] | null
+          followup_type: string
+          form_id: string
+          id: string
+          preparation_required: string[] | null
+          priority: string
+          provider_type: string | null
+          report_id: string
+          specific_tests: string[] | null
+          success_metrics: string[] | null
+          timeline: string
+        }
+        Insert: {
+          created_at?: string
+          escalation_criteria?: string[] | null
+          followup_type: string
+          form_id: string
+          id?: string
+          preparation_required?: string[] | null
+          priority?: string
+          provider_type?: string | null
+          report_id: string
+          specific_tests?: string[] | null
+          success_metrics?: string[] | null
+          timeline: string
+        }
+        Update: {
+          created_at?: string
+          escalation_criteria?: string[] | null
+          followup_type?: string
+          form_id?: string
+          id?: string
+          preparation_required?: string[] | null
+          priority?: string
+          provider_type?: string | null
+          report_id?: string
+          specific_tests?: string[] | null
+          success_metrics?: string[] | null
+          timeline?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "report_action_plans_followup_form_id_fkey"
+            columns: ["form_id"]
+            isOneToOne: false
+            referencedRelation: "patient_forms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "report_action_plans_followup_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      report_action_plans_foods: {
+        Row: {
+          created_at: string
+          diet_type: string | null
+          foods_to_add: string[] | null
+          foods_to_avoid: string[] | null
+          form_id: string
+          id: string
+          meal_timing: string | null
+          portion_guidelines: string | null
+          preparation_notes: string | null
+          priority: string
+          report_id: string
+        }
+        Insert: {
+          created_at?: string
+          diet_type?: string | null
+          foods_to_add?: string[] | null
+          foods_to_avoid?: string[] | null
+          form_id: string
+          id?: string
+          meal_timing?: string | null
+          portion_guidelines?: string | null
+          preparation_notes?: string | null
+          priority?: string
+          report_id: string
+        }
+        Update: {
+          created_at?: string
+          diet_type?: string | null
+          foods_to_add?: string[] | null
+          foods_to_avoid?: string[] | null
+          form_id?: string
+          id?: string
+          meal_timing?: string | null
+          portion_guidelines?: string | null
+          preparation_notes?: string | null
+          priority?: string
+          report_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "report_action_plans_foods_form_id_fkey"
+            columns: ["form_id"]
+            isOneToOne: false
+            referencedRelation: "patient_forms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "report_action_plans_foods_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      report_action_plans_lifestyle: {
+        Row: {
+          created_at: string
+          duration: string | null
+          form_id: string
+          frequency: string | null
+          habit_type: string | null
+          id: string
+          priority: string
+          report_id: string
+          specific_actions: string[] | null
+          timing: string | null
+          tracking_method: string | null
+          triggers: string[] | null
+        }
+        Insert: {
+          created_at?: string
+          duration?: string | null
+          form_id: string
+          frequency?: string | null
+          habit_type?: string | null
+          id?: string
+          priority?: string
+          report_id: string
+          specific_actions?: string[] | null
+          timing?: string | null
+          tracking_method?: string | null
+          triggers?: string[] | null
+        }
+        Update: {
+          created_at?: string
+          duration?: string | null
+          form_id?: string
+          frequency?: string | null
+          habit_type?: string | null
+          id?: string
+          priority?: string
+          report_id?: string
+          specific_actions?: string[] | null
+          timing?: string | null
+          tracking_method?: string | null
+          triggers?: string[] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "report_action_plans_lifestyle_form_id_fkey"
+            columns: ["form_id"]
+            isOneToOne: false
+            referencedRelation: "patient_forms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "report_action_plans_lifestyle_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      report_action_plans_supplements: {
+        Row: {
+          brand_recommendations: string[] | null
+          contraindications: string[] | null
+          created_at: string
+          dosage: string
+          duration: string | null
+          form_id: string
+          frequency: string
+          id: string
+          monitoring_notes: string | null
+          priority: string
+          report_id: string
+          supplement_name: string
+          timing: string | null
+        }
+        Insert: {
+          brand_recommendations?: string[] | null
+          contraindications?: string[] | null
+          created_at?: string
+          dosage: string
+          duration?: string | null
+          form_id: string
+          frequency: string
+          id?: string
+          monitoring_notes?: string | null
+          priority?: string
+          report_id: string
+          supplement_name: string
+          timing?: string | null
+        }
+        Update: {
+          brand_recommendations?: string[] | null
+          contraindications?: string[] | null
+          created_at?: string
+          dosage?: string
+          duration?: string | null
+          form_id?: string
+          frequency?: string
+          id?: string
+          monitoring_notes?: string | null
+          priority?: string
+          report_id?: string
+          supplement_name?: string
+          timing?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "report_action_plans_supplements_form_id_fkey"
+            columns: ["form_id"]
+            isOneToOne: false
+            referencedRelation: "patient_forms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "report_action_plans_supplements_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      report_action_plans_therapy: {
+        Row: {
+          created_at: string
+          duration: string | null
+          expected_outcomes: string[] | null
+          form_id: string
+          frequency: string | null
+          id: string
+          monitoring_requirements: string[] | null
+          precautions: string[] | null
+          priority: string
+          protocol: string | null
+          provider_type: string | null
+          report_id: string
+          therapy_type: string
+        }
+        Insert: {
+          created_at?: string
+          duration?: string | null
+          expected_outcomes?: string[] | null
+          form_id: string
+          frequency?: string | null
+          id?: string
+          monitoring_requirements?: string[] | null
+          precautions?: string[] | null
+          priority?: string
+          protocol?: string | null
+          provider_type?: string | null
+          report_id: string
+          therapy_type: string
+        }
+        Update: {
+          created_at?: string
+          duration?: string | null
+          expected_outcomes?: string[] | null
+          form_id?: string
+          frequency?: string | null
+          id?: string
+          monitoring_requirements?: string[] | null
+          precautions?: string[] | null
+          priority?: string
+          protocol?: string | null
+          provider_type?: string | null
+          report_id?: string
+          therapy_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "report_action_plans_therapy_form_id_fkey"
+            columns: ["form_id"]
+            isOneToOne: false
+            referencedRelation: "patient_forms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "report_action_plans_therapy_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       report_comments: {
         Row: {
           action_steps: string | null

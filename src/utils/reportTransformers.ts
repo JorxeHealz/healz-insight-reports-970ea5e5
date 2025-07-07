@@ -95,19 +95,42 @@ export const transformClinicalNotes = (clinicalNotes: any[]) => {
   }));
 };
 
-// Actualizar la función de transformación de action plans para devolver el array completo
-export const transformActionPlan = (actionPlans: any[]) => {
-  // Devolver el array completo de action plans en lugar de agrupar por categoría
-  // El componente ActionPlan se encargará de agrupar los datos
-  return actionPlans.map(plan => ({
-    id: plan.id,
-    category: plan.category,
-    title: plan.title,
-    description: plan.description,
-    priority: plan.priority,
-    duration: plan.duration,
-    dosage: plan.dosage
-  }));
+// Transform specialized action plans structure
+export const transformActionPlan = (actionPlans: any) => {
+  // Handle the new specialized structure with categories
+  if (actionPlans && typeof actionPlans === 'object' && !Array.isArray(actionPlans)) {
+    return {
+      foods: actionPlans.foods || [],
+      lifestyle: actionPlans.lifestyle || [],
+      activity: actionPlans.activity || [],
+      supplements: actionPlans.supplements || [],
+      therapy: actionPlans.therapy || [],
+      followup: actionPlans.followup || []
+    };
+  }
+  
+  // Fallback for old structure (array)
+  if (Array.isArray(actionPlans)) {
+    return actionPlans.map(plan => ({
+      id: plan.id,
+      category: plan.category,
+      title: plan.title,
+      description: plan.description,
+      priority: plan.priority,
+      duration: plan.duration,
+      dosage: plan.dosage
+    }));
+  }
+  
+  // Default empty structure
+  return {
+    foods: [],
+    lifestyle: [],
+    activity: [],
+    supplements: [],
+    therapy: [],
+    followup: []
+  };
 };
 
 export const transformSummarySections = (summarySections: any[]) => {
