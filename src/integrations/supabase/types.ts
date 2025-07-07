@@ -7,6 +7,11 @@ export type Json =
   | Json[]
 
 export type Database = {
+  // Allows to automatically instanciate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "12.2.3 (519615d)"
+  }
   public: {
     Tables: {
       alerts: {
@@ -754,6 +759,7 @@ export type Database = {
       }
       report_comments: {
         Row: {
+          action_steps: string | null
           author: string | null
           category: string
           content: string
@@ -762,16 +768,21 @@ export type Database = {
           date: string
           evaluation_score: number | null
           evaluation_type: string | null
+          expected_timeline: string | null
           form_id: string
           id: string
           is_auto_generated: boolean | null
+          patient_friendly_content: string | null
           priority: string
           recommendations: Json | null
           report_id: string
           target_id: string | null
+          technical_details: string | null
           title: string
+          warning_signs: string | null
         }
         Insert: {
+          action_steps?: string | null
           author?: string | null
           category?: string
           content: string
@@ -780,16 +791,21 @@ export type Database = {
           date?: string
           evaluation_score?: number | null
           evaluation_type?: string | null
+          expected_timeline?: string | null
           form_id: string
           id?: string
           is_auto_generated?: boolean | null
+          patient_friendly_content?: string | null
           priority?: string
           recommendations?: Json | null
           report_id: string
           target_id?: string | null
+          technical_details?: string | null
           title: string
+          warning_signs?: string | null
         }
         Update: {
+          action_steps?: string | null
           author?: string | null
           category?: string
           content?: string
@@ -798,14 +814,18 @@ export type Database = {
           date?: string
           evaluation_score?: number | null
           evaluation_type?: string | null
+          expected_timeline?: string | null
           form_id?: string
           id?: string
           is_auto_generated?: boolean | null
+          patient_friendly_content?: string | null
           priority?: string
           recommendations?: Json | null
           report_id?: string
           target_id?: string | null
+          technical_details?: string | null
           title?: string
+          warning_signs?: string | null
         }
         Relationships: [
           {
@@ -817,6 +837,62 @@ export type Database = {
           },
           {
             foreignKeyName: "report_comments_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      report_key_findings: {
+        Row: {
+          body_impact: string | null
+          category: string | null
+          created_at: string | null
+          finding: string
+          form_id: string | null
+          id: string
+          impact: string | null
+          order_index: number | null
+          patient_explanation: string | null
+          related_biomarkers: string[] | null
+          report_id: string | null
+          updated_at: string | null
+          why_it_matters: string | null
+        }
+        Insert: {
+          body_impact?: string | null
+          category?: string | null
+          created_at?: string | null
+          finding: string
+          form_id?: string | null
+          id?: string
+          impact?: string | null
+          order_index?: number | null
+          patient_explanation?: string | null
+          related_biomarkers?: string[] | null
+          report_id?: string | null
+          updated_at?: string | null
+          why_it_matters?: string | null
+        }
+        Update: {
+          body_impact?: string | null
+          category?: string | null
+          created_at?: string | null
+          finding?: string
+          form_id?: string | null
+          id?: string
+          impact?: string | null
+          order_index?: number | null
+          patient_explanation?: string | null
+          related_biomarkers?: string[] | null
+          report_id?: string | null
+          updated_at?: string | null
+          why_it_matters?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "report_key_findings_report_id_fkey"
             columns: ["report_id"]
             isOneToOne: false
             referencedRelation: "reports"
@@ -928,7 +1004,7 @@ export type Database = {
       }
       reports: {
         Row: {
-          action_plan: Json | null
+          analytics_id: string | null
           created_at: string
           diagnosis: Json
           doctor_id: string | null
@@ -938,10 +1014,15 @@ export type Database = {
           n8n_generated_at: string | null
           patient_id: string
           pdf_url: string | null
+          personalized_insights: Json | null
           processing_queue_id: string | null
+          risk_profile: Json | null
+          risk_score: number | null
+          summary: string | null
+          vitality_score: number | null
         }
         Insert: {
-          action_plan?: Json | null
+          analytics_id?: string | null
           created_at?: string
           diagnosis: Json
           doctor_id?: string | null
@@ -951,10 +1032,15 @@ export type Database = {
           n8n_generated_at?: string | null
           patient_id: string
           pdf_url?: string | null
+          personalized_insights?: Json | null
           processing_queue_id?: string | null
+          risk_profile?: Json | null
+          risk_score?: number | null
+          summary?: string | null
+          vitality_score?: number | null
         }
         Update: {
-          action_plan?: Json | null
+          analytics_id?: string | null
           created_at?: string
           diagnosis?: Json
           doctor_id?: string | null
@@ -964,7 +1050,12 @@ export type Database = {
           n8n_generated_at?: string | null
           patient_id?: string
           pdf_url?: string | null
+          personalized_insights?: Json | null
           processing_queue_id?: string | null
+          risk_profile?: Json | null
+          risk_score?: number | null
+          summary?: string | null
+          vitality_score?: number | null
         }
         Relationships: [
           {
@@ -1257,21 +1348,25 @@ export type Database = {
   }
 }
 
-type DefaultSchema = Database[Extract<keyof Database, "public">]
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-        Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
     : never = never,
-> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
-  ? (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-      Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
       Row: infer R
     }
     ? R
@@ -1289,14 +1384,16 @@ export type Tables<
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
-> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
-  ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Insert: infer I
     }
     ? I
@@ -1312,14 +1409,16 @@ export type TablesInsert<
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
-> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
-  ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Update: infer U
     }
     ? U
@@ -1335,14 +1434,16 @@ export type TablesUpdate<
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   EnumName extends DefaultSchemaEnumNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
     : never = never,
-> = DefaultSchemaEnumNameOrOptions extends { schema: keyof Database }
-  ? Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
   : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
     ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
     : never
@@ -1350,14 +1451,16 @@ export type Enums<
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
     : never = never,
-> = PublicCompositeTypeNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
   : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
     ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never

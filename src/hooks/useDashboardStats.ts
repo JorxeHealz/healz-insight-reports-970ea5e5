@@ -10,7 +10,7 @@ export const useDashboardStats = () => {
       const { data: assignedPatients, error: patientsError } = await supabase
         .from('patient_assignments')
         .select('patient_id')
-        .eq('user_id', 'temp-user-id'); // TODO: Replace with actual auth.uid() when auth is implemented
+        .eq('user_id', '00000000-0000-0000-0000-000000000000'); // Temporary UUID for development
 
       if (patientsError) throw patientsError;
 

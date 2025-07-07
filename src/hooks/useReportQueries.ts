@@ -9,7 +9,6 @@ export const fetchReportData = async (reportId: string) => {
       created_at,
       diagnosis,
       manual_notes,
-      action_plan,
       form_id,
       patients!inner (
         id,
