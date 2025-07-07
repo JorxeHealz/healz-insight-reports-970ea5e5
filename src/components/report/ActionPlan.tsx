@@ -25,17 +25,17 @@ export const ActionPlan: React.FC<ActionPlanProps> = ({ report }) => {
   const [showAddForm, setShowAddForm] = useState<string | null>(null);
   const { deleteActionPlan } = useActionPlans(report.id);
   
-  // Usar los datos reales de report_action_plans en lugar del campo actionPlan vacío
-  const actionPlans = report.actionPlans || [];
+  // Usar los datos reales de report_action_plans organizados por categoría
+  const actionPlans = report.actionPlans || {};
   
-  // Agrupar los action plans por categoría y ordenar por prioridad
+  // Los action plans ya vienen agrupados por categoría, solo ordenar por prioridad
   const actionsByCategory = {
-    foods: sortActionsByPriority(actionPlans.filter((plan: any) => plan.category === 'foods')),
-    supplements: sortActionsByPriority(actionPlans.filter((plan: any) => plan.category === 'supplements')),
-    lifestyle: sortActionsByPriority(actionPlans.filter((plan: any) => plan.category === 'lifestyle')),
-    activity: sortActionsByPriority(actionPlans.filter((plan: any) => plan.category === 'activity')),
-    therapy: sortActionsByPriority(actionPlans.filter((plan: any) => plan.category === 'therapy')),
-    followup: sortActionsByPriority(actionPlans.filter((plan: any) => plan.category === 'followup'))
+    foods: sortActionsByPriority(actionPlans.foods || []),
+    supplements: sortActionsByPriority(actionPlans.supplements || []),
+    lifestyle: sortActionsByPriority(actionPlans.lifestyle || []),
+    activity: sortActionsByPriority(actionPlans.activity || []),
+    therapy: sortActionsByPriority(actionPlans.therapy || []),
+    followup: sortActionsByPriority(actionPlans.followup || [])
   };
 
   const actionCategories = [
