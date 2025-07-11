@@ -70,7 +70,7 @@ export const DiagnosisGeneration = ({ patient, diagnosis, onBack, onNext }: Diag
                 ${diagnosis.riskProfile.riesgo_cardiaco === 'low' ? 'bg-healz-green/20 text-healz-green' : 
                 diagnosis.riskProfile.riesgo_cardiaco === 'medium' ? 'bg-healz-yellow/20 text-healz-yellow' : 
                 'bg-healz-red/20 text-healz-red'}`}>
-                {diagnosis.riskProfile.riesgo_cardiaco.toUpperCase()}
+                {diagnosis.riskProfile.riesgo_cardiaco?.toUpperCase() || 'N/A'}
               </div>
             </div>
             <div className="p-3 bg-white rounded shadow-sm border border-healz-brown/10">
@@ -79,7 +79,7 @@ export const DiagnosisGeneration = ({ patient, diagnosis, onBack, onNext }: Diag
                 ${diagnosis.riskProfile.salud_cerebral === 'low' ? 'bg-healz-green/20 text-healz-green' : 
                 diagnosis.riskProfile.salud_cerebral === 'medium' ? 'bg-healz-yellow/20 text-healz-yellow' : 
                 'bg-healz-red/20 text-healz-red'}`}>
-                {diagnosis.riskProfile.salud_cerebral.toUpperCase()}
+                {diagnosis.riskProfile.salud_cerebral?.toUpperCase() || 'N/A'}
               </div>
             </div>
             <div className="p-3 bg-white rounded shadow-sm border border-healz-brown/10">
@@ -88,7 +88,7 @@ export const DiagnosisGeneration = ({ patient, diagnosis, onBack, onNext }: Diag
                 ${diagnosis.riskProfile.hormonas === 'low' ? 'bg-healz-green/20 text-healz-green' : 
                 diagnosis.riskProfile.hormonas === 'medium' ? 'bg-healz-yellow/20 text-healz-yellow' : 
                 'bg-healz-red/20 text-healz-red'}`}>
-                {diagnosis.riskProfile.hormonas.toUpperCase()}
+                {diagnosis.riskProfile.hormonas?.toUpperCase() || 'N/A'}
               </div>
             </div>
             <div className="p-3 bg-white rounded shadow-sm border border-healz-brown/10">
@@ -97,7 +97,7 @@ export const DiagnosisGeneration = ({ patient, diagnosis, onBack, onNext }: Diag
                 ${diagnosis.riskProfile.perdida_peso === 'low' ? 'bg-healz-green/20 text-healz-green' : 
                 diagnosis.riskProfile.perdida_peso === 'medium' ? 'bg-healz-yellow/20 text-healz-yellow' : 
                 'bg-healz-red/20 text-healz-red'}`}>
-                {diagnosis.riskProfile.perdida_peso.toUpperCase()}
+                {diagnosis.riskProfile.perdida_peso?.toUpperCase() || 'N/A'}
               </div>
             </div>
             <div className="p-3 bg-white rounded shadow-sm border border-healz-brown/10">
@@ -106,7 +106,7 @@ export const DiagnosisGeneration = ({ patient, diagnosis, onBack, onNext }: Diag
                 ${diagnosis.riskProfile.vitalidad === 'low' ? 'bg-healz-green/20 text-healz-green' : 
                 diagnosis.riskProfile.vitalidad === 'medium' ? 'bg-healz-yellow/20 text-healz-yellow' : 
                 'bg-healz-red/20 text-healz-red'}`}>
-                {diagnosis.riskProfile.vitalidad.toUpperCase()}
+                {diagnosis.riskProfile.vitalidad?.toUpperCase() || 'N/A'}
               </div>
             </div>
             <div className="p-3 bg-white rounded shadow-sm border border-healz-brown/10">
@@ -115,7 +115,7 @@ export const DiagnosisGeneration = ({ patient, diagnosis, onBack, onNext }: Diag
                 ${diagnosis.riskProfile.fuerza === 'low' ? 'bg-healz-green/20 text-healz-green' : 
                 diagnosis.riskProfile.fuerza === 'medium' ? 'bg-healz-yellow/20 text-healz-yellow' : 
                 'bg-healz-red/20 text-healz-red'}`}>
-                {diagnosis.riskProfile.fuerza.toUpperCase()}
+                {diagnosis.riskProfile.fuerza?.toUpperCase() || 'N/A'}
               </div>
             </div>
             <div className="p-3 bg-white rounded shadow-sm border border-healz-brown/10">
@@ -124,7 +124,7 @@ export const DiagnosisGeneration = ({ patient, diagnosis, onBack, onNext }: Diag
                 ${diagnosis.riskProfile.salud_sexual === 'low' ? 'bg-healz-green/20 text-healz-green' : 
                 diagnosis.riskProfile.salud_sexual === 'medium' ? 'bg-healz-yellow/20 text-healz-yellow' : 
                 'bg-healz-red/20 text-healz-red'}`}>
-                {diagnosis.riskProfile.salud_sexual.toUpperCase()}
+                {diagnosis.riskProfile.salud_sexual?.toUpperCase() || 'N/A'}
               </div>
             </div>
             <div className="p-3 bg-white rounded shadow-sm border border-healz-brown/10">
@@ -133,7 +133,7 @@ export const DiagnosisGeneration = ({ patient, diagnosis, onBack, onNext }: Diag
                 ${diagnosis.riskProfile.longevidad === 'low' ? 'bg-healz-green/20 text-healz-green' : 
                 diagnosis.riskProfile.longevidad === 'medium' ? 'bg-healz-yellow/20 text-healz-yellow' : 
                 'bg-healz-red/20 text-healz-red'}`}>
-                {diagnosis.riskProfile.longevidad.toUpperCase()}
+                {diagnosis.riskProfile.longevidad?.toUpperCase() || 'N/A'}
               </div>
             </div>
           </div>
