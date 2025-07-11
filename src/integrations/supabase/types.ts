@@ -1580,6 +1580,20 @@ export type Database = {
         }
         Returns: string
       }
+      create_patient_biomarker_with_analytics: {
+        Args: {
+          p_patient_id: string
+          p_biomarker_id: string
+          p_value: number
+          p_analytics_id: string
+          p_date: string
+        }
+        Returns: string
+      }
+      delete_patient_biomarker: {
+        Args: { p_id: string }
+        Returns: boolean
+      }
       find_patient_by_short_id: {
         Args: { short_id: string }
         Returns: {
@@ -1696,6 +1710,10 @@ export type Database = {
       }
       is_admin_or_coach: {
         Args: { user_uuid: string }
+        Returns: boolean
+      }
+      update_patient_biomarker_value: {
+        Args: { p_id: string; p_value: number }
         Returns: boolean
       }
       verify_biomarker_ranges: {

@@ -8,10 +8,14 @@ import { calculateAge } from '../../utils/dateUtils';
 import { evaluateBiomarkerStatus, formatBiomarkerValue } from '../../utils/biomarkerEvaluation';
 import { BiomarkerStatusBadge } from '../report/biomarkers/BiomarkerStatusBadge';
 import { PatientSymptomsSummary } from './PatientSymptomsSummary';
-import { ArrowUp, ArrowDown, Minus } from 'lucide-react';
+import { ArrowUp, ArrowDown, Minus, Edit, Trash2 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useToast } from '@/components/ui/use-toast';
+import { AddBiomarkerDialog } from './biomarkers/AddBiomarkerDialog';
+import { EditBiomarkerDialog } from './biomarkers/EditBiomarkerDialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { useBiomarkerCRUD } from '@/hooks/useBiomarkerCRUD';
 
 interface DataReviewProps {
   patient: Patient;
@@ -72,7 +76,11 @@ export const DataReview = ({ patient, selectedForm, onBack, onNext, isLoading }:
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [analyticsId, setAnalyticsId] = useState<string | null>(null);
+  const [analyticsDate, setAnalyticsDate] = useState<string>('');
+  const [editingBiomarker, setEditingBiomarker] = useState<BiomarkerData | null>(null);
+  const [deletingBiomarker, setDeletingBiomarker] = useState<BiomarkerData | null>(null);
   const { toast } = useToast();
+  const { deleteBiomarker } = useBiomarkerCRUD();
 
   const handleGenerateDiagnosis = async () => {
     if (!analyticsId) {
@@ -166,9 +174,11 @@ export const DataReview = ({ patient, selectedForm, onBack, onNext, isLoading }:
         }
 
         const mostRecentAnalyticsId = recentAnalytics[0].analytics_id;
+        const mostRecentDate = recentAnalytics[0].date;
         setAnalyticsId(mostRecentAnalyticsId);
+        setAnalyticsDate(mostRecentDate);
         console.log('✅ Most recent analytics_id:', mostRecentAnalyticsId);
-        console.log('✅ Most recent date:', recentAnalytics[0].date);
+        console.log('✅ Most recent date:', mostRecentDate);
 
         // Use the database function to get biomarkers with proper JOIN
         console.log('Step 2: Calling RPC function...');
@@ -287,6 +297,98 @@ export const DataReview = ({ patient, selectedForm, onBack, onNext, isLoading }:
     fetchBiomarkerData();
   }, [patient.id]);
 
+  const refreshBiomarkers = () => {
+    setLoading(true);
+    const fetchBiomarkerData = async () => {
+      try {
+        // Simplified refresh - using the same logic but shorter
+        const { data: recentAnalytics, error: analyticsError } = await supabase
+          .from('patient_biomarkers')
+          .select('analytics_id, date')
+          .eq('patient_id', patient.id)
+          .not('analytics_id', 'is', null)
+          .order('date', { ascending: false })
+          .limit(1);
+
+        if (analyticsError) throw analyticsError;
+        if (!recentAnalytics || recentAnalytics.length === 0) {
+          setBiomarkers([]);
+          return;
+        }
+
+        const mostRecentAnalyticsId = recentAnalytics[0].analytics_id;
+        const { data: biomarkerData, error: biomarkerError } = await supabase
+          .rpc('get_patient_biomarkers_by_analytics', {
+            p_patient_id: patient.id,
+            p_analytics_id: mostRecentAnalyticsId
+          });
+
+        if (biomarkerError) throw biomarkerError;
+        if (!biomarkerData || biomarkerData.length === 0) {
+          setBiomarkers([]);
+          return;
+        }
+
+        const transformedBiomarkers: BiomarkerData[] = biomarkerData.map((pb) => {
+          const biomarkerRow = {
+            id: pb.biomarker_id,
+            name: pb.biomarker_name,
+            unit: pb.unit,
+            optimal_min: pb.optimal_min,
+            optimal_max: pb.optimal_max,
+            conventional_min: pb.conventional_min,
+            conventional_max: pb.conventional_max,
+            description: pb.description,
+            category: pb.category || [],
+            created_at: pb.biomarker_created_at,
+            updated_at: pb.biomarker_updated_at
+          };
+
+          const evaluation = evaluateBiomarkerStatus(pb.value, biomarkerRow);
+
+          return {
+            id: pb.id,
+            name: pb.biomarker_name,
+            value: pb.value,
+            unit: pb.unit,
+            date: pb.date,
+            status: evaluation.status,
+            trend: null,
+            analytics_id: pb.analytics_id,
+            biomarker_data: {
+              optimal_min: pb.optimal_min,
+              optimal_max: pb.optimal_max,
+              conventional_min: pb.conventional_min,
+              conventional_max: pb.conventional_max
+            }
+          } as BiomarkerData;
+        }).filter(Boolean);
+
+        const sortedBiomarkers = sortBiomarkersByStatus(transformedBiomarkers);
+        setBiomarkers(sortedBiomarkers);
+      } catch (err: any) {
+        console.error('Error refreshing biomarkers:', err);
+        setError('Error al actualizar los biomarcadores: ' + (err.message || 'Error desconocido'));
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBiomarkerData();
+  };
+
+  const handleDeleteBiomarker = async () => {
+    if (!deletingBiomarker) return;
+
+    try {
+      await deleteBiomarker.mutateAsync({ id: deletingBiomarker.id });
+      setDeletingBiomarker(null);
+      refreshBiomarkers();
+    } catch (error) {
+      console.error('Error deleting biomarker:', error);
+    }
+  };
+
   const patientAge = calculateAge(patient.date_of_birth);
 
   return (
@@ -373,8 +475,16 @@ export const DataReview = ({ patient, selectedForm, onBack, onNext, isLoading }:
       ) : (
         <>
           <Card className="overflow-hidden">
-            <CardHeader className="bg-healz-cream/20 py-3">
+            <CardHeader className="bg-healz-cream/20 py-3 flex flex-row items-center justify-between">
               <CardTitle className="text-md">Biomarcadores más recientes</CardTitle>
+              {analyticsId && analyticsDate && (
+                <AddBiomarkerDialog
+                  patientId={patient.id}
+                  analyticsId={analyticsId}
+                  analyticsDate={analyticsDate}
+                  onSuccess={refreshBiomarkers}
+                />
+              )}
             </CardHeader>
             <CardContent className="p-0">
               <table className="w-full">
@@ -385,6 +495,7 @@ export const DataReview = ({ patient, selectedForm, onBack, onNext, isLoading }:
                     <th className="text-center p-3">Estado</th>
                     <th className="text-center p-3">Tendencia</th>
                     <th className="text-right p-3">Fecha</th>
+                    <th className="text-center p-3">Acciones</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-healz-brown/10">
@@ -410,6 +521,24 @@ export const DataReview = ({ patient, selectedForm, onBack, onNext, isLoading }:
                           locale: es 
                         })}
                       </td>
+                      <td className="p-3 text-center">
+                        <div className="flex items-center justify-center gap-1">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => setEditingBiomarker(biomarker)}
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => setDeletingBiomarker(biomarker)}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -433,6 +562,33 @@ export const DataReview = ({ patient, selectedForm, onBack, onNext, isLoading }:
           </div>
         </>
       )}
+
+      {/* Edit Biomarker Dialog */}
+      <EditBiomarkerDialog
+        biomarker={editingBiomarker}
+        open={!!editingBiomarker}
+        onOpenChange={(open) => !open && setEditingBiomarker(null)}
+        onSuccess={refreshBiomarkers}
+      />
+
+      {/* Delete Biomarker Dialog */}
+      <AlertDialog open={!!deletingBiomarker} onOpenChange={(open) => !open && setDeletingBiomarker(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Eliminar Biomarcador</AlertDialogTitle>
+            <AlertDialogDescription>
+              ¿Está seguro que desea eliminar el biomarcador "{deletingBiomarker?.name}"? 
+              Esta acción no se puede deshacer.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteBiomarker}>
+              Eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
