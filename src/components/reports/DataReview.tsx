@@ -21,7 +21,7 @@ interface DataReviewProps {
   patient: Patient;
   selectedForm: PatientForm | null | undefined;
   onBack: () => void;
-  onNext: () => void;
+  onNext: (analyticsId: string) => void;
   isLoading: boolean;
 }
 
@@ -92,40 +92,8 @@ export const DataReview = ({ patient, selectedForm, onBack, onNext, isLoading }:
       return;
     }
 
-    try {
-      const webhookData = {
-        patient_id: patient.id,
-        form_id: selectedForm?.id || null,
-        analytics_id: analyticsId,
-      };
-
-      console.log('Enviando datos al webhook:', webhookData);
-
-      const response = await fetch('https://joinhealz.app.n8n.cloud/webhook/healz-diagnosis', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(webhookData),
-      });
-
-      if (response.ok) {
-        toast({
-          title: "Éxito",
-          description: "Se ha iniciado la generación del diagnóstico",
-        });
-        onNext(); // Continuar al siguiente paso
-      } else {
-        throw new Error(`Error ${response.status}: ${response.statusText}`);
-      }
-    } catch (error) {
-      console.error('Error calling webhook:', error);
-      toast({
-        title: "Error",
-        description: "No se pudo generar el diagnóstico. Por favor, inténtelo de nuevo.",
-        variant: "destructive",
-      });
-    }
+    // Pass analytics_id to the next step for diagnosis generation
+    onNext(analyticsId);
   };
 
   useEffect(() => {

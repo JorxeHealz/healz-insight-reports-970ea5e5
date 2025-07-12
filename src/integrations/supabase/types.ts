@@ -717,7 +717,7 @@ export type Database = {
           form_id: string
           id: string
           priority: string
-          report_id: string
+          report_id: string | null
           structured_content: Json | null
           title: string
         }
@@ -730,7 +730,7 @@ export type Database = {
           form_id: string
           id?: string
           priority?: string
-          report_id: string
+          report_id?: string | null
           structured_content?: Json | null
           title: string
         }
@@ -743,7 +743,7 @@ export type Database = {
           form_id?: string
           id?: string
           priority?: string
-          report_id?: string
+          report_id?: string | null
           structured_content?: Json | null
           title?: string
         }
@@ -772,7 +772,7 @@ export type Database = {
           current_capacity: string | null
           equipment_needed: string[] | null
           form_id: string
-          frequency_per_week: number | null
+          frequency_per_week: string
           id: string
           intensity_level: string | null
           monitoring_signals: Json | null
@@ -781,7 +781,7 @@ export type Database = {
           phase1_focus: string | null
           priority: string
           progression_plan: string | null
-          report_id: string
+          report_id: string | null
           rest_periods: string | null
           restrictions: Json | null
           session_duration: string | null
@@ -794,7 +794,7 @@ export type Database = {
           current_capacity?: string | null
           equipment_needed?: string[] | null
           form_id: string
-          frequency_per_week?: number | null
+          frequency_per_week: string
           id?: string
           intensity_level?: string | null
           monitoring_signals?: Json | null
@@ -803,7 +803,7 @@ export type Database = {
           phase1_focus?: string | null
           priority?: string
           progression_plan?: string | null
-          report_id: string
+          report_id?: string | null
           rest_periods?: string | null
           restrictions?: Json | null
           session_duration?: string | null
@@ -816,7 +816,7 @@ export type Database = {
           current_capacity?: string | null
           equipment_needed?: string[] | null
           form_id?: string
-          frequency_per_week?: number | null
+          frequency_per_week?: string
           id?: string
           intensity_level?: string | null
           monitoring_signals?: Json | null
@@ -825,7 +825,7 @@ export type Database = {
           phase1_focus?: string | null
           priority?: string
           progression_plan?: string | null
-          report_id?: string
+          report_id?: string | null
           rest_periods?: string | null
           restrictions?: Json | null
           session_duration?: string | null
@@ -866,7 +866,7 @@ export type Database = {
           preparation_required: string[] | null
           priority: string
           provider_type: string | null
-          report_id: string
+          report_id: string | null
           specific_tests: string[] | null
           success_metrics: string[] | null
           timeline: string
@@ -881,7 +881,7 @@ export type Database = {
           preparation_required?: string[] | null
           priority?: string
           provider_type?: string | null
-          report_id: string
+          report_id?: string | null
           specific_tests?: string[] | null
           success_metrics?: string[] | null
           timeline: string
@@ -896,7 +896,7 @@ export type Database = {
           preparation_required?: string[] | null
           priority?: string
           provider_type?: string | null
-          report_id?: string
+          report_id?: string | null
           specific_tests?: string[] | null
           success_metrics?: string[] | null
           timeline?: string
@@ -944,7 +944,7 @@ export type Database = {
           portion_guidelines: string | null
           preparation_notes: string | null
           priority: string
-          report_id: string
+          report_id: string | null
           special_considerations: Json | null
         }
         Insert: {
@@ -965,7 +965,7 @@ export type Database = {
           portion_guidelines?: string | null
           preparation_notes?: string | null
           priority?: string
-          report_id: string
+          report_id?: string | null
           special_considerations?: Json | null
         }
         Update: {
@@ -986,7 +986,7 @@ export type Database = {
           portion_guidelines?: string | null
           preparation_notes?: string | null
           priority?: string
-          report_id?: string
+          report_id?: string | null
           special_considerations?: Json | null
         }
         Relationships: [
@@ -1026,7 +1026,7 @@ export type Database = {
           id: string
           patient_id: string | null
           priority: string
-          report_id: string
+          report_id: string | null
           sleep_interventions: Json | null
           sleep_target_hours: string | null
           specific_actions: string[] | null
@@ -1047,7 +1047,7 @@ export type Database = {
           id?: string
           patient_id?: string | null
           priority?: string
-          report_id: string
+          report_id?: string | null
           sleep_interventions?: Json | null
           sleep_target_hours?: string | null
           specific_actions?: string[] | null
@@ -1068,7 +1068,7 @@ export type Database = {
           id?: string
           patient_id?: string | null
           priority?: string
-          report_id?: string
+          report_id?: string | null
           sleep_interventions?: Json | null
           sleep_target_hours?: string | null
           specific_actions?: string[] | null
@@ -1110,13 +1110,14 @@ export type Database = {
           dosage: string
           duration: string | null
           form_id: string
-          frequency: string
+          frequency: string | null
           id: string
           immediate_phase_duration: string | null
           monitoring_notes: string | null
           patient_id: string | null
           priority: string
-          report_id: string
+          reason: string | null
+          report_id: string | null
           supplement_name: string
           timing: string | null
           total_monthly_cost: string | null
@@ -1129,13 +1130,14 @@ export type Database = {
           dosage: string
           duration?: string | null
           form_id: string
-          frequency: string
+          frequency?: string | null
           id?: string
           immediate_phase_duration?: string | null
           monitoring_notes?: string | null
           patient_id?: string | null
           priority?: string
-          report_id: string
+          reason?: string | null
+          report_id?: string | null
           supplement_name: string
           timing?: string | null
           total_monthly_cost?: string | null
@@ -1148,13 +1150,14 @@ export type Database = {
           dosage?: string
           duration?: string | null
           form_id?: string
-          frequency?: string
+          frequency?: string | null
           id?: string
           immediate_phase_duration?: string | null
           monitoring_notes?: string | null
           patient_id?: string | null
           priority?: string
-          report_id?: string
+          reason?: string | null
+          report_id?: string | null
           supplement_name?: string
           timing?: string | null
           total_monthly_cost?: string | null
@@ -1278,7 +1281,7 @@ export type Database = {
           patient_id: string | null
           priority: string
           recommendations: Json | null
-          report_id: string
+          report_id: string | null
           target_id: string | null
           technical_details: string | null
           title: string
@@ -1305,7 +1308,7 @@ export type Database = {
           patient_id?: string | null
           priority?: string
           recommendations?: Json | null
-          report_id: string
+          report_id?: string | null
           target_id?: string | null
           technical_details?: string | null
           title: string
@@ -1332,7 +1335,7 @@ export type Database = {
           patient_id?: string | null
           priority?: string
           recommendations?: Json | null
-          report_id?: string
+          report_id?: string | null
           target_id?: string | null
           technical_details?: string | null
           title?: string
@@ -1375,7 +1378,7 @@ export type Database = {
           panel_association: string | null
           patient_explanation: string | null
           patient_id: string | null
-          related_biomarkers: string[] | null
+          related_biomarkers: Json[] | null
           report_id: string | null
           symptom_connection: string | null
           updated_at: string | null
@@ -1394,7 +1397,7 @@ export type Database = {
           panel_association?: string | null
           patient_explanation?: string | null
           patient_id?: string | null
-          related_biomarkers?: string[] | null
+          related_biomarkers?: Json[] | null
           report_id?: string | null
           symptom_connection?: string | null
           updated_at?: string | null
@@ -1413,7 +1416,7 @@ export type Database = {
           panel_association?: string | null
           patient_explanation?: string | null
           patient_id?: string | null
-          related_biomarkers?: string[] | null
+          related_biomarkers?: Json[] | null
           report_id?: string | null
           symptom_connection?: string | null
           updated_at?: string | null
@@ -1447,7 +1450,7 @@ export type Database = {
           patient_id: string | null
           percentage: number | null
           recommendations: Json | null
-          report_id: string
+          report_id: string | null
           risk_level: string
         }
         Insert: {
@@ -1459,7 +1462,7 @@ export type Database = {
           patient_id?: string | null
           percentage?: number | null
           recommendations?: Json | null
-          report_id: string
+          report_id?: string | null
           risk_level: string
         }
         Update: {
@@ -1471,7 +1474,7 @@ export type Database = {
           patient_id?: string | null
           percentage?: number | null
           recommendations?: Json | null
-          report_id?: string
+          report_id?: string | null
           risk_level?: string
         }
         Relationships: [
@@ -1509,7 +1512,7 @@ export type Database = {
           id: string
           is_auto_generated: boolean | null
           recommendations: Json | null
-          report_id: string
+          report_id: string | null
           section_type: string
           target_id: string | null
           title: string
@@ -1525,7 +1528,7 @@ export type Database = {
           id?: string
           is_auto_generated?: boolean | null
           recommendations?: Json | null
-          report_id: string
+          report_id?: string | null
           section_type: string
           target_id?: string | null
           title: string
@@ -1541,7 +1544,7 @@ export type Database = {
           id?: string
           is_auto_generated?: boolean | null
           recommendations?: Json | null
-          report_id?: string
+          report_id?: string | null
           section_type?: string
           target_id?: string | null
           title?: string

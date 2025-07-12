@@ -56,3 +56,33 @@ export const useProcessingQueueByForm = (formId: string) => {
     enabled: !!formId
   });
 };
+
+export const useProcessingQueueById = (queueId: string) => {
+  return useQuery({
+    queryKey: ['processing-queue-item', queueId],
+    queryFn: async (): Promise<ProcessingQueue | null> => {
+      if (!queueId) return null;
+
+      console.log('Fetching processing queue item:', queueId);
+      
+      const { data, error } = await supabase
+        .from('processing_queue')
+        .select('*')
+        .eq('id', queueId)
+        .maybeSingle();
+
+      if (error) {
+        console.error('Error fetching processing queue item:', error);
+        throw error;
+      }
+
+      return data;
+    },
+    enabled: !!queueId,
+    refetchInterval: (query) => {
+      // Stop polling if completed or failed
+      const data = query.state.data;
+      return data?.status === 'completed' || data?.status === 'failed' ? false : 2000;
+    }
+  });
+};
