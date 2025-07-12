@@ -93,7 +93,13 @@ export const fetchReportComments = async (reportId: string, formId: string) => {
 export const fetchReportSymptoms = async (formId: string) => {
   const { data } = await supabase
     .from('questionnaire_answers')
-    .select('*')
+    .select(`
+      question_id,
+      answer,
+      form_questions!inner (
+        question_text
+      )
+    `)
     .eq('form_id', formId);
 
   return data || [];
