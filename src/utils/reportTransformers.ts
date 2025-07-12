@@ -66,14 +66,15 @@ function shouldReportSymptom(answer: string): boolean {
     'sí', 'si', 'yes', 'true', 
     'frecuentemente', 'siempre', 'always', 'frequently',
     'moderadamente', 'severamente', 'mucho', 'bastante',
-    'a veces', 'ocasionalmente', 'sometimes', 'occasionally'
+    'a veces', 'ocasionalmente', 'sometimes', 'occasionally',
+    'rara vez', 'rarely'
   ];
   
   // Respuestas que indican ausencia del síntoma
   const negativeAnswers = [
     'no', 'never', 'nunca', 'false',
     'información no disponible', 'n/a', 'na',
-    'rara vez', 'rarely', 'poco', 'nada'
+    'poco', 'nada'
   ];
   
   // Verificar respuestas positivas
@@ -162,22 +163,29 @@ function extractSymptomFromQuestion(questionText: string): string | null {
   return null;
 }
 
-// Función para determinar la severidad basada en la respuesta
-function getSeverityFromAnswer(answer: string): 'low' | 'med' | 'high' {
+// Función para determinar la etiqueta exacta de frecuencia
+function getFrequencyLabel(answer: string): string {
   const lowerAnswer = answer.toLowerCase().trim();
   
-  if (lowerAnswer.includes('siempre') || lowerAnswer.includes('always') || 
-      lowerAnswer.includes('severamente') || lowerAnswer.includes('mucho')) {
-    return 'high';
+  if (lowerAnswer.includes('siempre') || lowerAnswer.includes('always')) {
+    return 'Siempre';
   }
   
-  if (lowerAnswer.includes('frecuentemente') || lowerAnswer.includes('frequently') || 
-      lowerAnswer.includes('moderadamente') || lowerAnswer.includes('bastante')) {
-    return 'med';
+  if (lowerAnswer.includes('frecuentemente') || lowerAnswer.includes('frequently')) {
+    return 'Frecuentemente';
   }
   
-  // "A veces", "ocasionalmente", etc.
-  return 'low';
+  if (lowerAnswer.includes('a veces') || lowerAnswer.includes('sometimes') || 
+      lowerAnswer.includes('ocasionalmente') || lowerAnswer.includes('occasionally')) {
+    return 'A veces';
+  }
+  
+  if (lowerAnswer.includes('rara vez') || lowerAnswer.includes('rarely')) {
+    return 'Rara vez';
+  }
+  
+  // Para respuestas que no coinciden exactamente, usar la respuesta original capitalizada
+  return answer.charAt(0).toUpperCase() + answer.slice(1).toLowerCase();
 }
 
 export const transformSymptoms = (symptoms: any[]) => {
@@ -197,7 +205,7 @@ export const transformSymptoms = (symptoms: any[]) => {
       
       return {
         name: symptomName,
-        severity: getSeverityFromAnswer(symptom.answer)
+        severity: getFrequencyLabel(symptom.answer)
       };
     })
     .slice(0, 5); // Limitar a 5 síntomas principales
