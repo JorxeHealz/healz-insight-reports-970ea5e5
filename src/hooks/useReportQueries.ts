@@ -113,8 +113,7 @@ export const fetchReportKeyFindings = async (reportId: string, formId: string) =
   const { data } = await supabase
     .from('report_key_findings')
     .select('*')
-    .eq('report_id', reportId)
-    .eq('form_id', formId)
+    .or(`report_id.eq.${reportId},form_id.eq.${formId}`)
     .order('order_index', { ascending: true });
 
   return data || [];
