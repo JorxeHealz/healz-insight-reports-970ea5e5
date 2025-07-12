@@ -100,7 +100,8 @@ export const fetchReportSymptoms = async (formId: string) => {
         question_text
       )
     `)
-    .eq('form_id', formId);
+    .eq('form_id', formId)
+    .eq('form_questions.category', 'current_symptoms');
 
   return data || [];
 };
