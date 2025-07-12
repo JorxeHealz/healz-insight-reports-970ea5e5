@@ -5,21 +5,13 @@ import { supabase } from '../lib/supabase';
 import { PatientSelector } from '../components/reports/PatientSelector';
 import { FormSelector } from '../components/reports/FormSelector';
 import { DataReview } from '../components/reports/DataReview';
-import { DiagnosisGeneration } from '../components/reports/DiagnosisGeneration';
-import { ReportPreview } from '../components/reports/ReportPreview';
+import { DiagnosisGenerationStatus } from '../components/reports/DiagnosisGenerationStatus';
 import { Patient, Diagnosis } from '../types/supabase';
+import { PatientForm } from '../types/forms';
 import { pdf } from '@react-pdf/renderer';
 import { ReportPDF } from '../components/reports/ReportPDF';
 
-interface PatientForm {
-  id: string;
-  created_at: string;
-  completed_at: string | null;
-  status: string;
-  form_token: string;
-}
-
-type Step = 'patient' | 'form' | 'data' | 'diagnosis' | 'report';
+type Step = 'patient' | 'form' | 'data' | 'generation' | 'report';
 
 const NewReport = () => {
   const navigate = useNavigate();
@@ -28,6 +20,7 @@ const NewReport = () => {
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [selectedForm, setSelectedForm] = useState<PatientForm | null | undefined>(undefined);
   const [diagnosis, setDiagnosis] = useState<Diagnosis | null>(null);
+  const [analyticsId, setAnalyticsId] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
 
@@ -45,33 +38,14 @@ const NewReport = () => {
     setCurrentStep('data');
   };
 
-  const handleGenerateDiagnosis = async () => {
-    if (!selectedPatient) return;
-    
-    setIsLoading(true);
-    try {
-      const { data, error } = await supabase.rpc('generate_diagnosis', {
-        patient_id: selectedPatient.id
-      });
+  const handleDataNext = (analyticsId: string) => {
+    setAnalyticsId(analyticsId);
+    setCurrentStep('generation');
+  };
 
-      if (error) throw error;
-      
-      setDiagnosis(data);
-      setCurrentStep('diagnosis');
-      toast({
-        title: "Diagnóstico generado",
-        description: "El diagnóstico se ha generado correctamente",
-      });
-    } catch (error) {
-      console.error('Error generating diagnosis:', error);
-      toast({
-        title: "Error",
-        description: "No se pudo generar el diagnóstico",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
+  const handleGenerationComplete = (reportId: string) => {
+    // Navigate directly to the completed report
+    navigate(`/reports/${reportId}`);
   };
 
   const generateAndUploadPdf = async () => {
@@ -194,30 +168,23 @@ const NewReport = () => {
             patient={selectedPatient} 
             selectedForm={selectedForm}
             onBack={() => setCurrentStep('form')} 
-            onNext={handleGenerateDiagnosis} 
+            onNext={handleDataNext} 
             isLoading={isLoading}
           />
         ) : null;
-      case 'diagnosis':
-        return selectedPatient && diagnosis ? (
-          <DiagnosisGeneration
+      case 'generation':
+        return selectedPatient && analyticsId ? (
+          <DiagnosisGenerationStatus
             patient={selectedPatient}
-            diagnosis={diagnosis}
+            selectedForm={selectedForm}
+            analyticsId={analyticsId}
             onBack={() => setCurrentStep('data')}
-            onNext={() => setCurrentStep('report')}
+            onComplete={handleGenerationComplete}
           />
         ) : null;
       case 'report':
-        return selectedPatient && diagnosis ? (
-          <ReportPreview
-            patient={selectedPatient}
-            diagnosis={diagnosis}
-            pdfUrl={pdfUrl}
-            onBack={() => setCurrentStep('diagnosis')}
-            onSave={handleSaveReport}
-            isLoading={isLoading}
-          />
-        ) : null;
+        // This case is no longer used as we navigate directly to the report
+        return null;
       default:
         return null;
     }
@@ -243,14 +210,9 @@ const NewReport = () => {
               3
             </span>
           </li>
-          <li className={`flex w-full items-center ${currentStep === 'diagnosis' ? 'text-healz-red' : 'text-healz-brown/70'} after:content-[''] after:w-full after:h-1 after:border-b ${currentStep === 'diagnosis' ? 'after:border-healz-red' : 'after:border-healz-brown/30'} after:border-4 after:inline-block`}>
-            <span className={`flex items-center justify-center w-10 h-10 rounded-full lg:h-12 lg:w-12 shrink-0 ${currentStep === 'diagnosis' ? 'bg-healz-red text-white' : 'bg-healz-brown/20'}`}>
+          <li className={`flex items-center ${currentStep === 'generation' ? 'text-healz-red' : 'text-healz-brown/70'}`}>
+            <span className={`flex items-center justify-center w-10 h-10 rounded-full lg:h-12 lg:w-12 shrink-0 ${currentStep === 'generation' ? 'bg-healz-red text-white' : 'bg-healz-brown/20'}`}>
               4
-            </span>
-          </li>
-          <li className={`flex items-center ${currentStep === 'report' ? 'text-healz-red' : 'text-healz-brown/70'}`}>
-            <span className={`flex items-center justify-center w-10 h-10 rounded-full lg:h-12 lg:w-12 shrink-0 ${currentStep === 'report' ? 'bg-healz-red text-white' : 'bg-healz-brown/20'}`}>
-              5
             </span>
           </li>
         </ol>
@@ -258,8 +220,7 @@ const NewReport = () => {
           <span className="text-sm font-medium">Paciente</span>
           <span className="text-sm font-medium">Formulario</span>
           <span className="text-sm font-medium">Datos</span>
-          <span className="text-sm font-medium">Diagnóstico</span>
-          <span className="text-sm font-medium">Informe</span>
+          <span className="text-sm font-medium">Generando</span>
         </div>
       </div>
 

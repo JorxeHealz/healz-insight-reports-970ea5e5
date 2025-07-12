@@ -7,6 +7,11 @@ export type Json =
   | Json[]
 
 export type Database = {
+  // Allows to automatically instanciate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "12.2.3 (519615d)"
+  }
   public: {
     Tables: {
       alerts: {
@@ -109,9 +114,34 @@ export type Database = {
           },
         ]
       }
+      biomakers_pdf_not_found: {
+        Row: {
+          created_at: string
+          id: number
+          name_original: string | null
+          unit: string | null
+          value: number | null
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+          name_original?: string | null
+          unit?: string | null
+          value?: number | null
+        }
+        Update: {
+          created_at?: string
+          id?: number
+          name_original?: string | null
+          unit?: string | null
+          value?: number | null
+        }
+        Relationships: []
+      }
       biomarkers: {
         Row: {
-          category: string
+          aliases: string[] | null
+          category: string[]
           conventional_max: number
           conventional_min: number
           created_at: string
@@ -120,12 +150,12 @@ export type Database = {
           name: string
           optimal_max: number
           optimal_min: number
-          panel: string[] | null
           unit: string
           updated_at: string
         }
         Insert: {
-          category?: string
+          aliases?: string[] | null
+          category?: string[]
           conventional_max?: number
           conventional_min?: number
           created_at?: string
@@ -134,12 +164,12 @@ export type Database = {
           name: string
           optimal_max?: number
           optimal_min?: number
-          panel?: string[] | null
           unit: string
           updated_at?: string
         }
         Update: {
-          category?: string
+          aliases?: string[] | null
+          category?: string[]
           conventional_max?: number
           conventional_min?: number
           created_at?: string
@@ -148,7 +178,6 @@ export type Database = {
           name?: string
           optimal_max?: number
           optimal_min?: number
-          panel?: string[] | null
           unit?: string
           updated_at?: string
         }
@@ -283,6 +312,56 @@ export type Database = {
         }
         Relationships: []
       }
+      patient_analytics: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          extract_pdf: string | null
+          file_name: string
+          file_url: string
+          id: string
+          notes: string | null
+          patient_id: string
+          status: string
+          updated_at: string
+          upload_date: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          extract_pdf?: string | null
+          file_name: string
+          file_url: string
+          id?: string
+          notes?: string | null
+          patient_id: string
+          status?: string
+          updated_at?: string
+          upload_date?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          extract_pdf?: string | null
+          file_name?: string
+          file_url?: string
+          id?: string
+          notes?: string | null
+          patient_id?: string
+          status?: string
+          updated_at?: string
+          upload_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patient_analytics_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       patient_assignments: {
         Row: {
           created_at: string
@@ -321,48 +400,43 @@ export type Database = {
       }
       patient_biomarkers: {
         Row: {
+          analytics_id: string | null
           biomarker_id: string
           created_at: string
           created_by: string | null
           date: string
-          form_id: string | null
           id: string
-          is_out_of_range: boolean
-          notes: string | null
           patient_id: string
-          report_id: string | null
-          trend: Database["public"]["Enums"]["trend"] | null
           value: number
         }
         Insert: {
+          analytics_id?: string | null
           biomarker_id: string
           created_at?: string
           created_by?: string | null
           date?: string
-          form_id?: string | null
           id?: string
-          is_out_of_range?: boolean
-          notes?: string | null
           patient_id: string
-          report_id?: string | null
-          trend?: Database["public"]["Enums"]["trend"] | null
           value: number
         }
         Update: {
+          analytics_id?: string | null
           biomarker_id?: string
           created_at?: string
           created_by?: string | null
           date?: string
-          form_id?: string | null
           id?: string
-          is_out_of_range?: boolean
-          notes?: string | null
           patient_id?: string
-          report_id?: string | null
-          trend?: Database["public"]["Enums"]["trend"] | null
           value?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "patient_biomarkers_analytics_id_fkey"
+            columns: ["analytics_id"]
+            isOneToOne: false
+            referencedRelation: "patient_analytics"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "patient_biomarkers_biomarker_id_fkey"
             columns: ["biomarker_id"]
@@ -378,24 +452,10 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "patient_biomarkers_form_id_fkey"
-            columns: ["form_id"]
-            isOneToOne: false
-            referencedRelation: "patient_forms"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "patient_biomarkers_patient_id_fkey"
             columns: ["patient_id"]
             isOneToOne: false
             referencedRelation: "patients"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "patient_biomarkers_report_id_fkey"
-            columns: ["report_id"]
-            isOneToOne: false
-            referencedRelation: "reports"
             referencedColumns: ["id"]
           },
         ]
@@ -638,6 +698,13 @@ export type Database = {
             referencedRelation: "patients"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "questionnaire_answers_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "form_questions"
+            referencedColumns: ["id"]
+          },
         ]
       }
       report_action_plans: {
@@ -650,7 +717,8 @@ export type Database = {
           form_id: string
           id: string
           priority: string
-          report_id: string
+          report_id: string | null
+          structured_content: Json | null
           title: string
         }
         Insert: {
@@ -662,7 +730,8 @@ export type Database = {
           form_id: string
           id?: string
           priority?: string
-          report_id: string
+          report_id?: string | null
+          structured_content?: Json | null
           title: string
         }
         Update: {
@@ -674,7 +743,8 @@ export type Database = {
           form_id?: string
           id?: string
           priority?: string
-          report_id?: string
+          report_id?: string | null
+          structured_content?: Json | null
           title?: string
         }
         Relationships: [
@@ -694,60 +764,582 @@ export type Database = {
           },
         ]
       }
+      report_action_plans_activity: {
+        Row: {
+          active: boolean | null
+          activity_type: string | null
+          created_at: string
+          current_capacity: string | null
+          equipment_needed: string[] | null
+          form_id: string
+          frequency_per_week: string
+          id: string
+          intensity_level: string | null
+          monitoring_signals: Json | null
+          patient_id: string | null
+          phase1_duration: string | null
+          phase1_focus: string | null
+          priority: string
+          progression_plan: string | null
+          report_id: string | null
+          rest_periods: string | null
+          restrictions: Json | null
+          session_duration: string | null
+          specific_exercises: string[] | null
+        }
+        Insert: {
+          active?: boolean | null
+          activity_type?: string | null
+          created_at?: string
+          current_capacity?: string | null
+          equipment_needed?: string[] | null
+          form_id: string
+          frequency_per_week: string
+          id?: string
+          intensity_level?: string | null
+          monitoring_signals?: Json | null
+          patient_id?: string | null
+          phase1_duration?: string | null
+          phase1_focus?: string | null
+          priority?: string
+          progression_plan?: string | null
+          report_id?: string | null
+          rest_periods?: string | null
+          restrictions?: Json | null
+          session_duration?: string | null
+          specific_exercises?: string[] | null
+        }
+        Update: {
+          active?: boolean | null
+          activity_type?: string | null
+          created_at?: string
+          current_capacity?: string | null
+          equipment_needed?: string[] | null
+          form_id?: string
+          frequency_per_week?: string
+          id?: string
+          intensity_level?: string | null
+          monitoring_signals?: Json | null
+          patient_id?: string | null
+          phase1_duration?: string | null
+          phase1_focus?: string | null
+          priority?: string
+          progression_plan?: string | null
+          report_id?: string | null
+          rest_periods?: string | null
+          restrictions?: Json | null
+          session_duration?: string | null
+          specific_exercises?: string[] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "report_action_plans_activity_form_id_fkey"
+            columns: ["form_id"]
+            isOneToOne: false
+            referencedRelation: "patient_forms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "report_action_plans_activity_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "report_action_plans_activity_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      report_action_plans_followup: {
+        Row: {
+          created_at: string
+          escalation_criteria: string[] | null
+          followup_type: string
+          form_id: string
+          id: string
+          patient_id: string | null
+          preparation_required: string[] | null
+          priority: string
+          provider_type: string | null
+          report_id: string | null
+          specific_tests: string[] | null
+          success_metrics: string[] | null
+          timeline: string
+        }
+        Insert: {
+          created_at?: string
+          escalation_criteria?: string[] | null
+          followup_type: string
+          form_id: string
+          id?: string
+          patient_id?: string | null
+          preparation_required?: string[] | null
+          priority?: string
+          provider_type?: string | null
+          report_id?: string | null
+          specific_tests?: string[] | null
+          success_metrics?: string[] | null
+          timeline: string
+        }
+        Update: {
+          created_at?: string
+          escalation_criteria?: string[] | null
+          followup_type?: string
+          form_id?: string
+          id?: string
+          patient_id?: string | null
+          preparation_required?: string[] | null
+          priority?: string
+          provider_type?: string | null
+          report_id?: string | null
+          specific_tests?: string[] | null
+          success_metrics?: string[] | null
+          timeline?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "report_action_plans_followup_form_id_fkey"
+            columns: ["form_id"]
+            isOneToOne: false
+            referencedRelation: "patient_forms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "report_action_plans_followup_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "report_action_plans_followup_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      report_action_plans_foods: {
+        Row: {
+          active: boolean | null
+          created_at: string
+          diet_type: string | null
+          dietary_pattern: string | null
+          foods_to_add: string[] | null
+          foods_to_avoid: string[] | null
+          foods_to_include: Json | null
+          form_id: string
+          hydration_recommendation: string | null
+          id: string
+          main_goals: Json | null
+          meal_examples: Json | null
+          meal_timing: string | null
+          patient_id: string | null
+          portion_guidelines: string | null
+          preparation_notes: string | null
+          priority: string
+          report_id: string | null
+          special_considerations: Json | null
+        }
+        Insert: {
+          active?: boolean | null
+          created_at?: string
+          diet_type?: string | null
+          dietary_pattern?: string | null
+          foods_to_add?: string[] | null
+          foods_to_avoid?: string[] | null
+          foods_to_include?: Json | null
+          form_id: string
+          hydration_recommendation?: string | null
+          id?: string
+          main_goals?: Json | null
+          meal_examples?: Json | null
+          meal_timing?: string | null
+          patient_id?: string | null
+          portion_guidelines?: string | null
+          preparation_notes?: string | null
+          priority?: string
+          report_id?: string | null
+          special_considerations?: Json | null
+        }
+        Update: {
+          active?: boolean | null
+          created_at?: string
+          diet_type?: string | null
+          dietary_pattern?: string | null
+          foods_to_add?: string[] | null
+          foods_to_avoid?: string[] | null
+          foods_to_include?: Json | null
+          form_id?: string
+          hydration_recommendation?: string | null
+          id?: string
+          main_goals?: Json | null
+          meal_examples?: Json | null
+          meal_timing?: string | null
+          patient_id?: string | null
+          portion_guidelines?: string | null
+          preparation_notes?: string | null
+          priority?: string
+          report_id?: string | null
+          special_considerations?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "report_action_plans_foods_form_id_fkey"
+            columns: ["form_id"]
+            isOneToOne: false
+            referencedRelation: "patient_forms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "report_action_plans_foods_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "report_action_plans_foods_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      report_action_plans_lifestyle: {
+        Row: {
+          active: boolean | null
+          created_at: string
+          daily_routine_recommendations: Json | null
+          duration: string | null
+          environmental_factors: Json | null
+          form_id: string
+          frequency: string | null
+          habit_type: string | null
+          id: string
+          patient_id: string | null
+          priority: string
+          report_id: string | null
+          sleep_interventions: Json | null
+          sleep_target_hours: string | null
+          specific_actions: string[] | null
+          stress_management_techniques: Json | null
+          timing: string | null
+          tracking_method: string | null
+          triggers: string[] | null
+        }
+        Insert: {
+          active?: boolean | null
+          created_at?: string
+          daily_routine_recommendations?: Json | null
+          duration?: string | null
+          environmental_factors?: Json | null
+          form_id: string
+          frequency?: string | null
+          habit_type?: string | null
+          id?: string
+          patient_id?: string | null
+          priority?: string
+          report_id?: string | null
+          sleep_interventions?: Json | null
+          sleep_target_hours?: string | null
+          specific_actions?: string[] | null
+          stress_management_techniques?: Json | null
+          timing?: string | null
+          tracking_method?: string | null
+          triggers?: string[] | null
+        }
+        Update: {
+          active?: boolean | null
+          created_at?: string
+          daily_routine_recommendations?: Json | null
+          duration?: string | null
+          environmental_factors?: Json | null
+          form_id?: string
+          frequency?: string | null
+          habit_type?: string | null
+          id?: string
+          patient_id?: string | null
+          priority?: string
+          report_id?: string | null
+          sleep_interventions?: Json | null
+          sleep_target_hours?: string | null
+          specific_actions?: string[] | null
+          stress_management_techniques?: Json | null
+          timing?: string | null
+          tracking_method?: string | null
+          triggers?: string[] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "report_action_plans_lifestyle_form_id_fkey"
+            columns: ["form_id"]
+            isOneToOne: false
+            referencedRelation: "patient_forms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "report_action_plans_lifestyle_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "report_action_plans_lifestyle_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      report_action_plans_supplements: {
+        Row: {
+          active: boolean | null
+          brand_recommendations: string[] | null
+          contraindications: string[] | null
+          created_at: string
+          dosage: string
+          duration: string | null
+          form_id: string
+          frequency: string | null
+          id: string
+          immediate_phase_duration: string | null
+          monitoring_notes: string | null
+          patient_id: string | null
+          priority: string
+          reason: string | null
+          report_id: string | null
+          supplement_name: string
+          timing: string | null
+          total_monthly_cost: string | null
+        }
+        Insert: {
+          active?: boolean | null
+          brand_recommendations?: string[] | null
+          contraindications?: string[] | null
+          created_at?: string
+          dosage: string
+          duration?: string | null
+          form_id: string
+          frequency?: string | null
+          id?: string
+          immediate_phase_duration?: string | null
+          monitoring_notes?: string | null
+          patient_id?: string | null
+          priority?: string
+          reason?: string | null
+          report_id?: string | null
+          supplement_name: string
+          timing?: string | null
+          total_monthly_cost?: string | null
+        }
+        Update: {
+          active?: boolean | null
+          brand_recommendations?: string[] | null
+          contraindications?: string[] | null
+          created_at?: string
+          dosage?: string
+          duration?: string | null
+          form_id?: string
+          frequency?: string | null
+          id?: string
+          immediate_phase_duration?: string | null
+          monitoring_notes?: string | null
+          patient_id?: string | null
+          priority?: string
+          reason?: string | null
+          report_id?: string | null
+          supplement_name?: string
+          timing?: string | null
+          total_monthly_cost?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "report_action_plans_supplements_form_id_fkey"
+            columns: ["form_id"]
+            isOneToOne: false
+            referencedRelation: "patient_forms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "report_action_plans_supplements_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "report_action_plans_supplements_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      report_action_plans_therapy: {
+        Row: {
+          created_at: string
+          duration: string | null
+          expected_outcomes: string[] | null
+          form_id: string
+          frequency: string | null
+          id: string
+          monitoring_requirements: string[] | null
+          patient_id: string | null
+          precautions: string[] | null
+          priority: string
+          protocol: string | null
+          provider_type: string | null
+          report_id: string
+          therapy_type: string
+        }
+        Insert: {
+          created_at?: string
+          duration?: string | null
+          expected_outcomes?: string[] | null
+          form_id: string
+          frequency?: string | null
+          id?: string
+          monitoring_requirements?: string[] | null
+          patient_id?: string | null
+          precautions?: string[] | null
+          priority?: string
+          protocol?: string | null
+          provider_type?: string | null
+          report_id: string
+          therapy_type: string
+        }
+        Update: {
+          created_at?: string
+          duration?: string | null
+          expected_outcomes?: string[] | null
+          form_id?: string
+          frequency?: string | null
+          id?: string
+          monitoring_requirements?: string[] | null
+          patient_id?: string | null
+          precautions?: string[] | null
+          priority?: string
+          protocol?: string | null
+          provider_type?: string | null
+          report_id?: string
+          therapy_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "report_action_plans_therapy_form_id_fkey"
+            columns: ["form_id"]
+            isOneToOne: false
+            referencedRelation: "patient_forms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "report_action_plans_therapy_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "report_action_plans_therapy_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       report_comments: {
         Row: {
+          action_steps: string | null
           author: string | null
           category: string
+          comment_type: string | null
           content: string
           created_at: string
           criticality_level: string | null
           date: string
           evaluation_score: number | null
           evaluation_type: string | null
+          expected_timeline: string | null
           form_id: string
           id: string
           is_auto_generated: boolean | null
+          order_index: number | null
+          panel_affected: string | null
+          patient_friendly_content: string | null
+          patient_id: string | null
           priority: string
           recommendations: Json | null
-          report_id: string
+          report_id: string | null
           target_id: string | null
+          technical_details: string | null
           title: string
+          warning_signs: string | null
         }
         Insert: {
+          action_steps?: string | null
           author?: string | null
           category?: string
+          comment_type?: string | null
           content: string
           created_at?: string
           criticality_level?: string | null
           date?: string
           evaluation_score?: number | null
           evaluation_type?: string | null
+          expected_timeline?: string | null
           form_id: string
           id?: string
           is_auto_generated?: boolean | null
+          order_index?: number | null
+          panel_affected?: string | null
+          patient_friendly_content?: string | null
+          patient_id?: string | null
           priority?: string
           recommendations?: Json | null
-          report_id: string
+          report_id?: string | null
           target_id?: string | null
+          technical_details?: string | null
           title: string
+          warning_signs?: string | null
         }
         Update: {
+          action_steps?: string | null
           author?: string | null
           category?: string
+          comment_type?: string | null
           content?: string
           created_at?: string
           criticality_level?: string | null
           date?: string
           evaluation_score?: number | null
           evaluation_type?: string | null
+          expected_timeline?: string | null
           form_id?: string
           id?: string
           is_auto_generated?: boolean | null
+          order_index?: number | null
+          panel_affected?: string | null
+          patient_friendly_content?: string | null
+          patient_id?: string | null
           priority?: string
           recommendations?: Json | null
-          report_id?: string
+          report_id?: string | null
           target_id?: string | null
+          technical_details?: string | null
           title?: string
+          warning_signs?: string | null
         }
         Relationships: [
           {
@@ -758,7 +1350,89 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "report_comments_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "report_comments_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      report_key_findings: {
+        Row: {
+          body_impact: string | null
+          category: string | null
+          created_at: string | null
+          finding: string
+          form_id: string | null
+          id: string
+          impact: string | null
+          order_index: number | null
+          panel_association: string | null
+          patient_explanation: string | null
+          patient_id: string | null
+          related_biomarkers: Json[] | null
+          report_id: string | null
+          symptom_connection: string | null
+          updated_at: string | null
+          urgency: string | null
+          why_it_matters: string | null
+        }
+        Insert: {
+          body_impact?: string | null
+          category?: string | null
+          created_at?: string | null
+          finding: string
+          form_id?: string | null
+          id?: string
+          impact?: string | null
+          order_index?: number | null
+          panel_association?: string | null
+          patient_explanation?: string | null
+          patient_id?: string | null
+          related_biomarkers?: Json[] | null
+          report_id?: string | null
+          symptom_connection?: string | null
+          updated_at?: string | null
+          urgency?: string | null
+          why_it_matters?: string | null
+        }
+        Update: {
+          body_impact?: string | null
+          category?: string | null
+          created_at?: string | null
+          finding?: string
+          form_id?: string | null
+          id?: string
+          impact?: string | null
+          order_index?: number | null
+          panel_association?: string | null
+          patient_explanation?: string | null
+          patient_id?: string | null
+          related_biomarkers?: Json[] | null
+          report_id?: string | null
+          symptom_connection?: string | null
+          updated_at?: string | null
+          urgency?: string | null
+          why_it_matters?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "report_key_findings_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "report_key_findings_report_id_fkey"
             columns: ["report_id"]
             isOneToOne: false
             referencedRelation: "reports"
@@ -773,9 +1447,10 @@ export type Database = {
           description: string | null
           form_id: string
           id: string
+          patient_id: string | null
           percentage: number | null
           recommendations: Json | null
-          report_id: string
+          report_id: string | null
           risk_level: string
         }
         Insert: {
@@ -784,9 +1459,10 @@ export type Database = {
           description?: string | null
           form_id: string
           id?: string
+          patient_id?: string | null
           percentage?: number | null
           recommendations?: Json | null
-          report_id: string
+          report_id?: string | null
           risk_level: string
         }
         Update: {
@@ -795,9 +1471,10 @@ export type Database = {
           description?: string | null
           form_id?: string
           id?: string
+          patient_id?: string | null
           percentage?: number | null
           recommendations?: Json | null
-          report_id?: string
+          report_id?: string | null
           risk_level?: string
         }
         Relationships: [
@@ -806,6 +1483,13 @@ export type Database = {
             columns: ["form_id"]
             isOneToOne: false
             referencedRelation: "patient_forms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "report_risk_profiles_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
             referencedColumns: ["id"]
           },
           {
@@ -828,7 +1512,7 @@ export type Database = {
           id: string
           is_auto_generated: boolean | null
           recommendations: Json | null
-          report_id: string
+          report_id: string | null
           section_type: string
           target_id: string | null
           title: string
@@ -844,7 +1528,7 @@ export type Database = {
           id?: string
           is_auto_generated?: boolean | null
           recommendations?: Json | null
-          report_id: string
+          report_id?: string | null
           section_type: string
           target_id?: string | null
           title: string
@@ -860,7 +1544,7 @@ export type Database = {
           id?: string
           is_auto_generated?: boolean | null
           recommendations?: Json | null
-          report_id?: string
+          report_id?: string | null
           section_type?: string
           target_id?: string | null
           title?: string
@@ -870,9 +1554,12 @@ export type Database = {
       }
       reports: {
         Row: {
-          action_plan: Json | null
+          analytics_id: string | null
+          average_risk: number | null
           created_at: string
+          critical_biomarkers: Json | null
           diagnosis: Json
+          diagnosis_date: string | null
           doctor_id: string | null
           form_id: string | null
           id: string
@@ -880,12 +1567,21 @@ export type Database = {
           n8n_generated_at: string | null
           patient_id: string
           pdf_url: string | null
+          personalized_insights: Json | null
           processing_queue_id: string | null
+          risk_profile: Json | null
+          risk_score: number | null
+          status: string | null
+          summary: string | null
+          vitality_score: number | null
         }
         Insert: {
-          action_plan?: Json | null
+          analytics_id?: string | null
+          average_risk?: number | null
           created_at?: string
+          critical_biomarkers?: Json | null
           diagnosis: Json
+          diagnosis_date?: string | null
           doctor_id?: string | null
           form_id?: string | null
           id?: string
@@ -893,12 +1589,21 @@ export type Database = {
           n8n_generated_at?: string | null
           patient_id: string
           pdf_url?: string | null
+          personalized_insights?: Json | null
           processing_queue_id?: string | null
+          risk_profile?: Json | null
+          risk_score?: number | null
+          status?: string | null
+          summary?: string | null
+          vitality_score?: number | null
         }
         Update: {
-          action_plan?: Json | null
+          analytics_id?: string | null
+          average_risk?: number | null
           created_at?: string
+          critical_biomarkers?: Json | null
           diagnosis?: Json
+          diagnosis_date?: string | null
           doctor_id?: string | null
           form_id?: string | null
           id?: string
@@ -906,7 +1611,13 @@ export type Database = {
           n8n_generated_at?: string | null
           patient_id?: string
           pdf_url?: string | null
+          personalized_insights?: Json | null
           processing_queue_id?: string | null
+          risk_profile?: Json | null
+          risk_score?: number | null
+          status?: string | null
+          summary?: string | null
+          vitality_score?: number | null
         }
         Relationships: [
           {
@@ -1058,6 +1769,20 @@ export type Database = {
         }
         Returns: string
       }
+      create_patient_biomarker_with_analytics: {
+        Args: {
+          p_patient_id: string
+          p_biomarker_id: string
+          p_value: number
+          p_analytics_id: string
+          p_date: string
+        }
+        Returns: string
+      }
+      delete_patient_biomarker: {
+        Args: { p_id: string }
+        Returns: boolean
+      }
       find_patient_by_short_id: {
         Args: { short_id: string }
         Returns: {
@@ -1126,6 +1851,29 @@ export type Database = {
           creator_name: string
         }[]
       }
+      get_patient_biomarkers_by_analytics: {
+        Args: { p_patient_id: string; p_analytics_id: string }
+        Returns: {
+          id: string
+          patient_id: string
+          biomarker_id: string
+          value: number
+          date: string
+          created_at: string
+          created_by: string
+          analytics_id: string
+          biomarker_name: string
+          unit: string
+          description: string
+          category: string[]
+          conventional_min: number
+          conventional_max: number
+          optimal_min: number
+          optimal_max: number
+          biomarker_created_at: string
+          biomarker_updated_at: string
+        }[]
+      }
       get_report_biomarkers: {
         Args: { p_report_id: string }
         Returns: {
@@ -1134,18 +1882,13 @@ export type Database = {
           biomarker_id: string
           value: number
           date: string
-          is_out_of_range: boolean
-          trend: Database["public"]["Enums"]["trend"]
-          notes: string
           created_at: string
           created_by: string
-          form_id: string
-          report_id: string
+          analytics_id: string
           biomarker_name: string
           unit: string
           description: string
-          category: string
-          panel: string[]
+          category: string[]
           conventional_min: number
           conventional_max: number
           optimal_min: number
@@ -1156,6 +1899,10 @@ export type Database = {
       }
       is_admin_or_coach: {
         Args: { user_uuid: string }
+        Returns: boolean
+      }
+      update_patient_biomarker_value: {
+        Args: { p_id: string; p_value: number }
         Returns: boolean
       }
       verify_biomarker_ranges: {
@@ -1181,21 +1928,25 @@ export type Database = {
   }
 }
 
-type DefaultSchema = Database[Extract<keyof Database, "public">]
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-        Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
     : never = never,
-> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
-  ? (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-      Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
       Row: infer R
     }
     ? R
@@ -1213,14 +1964,16 @@ export type Tables<
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
-> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
-  ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Insert: infer I
     }
     ? I
@@ -1236,14 +1989,16 @@ export type TablesInsert<
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
-> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
-  ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Update: infer U
     }
     ? U
@@ -1259,14 +2014,16 @@ export type TablesUpdate<
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   EnumName extends DefaultSchemaEnumNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
     : never = never,
-> = DefaultSchemaEnumNameOrOptions extends { schema: keyof Database }
-  ? Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
   : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
     ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
     : never
@@ -1274,14 +2031,16 @@ export type Enums<
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
     : never = never,
-> = PublicCompositeTypeNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
   : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
     ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never

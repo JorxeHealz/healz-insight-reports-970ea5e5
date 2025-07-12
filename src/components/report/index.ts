@@ -3,6 +3,8 @@ export * from './ReportHeader';
 export * from './ReportTabs';
 export * from './ReportSummary';
 export * from './ReportPanels';
+export * from './KeyFindings';
+export * from './KeyFindingCard';
 export * from './ReportCategories';
 export * from './ClinicalNotes';
 export * from './ClinicalNotesStructured';

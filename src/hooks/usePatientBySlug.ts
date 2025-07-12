@@ -10,24 +10,38 @@ export const usePatientBySlug = (slug: string) => {
   return useQuery({
     queryKey: ['patient', 'slug', slug],
     queryFn: async () => {
+      console.log('usePatientBySlug: Starting search for slug:', slug);
+      
       const shortId = parsePatientIdFromSlug(slug);
       
       if (!shortId) {
-        throw new Error('Slug inválido');
+        console.error('usePatientBySlug: Invalid slug format:', slug);
+        throw new Error('Formato de slug inválido');
       }
 
-      // Usar una consulta SQL raw que funcione correctamente con UUIDs
+      console.log('usePatientBySlug: Extracted shortId (without hyphens):', shortId, 'Length:', shortId.length);
+
+      // La función SQL ahora elimina automáticamente los guiones del UUID de la base de datos
+      // para hacer match con nuestro shortId sin guiones
       const { data, error } = await supabase.rpc('find_patient_by_short_id', {
         short_id: shortId
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('usePatientBySlug: Database error:', error);
+        throw error;
+      }
+      
+      console.log('usePatientBySlug: Database response:', data);
       
       if (!data || !Array.isArray(data) || data.length === 0) {
+        console.log('usePatientBySlug: No patient found for shortId:', shortId);
         throw new Error('Paciente no encontrado');
       }
 
-      return data[0] as Patient;
+      const patient = data[0] as Patient;
+      console.log('usePatientBySlug: Found patient:', patient.first_name, patient.last_name, 'with full ID:', patient.id);
+      return patient;
     },
     enabled: !!slug,
   });

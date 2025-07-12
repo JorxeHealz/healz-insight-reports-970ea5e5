@@ -25,17 +25,17 @@ export const ActionPlan: React.FC<ActionPlanProps> = ({ report }) => {
   const [showAddForm, setShowAddForm] = useState<string | null>(null);
   const { deleteActionPlan } = useActionPlans(report.id);
   
-  // Usar los datos reales de report_action_plans en lugar del campo actionPlan vacío
-  const actionPlans = report.actionPlans || [];
+  // Usar los datos reales de report_action_plans organizados por categoría
+  const actionPlans = report.actionPlans || {};
   
-  // Agrupar los action plans por categoría y ordenar por prioridad
+  // Los action plans ya vienen agrupados por categoría, solo ordenar por prioridad
   const actionsByCategory = {
-    foods: sortActionsByPriority(actionPlans.filter((plan: any) => plan.category === 'foods')),
-    supplements: sortActionsByPriority(actionPlans.filter((plan: any) => plan.category === 'supplements')),
-    lifestyle: sortActionsByPriority(actionPlans.filter((plan: any) => plan.category === 'lifestyle')),
-    activity: sortActionsByPriority(actionPlans.filter((plan: any) => plan.category === 'activity')),
-    therapy: sortActionsByPriority(actionPlans.filter((plan: any) => plan.category === 'therapy')),
-    followup: sortActionsByPriority(actionPlans.filter((plan: any) => plan.category === 'followup'))
+    foods: sortActionsByPriority(actionPlans.foods || []),
+    supplements: sortActionsByPriority(actionPlans.supplements || []),
+    lifestyle: sortActionsByPriority(actionPlans.lifestyle || []),
+    activity: sortActionsByPriority(actionPlans.activity || []),
+    therapy: sortActionsByPriority(actionPlans.therapy || []),
+    followup: sortActionsByPriority(actionPlans.followup || [])
   };
 
   const actionCategories = [
@@ -44,42 +44,48 @@ export const ActionPlan: React.FC<ActionPlanProps> = ({ report }) => {
       title: 'Alimentación',
       icon: Apple,
       items: actionsByCategory.foods,
-      color: 'bg-healz-green/20 text-healz-green'
+      color: 'bg-healz-green/20 text-healz-green',
+      supportsDosage: true
     },
     {
       id: 'supplements',
       title: 'Suplementos',
       icon: Pill,
       items: actionsByCategory.supplements,
-      color: 'bg-healz-orange/20 text-healz-orange'
+      color: 'bg-healz-orange/20 text-healz-orange',
+      supportsDosage: true
     },
     {
       id: 'lifestyle',
       title: 'Estilo de Vida',
       icon: Heart,
       items: actionsByCategory.lifestyle,
-      color: 'bg-healz-blue/20 text-healz-teal'
+      color: 'bg-healz-blue/20 text-healz-teal',
+      supportsDosage: false
     },
     {
       id: 'activity',
       title: 'Actividad',
       icon: Dumbbell,
       items: actionsByCategory.activity,
-      color: 'bg-healz-teal/20 text-healz-teal'
+      color: 'bg-healz-teal/20 text-healz-teal',
+      supportsDosage: false
     },
     {
       id: 'therapy',
       title: 'Terapia',
       icon: Activity,
       items: actionsByCategory.therapy,
-      color: 'bg-healz-red/20 text-healz-red'
+      color: 'bg-healz-red/20 text-healz-red',
+      supportsDosage: false
     },
     {
       id: 'followup',
       title: 'Seguimiento',
       icon: Calendar,
       items: actionsByCategory.followup,
-      color: 'bg-healz-yellow/20 text-healz-orange'
+      color: 'bg-healz-yellow/20 text-healz-orange',
+      supportsDosage: false
     }
   ];
 

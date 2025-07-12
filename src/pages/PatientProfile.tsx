@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { usePatientBySlug } from '../hooks/usePatientBySlug';
@@ -17,12 +18,12 @@ import { es } from 'date-fns/locale';
 import { generatePatientSlug } from '../utils/patientSlug';
 
 const PatientProfile = () => {
-  const { slug } = useParams<{ slug: string }>();
+  const { patientSlug } = useParams<{ patientSlug: string }>();
   const navigate = useNavigate();
   const [showEditForm, setShowEditForm] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   
-  const { data: patient, isLoading, error } = usePatientBySlug(slug || '');
+  const { data: patient, isLoading, error } = usePatientBySlug(patientSlug || '');
   const deletePatient = useDeletePatient();
 
   const getStatusBadge = (status: string) => {
@@ -76,7 +77,7 @@ const PatientProfile = () => {
         title: "Paciente eliminado",
         description: `${patient.first_name} ${patient.last_name} ha sido eliminado correctamente`
       });
-      navigate('/patients');
+      navigate('/pacientes');
     } catch (error) {
       console.error('Error deleting patient:', error);
       toast({
@@ -119,7 +120,7 @@ const PatientProfile = () => {
   }
 
   const age = calculateAge(patient.date_of_birth);
-  const patientSlug = generatePatientSlug(patient);
+  const patientSlugForLinks = generatePatientSlug(patient);
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -128,7 +129,7 @@ const PatientProfile = () => {
         <BreadcrumbList>
           <BreadcrumbItem>
             <BreadcrumbLink asChild>
-              <Link to="/patients">Pacientes</Link>
+              <Link to="/pacientes">Pacientes</Link>
             </BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
@@ -293,7 +294,7 @@ const PatientProfile = () => {
         <CardContent>
           <div className="flex gap-4">
             <Button variant="outline" className="flex-1" asChild>
-              <Link to={`/paciente/${patientSlug}/forms`}>
+              <Link to={`/formularios/p/${patientSlugForLinks}`}>
                 <FileText className="h-4 w-4 mr-2" />
                 Gestionar Formularios
               </Link>

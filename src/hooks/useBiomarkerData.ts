@@ -1,4 +1,5 @@
 
+
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import { evaluateBiomarkerStatus, formatBiomarkerValue } from '../utils/biomarkerEvaluation';
@@ -12,7 +13,7 @@ export const useBiomarkerData = (patientId: string) => {
     queryFn: async (): Promise<Biomarker[]> => {
       console.log('Fetching biomarker data for patient:', patientId);
       
-      // Fetch patient biomarkers with biomarker details
+      // Fetch patient biomarkers with biomarker details using simplified structure
       const { data: patientBiomarkers, error } = await supabase
         .from('patient_biomarkers')
         .select(`
@@ -21,13 +22,15 @@ export const useBiomarkerData = (patientId: string) => {
           biomarker_id,
           value,
           date,
+          analytics_id,
+          created_at,
+          created_by,
           biomarkers (
             id,
             name,
             unit,
             description,
             category,
-            panel,
             conventional_min,
             conventional_max,
             optimal_min,
@@ -100,3 +103,4 @@ export const useBiomarkerData = (patientId: string) => {
     enabled: !!patientId
   });
 };
+

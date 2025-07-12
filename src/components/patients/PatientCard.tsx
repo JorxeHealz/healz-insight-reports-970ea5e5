@@ -62,7 +62,9 @@ export const PatientCard = ({ patient, onEdit }: PatientCardProps) => {
     }
   };
 
+  // Generar el slug para navegación
   const patientSlug = generatePatientSlug(patient);
+  console.log('PatientCard: Generated slug for patient', patient.first_name, patient.last_name, ':', patientSlug);
 
   return (
     <>
@@ -75,6 +77,9 @@ export const PatientCard = ({ patient, onEdit }: PatientCardProps) => {
                 <Link 
                   to={`/paciente/${patientSlug}`}
                   className="font-semibold text-healz-brown hover:text-healz-teal transition-colors"
+                  onClick={(e) => {
+                    console.log('PatientCard: Navigating to slug:', patientSlug);
+                  }}
                 >
                   {patient.first_name} {patient.last_name}
                 </Link>

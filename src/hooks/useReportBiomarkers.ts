@@ -1,4 +1,5 @@
 
+  
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import { Biomarker } from '../components/report/biomarkers/types';
@@ -17,7 +18,7 @@ export const useReportBiomarkers = (reportId: string | undefined) => {
 
       console.log('useReportBiomarkers: Fetching biomarkers for report:', reportId);
 
-      // Use RPC function to execute the SQL query that we know works
+      // Use RPC function to execute the SQL query - now with updated structure
       const { data: rawData, error: biomarkersError } = await supabase
         .rpc('get_report_biomarkers', { p_report_id: reportId });
 
@@ -37,19 +38,17 @@ export const useReportBiomarkers = (reportId: string | undefined) => {
         return [];
       }
 
-      // Transform the RPC result into Biomarker format
+      // Transform the RPC result into Biomarker format with updated structure
       const transformedBiomarkers: Biomarker[] = rawData.map((row: any) => {
         const numericValue = typeof row.value === 'string' ? parseFloat(row.value) : row.value;
         
-        // Create biomarker info object from the flat row data
-        // Handle panel field as array (after migration)
+        // Create biomarker info object from the flat row data - using category instead of panel
         const biomarkerInfo = {
           id: row.biomarker_id,
           name: row.biomarker_name,
           unit: row.unit,
           description: row.description,
-          category: row.category,
-          panel: Array.isArray(row.panel) ? row.panel : (row.panel ? [row.panel] : null), // Handle both array and string cases
+          category: row.category, // Using category which now contains panel information
           conventional_min: row.conventional_min,
           conventional_max: row.conventional_max,
           optimal_min: row.optimal_min,
@@ -74,8 +73,7 @@ export const useReportBiomarkers = (reportId: string | undefined) => {
           rawValue: numericValue,
           unit: biomarkerInfo.unit || '',
           biomarkerData: biomarkerInfo,
-          collectedAt: row.date,
-          notes: row.notes
+          collectedAt: row.date
         };
         
         console.log('useReportBiomarkers: Transformed biomarker:', result);
@@ -88,3 +86,4 @@ export const useReportBiomarkers = (reportId: string | undefined) => {
     enabled: !!reportId
   });
 };
+

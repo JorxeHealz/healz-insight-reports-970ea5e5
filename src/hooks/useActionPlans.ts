@@ -6,12 +6,10 @@ import { useToast } from './use-toast';
 type ActionPlanData = {
   report_id: string;
   form_id: string;
-  category: string;
-  title: string;
-  description: string;
+  category: string; // Keep as string for backward compatibility
   priority: 'high' | 'medium' | 'low';
-  duration?: string;
-  dosage?: string;
+  // Category-specific data will be handled by specialized hooks
+  [key: string]: any;
 };
 
 type UpdateActionPlanData = {
@@ -29,8 +27,11 @@ export const useActionPlans = (reportId: string) => {
 
   const createActionPlan = useMutation({
     mutationFn: async (data: ActionPlanData) => {
+      // Determine the correct table based on category
+      const tableName = `report_action_plans_${data.category}`;
+      
       const { data: result, error } = await supabase
-        .from('report_action_plans')
+        .from(tableName)
         .insert(data)
         .select()
         .single();

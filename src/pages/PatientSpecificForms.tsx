@@ -2,7 +2,7 @@
 import React, { useState, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { usePatientBySlug } from '../hooks/usePatientBySlug';
-import { usePatientForms, useCreatePatientForm, useProcessFormWithN8N } from '../hooks/usePatientForms';
+import { usePatientForms, useCreatePatientForm } from '../hooks/usePatientForms';
 import { Button } from '../components/ui/button';
 import { Skeleton } from '../components/ui/skeleton';
 import { toast } from '../hooks/use-toast';
@@ -19,7 +19,6 @@ const PatientSpecificForms = () => {
   const { data: patient, isLoading: patientLoading, error: patientError } = usePatientBySlug(slug || '');
   const { data: allForms, isLoading: formsLoading } = usePatientForms();
   const createPatientForm = useCreatePatientForm();
-  const processForm = useProcessFormWithN8N();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [selectedForm, setSelectedForm] = useState<PatientForm | null>(null);
   const [isResultsModalOpen, setIsResultsModalOpen] = useState(false);
@@ -30,25 +29,8 @@ const PatientSpecificForms = () => {
     return allForms.filter(form => form.patient_id === patient.id);
   }, [allForms, patient]);
 
-  const handleProcessForm = async (formId: string) => {
-    try {
-      await processForm.mutateAsync({ form_id: formId });
-      toast({
-        title: "Formulario enviado a n8n",
-        description: "El formulario ha sido enviado para su procesamiento."
-      });
-    } catch (error) {
-      console.error("Error al procesar el formulario:", error);
-      toast({
-        title: "Error",
-        description: "No se pudo enviar el formulario para su procesamiento.",
-        variant: "destructive"
-      });
-    }
-  };
-
   const handleCopyLink = (token: string, patientName: string) => {
-    const url = `${window.location.origin}/form/${token}`;
+    const url = `${window.location.origin}/formulario/${token}`;
     navigator.clipboard.writeText(url);
     toast({
       title: "URL copiada",
@@ -79,7 +61,7 @@ const PatientSpecificForms = () => {
             No se pudo encontrar el paciente solicitado.
           </p>
           <Button asChild>
-            <Link to="/patients">Volver a Pacientes</Link>
+            <Link to="/pacientes">Volver a Pacientes</Link>
           </Button>
         </div>
       </div>
@@ -107,8 +89,6 @@ const PatientSpecificForms = () => {
         patientName={patientName}
         onCopyLink={handleCopyLink}
         onViewResults={handleViewResults}
-        onProcessForm={handleProcessForm}
-        isProcessing={processForm.isPending}
       />
 
       <CreatePatientFormDialog

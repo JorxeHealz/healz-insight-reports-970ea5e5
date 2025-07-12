@@ -11,12 +11,14 @@ import { useActionPlans } from '../../hooks/useActionPlans';
 type EditableActionItemProps = {
   item: any;
   reportId: string;
+  supportsDosage?: boolean;
   onDelete: (id: string) => void;
 };
 
 export const EditableActionItem: React.FC<EditableActionItemProps> = ({ 
   item, 
-  reportId, 
+  reportId,
+  supportsDosage = true,
   onDelete 
 }) => {
   const [isEditing, setIsEditing] = useState(false);
@@ -87,20 +89,22 @@ export const EditableActionItem: React.FC<EditableActionItemProps> = ({
             placeholder="Descripción de la acción"
           />
           
-          <div className="grid grid-cols-2 gap-2">
-            <Input
-              value={editData.dosage}
-              onChange={(e) => setEditData({ ...editData, dosage: e.target.value })}
-              placeholder="Dosis (opcional)"
-              className="text-xs"
-            />
-            <Input
-              value={editData.duration}
-              onChange={(e) => setEditData({ ...editData, duration: e.target.value })}
-              placeholder="Duración (opcional)"
-              className="text-xs"
-            />
-          </div>
+          {supportsDosage && (
+            <div className="grid grid-cols-2 gap-2">
+              <Input
+                value={editData.dosage}
+                onChange={(e) => setEditData({ ...editData, dosage: e.target.value })}
+                placeholder="Dosis (opcional)"
+                className="text-xs"
+              />
+              <Input
+                value={editData.duration}
+                onChange={(e) => setEditData({ ...editData, duration: e.target.value })}
+                placeholder="Duración (opcional)"
+                className="text-xs"
+              />
+            </div>
+          )}
           
           <div className="flex gap-2">
             <Button
@@ -162,12 +166,12 @@ export const EditableActionItem: React.FC<EditableActionItemProps> = ({
         </div>
       </div>
       <p className="text-xs text-healz-brown/70">{item.description}</p>
-      {item.dosage && (
+      {supportsDosage && item.dosage && (
         <p className="text-xs text-healz-brown/60 mt-1">
           <strong>Dosis:</strong> {item.dosage}
         </p>
       )}
-      {item.duration && (
+      {supportsDosage && item.duration && (
         <p className="text-xs text-healz-brown/60">
           <strong>Duración:</strong> {item.duration}
         </p>

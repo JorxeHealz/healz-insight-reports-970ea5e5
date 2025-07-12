@@ -22,7 +22,7 @@ export const useUpcomingAppointments = () => {
             email
           )
         `)
-        .eq('user_id', 'temp-user-id') // TODO: Replace with actual auth.uid() when auth is implemented
+        .eq('user_id', '00000000-0000-0000-0000-000000000000') // Temporary UUID for development
         .gte('patients.next_visit', today)
         .lte('patients.next_visit', nextWeek)
         .order('patients.next_visit', { ascending: true });

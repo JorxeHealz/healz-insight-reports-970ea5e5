@@ -61,7 +61,7 @@ const Reports = () => {
           </svg>
         </div>
         <Link 
-          to="/reports/new" 
+          to="/informes/nuevo" 
           className="bg-healz-red text-white px-4 py-2 rounded-md hover:bg-opacity-90 transition-colors"
         >
           Nuevo Informe
@@ -127,7 +127,7 @@ const Reports = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <Link 
-                      to={`/reports/${report.id}`}
+                      to={`/informes/${report.id}`}
                       className="text-healz-teal hover:text-healz-blue mr-4"
                     >
                       Ver

@@ -1,4 +1,5 @@
 
+
 import { Database } from '../../../types/supabase';
 
 export interface Biomarker {
@@ -6,12 +7,10 @@ export interface Biomarker {
   valueWithUnit: string;
   status: 'optimal' | 'caution' | 'outOfRange';
   collectedAgo: string;
-  // Fix: Make rawValue consistently number since we parse it
   rawValue: number;
   unit: string;
   biomarkerData?: BiomarkerRow;
   collectedAt: string;
-  notes?: string;
 }
 
 export interface BiomarkerInfoData {
@@ -22,14 +21,13 @@ export interface BiomarkerInfoData {
   lowLevels?: string;
 }
 
-// Updated types to match the actual database structure
+// Updated types to match the actual database structure with category as TEXT[]
 export interface BiomarkerRow {
   id: string;
   name: string;
   unit: string;
   description: string | null;
-  category: string;
-  panel: string[] | null; // Changed from string to string[] to handle array
+  category: string[]; // category now contains panel information
   conventional_min: number;
   conventional_max: number;
   optimal_min: number;
@@ -38,6 +36,7 @@ export interface BiomarkerRow {
   updated_at: string;
 }
 
+// Simplified PatientBiomarkerData interface without removed columns
 export interface PatientBiomarkerData {
   id: string;
   patient_id: string;
@@ -46,3 +45,4 @@ export interface PatientBiomarkerData {
   date: string;
   biomarker: BiomarkerRow;
 }
+

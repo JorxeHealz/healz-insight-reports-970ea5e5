@@ -15,27 +15,44 @@ export const generatePatientSlug = (patient: Patient): string => {
     .replace(/\s+/g, '-') // Reemplazar espacios con guiones
     .trim();
 
-  // Tomar los primeros 8 caracteres del ID para el slug
-  const shortId = patient.id.substring(0, 8);
+  // Usar los primeros 12 caracteres alfanuméricos del UUID (sin guiones)
+  const alphanumericId = patient.id.replace(/-/g, '');
+  const shortId = alphanumericId.substring(0, 12);
+  
+  console.log('generatePatientSlug: Full ID:', patient.id, 'Alphanumeric ID:', alphanumericId, 'Short ID:', shortId, 'Length:', shortId.length);
   
   return `${normalizedName}-${shortId}`;
 };
 
 export const parsePatientIdFromSlug = (slug: string): string | null => {
-  // El ID está en los últimos 8 caracteres después del último guión
+  console.log('parsePatientIdFromSlug: Processing slug:', slug);
+  
+  // El ID está después del último guión
   const parts = slug.split('-');
   const lastPart = parts[parts.length - 1];
   
-  if (lastPart && lastPart.length === 8) {
+  console.log('parsePatientIdFromSlug: Last part:', lastPart, 'Length:', lastPart?.length);
+  
+  // Aceptar cualquier longitud razonable para el ID (8-20 caracteres)
+  // Esto permite compatibilidad con slugs existentes de diferentes formatos
+  if (lastPart && lastPart.length >= 8 && lastPart.length <= 20) {
+    console.log('parsePatientIdFromSlug: Valid short ID found:', lastPart);
     return lastPart;
   }
   
+  console.log('parsePatientIdFromSlug: Invalid short ID length or format');
   return null;
 };
 
 export const findPatientBySlug = (patients: Patient[], slug: string): Patient | null => {
   const shortId = parsePatientIdFromSlug(slug);
-  if (!shortId) return null;
+  if (!shortId) {
+    console.log('findPatientBySlug: No valid short ID found in slug');
+    return null;
+  }
   
-  return patients.find(patient => patient.id.startsWith(shortId)) || null;
+  const foundPatient = patients.find(patient => patient.id.startsWith(shortId));
+  console.log('findPatientBySlug: Found patient:', foundPatient ? `${foundPatient.first_name} ${foundPatient.last_name}` : 'None');
+  
+  return foundPatient || null;
 };

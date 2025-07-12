@@ -13,82 +13,162 @@ export const RiskProfileSection: React.FC<RiskProfileSectionProps> = ({ diagnosi
     <Text style={pdfStyles.sectionTitle}>Perfil de Riesgo</Text>
     <View style={pdfStyles.riskGrid}>
       <View style={pdfStyles.riskItem}>
-        <Text>Cardiovascular</Text>
+        <Text>Hormonas</Text>
         <Text 
           style={[
             pdfStyles.riskLevel, 
-            diagnosis.riskProfile.cardio === 'low' ? pdfStyles.low :
-            diagnosis.riskProfile.cardio === 'medium' ? pdfStyles.medium : pdfStyles.high
+            diagnosis.riskProfile.hormonas === 'low' ? pdfStyles.low :
+            diagnosis.riskProfile.hormonas === 'medium' ? pdfStyles.medium : pdfStyles.high
           ]}
         >
-          {diagnosis.riskProfile.cardio.toUpperCase()}
+          {diagnosis.riskProfile.hormonas.toUpperCase()}
         </Text>
         <Text style={pdfStyles.riskDescription}>
-          {diagnosis.riskProfile.cardio === 'low' 
+          {diagnosis.riskProfile.hormonas === 'low' 
+            ? 'Balance hormonal óptimo'
+            : diagnosis.riskProfile.hormonas === 'medium'
+            ? 'Signos de desequilibrio hormonal'
+            : 'Desregulación hormonal significativa'}
+        </Text>
+      </View>
+      
+      <View style={pdfStyles.riskItem}>
+        <Text>Vitalidad</Text>
+        <Text 
+          style={[
+            pdfStyles.riskLevel, 
+            diagnosis.riskProfile.vitalidad === 'low' ? pdfStyles.low :
+            diagnosis.riskProfile.vitalidad === 'medium' ? pdfStyles.medium : pdfStyles.high
+          ]}
+        >
+          {diagnosis.riskProfile.vitalidad.toUpperCase()}
+        </Text>
+        <Text style={pdfStyles.riskDescription}>
+          {diagnosis.riskProfile.vitalidad === 'low' 
+            ? 'Vitalidad excelente'
+            : diagnosis.riskProfile.vitalidad === 'medium'
+            ? 'Vitalidad moderada'
+            : 'Baja vitalidad general'}
+        </Text>
+      </View>
+      
+      <View style={pdfStyles.riskItem}>
+        <Text>Riesgo Cardíaco</Text>
+        <Text 
+          style={[
+            pdfStyles.riskLevel, 
+            diagnosis.riskProfile.riesgo_cardiaco === 'low' ? pdfStyles.low :
+            diagnosis.riskProfile.riesgo_cardiaco === 'medium' ? pdfStyles.medium : pdfStyles.high
+          ]}
+        >
+          {diagnosis.riskProfile.riesgo_cardiaco.toUpperCase()}
+        </Text>
+        <Text style={pdfStyles.riskDescription}>
+          {diagnosis.riskProfile.riesgo_cardiaco === 'low' 
             ? 'Riesgo cardiovascular bajo'
-            : diagnosis.riskProfile.cardio === 'medium'
+            : diagnosis.riskProfile.riesgo_cardiaco === 'medium'
             ? 'Riesgo moderado'
             : 'Riesgo elevado'}
         </Text>
       </View>
       
       <View style={pdfStyles.riskItem}>
-        <Text>Mental</Text>
+        <Text>Pérdida de Peso</Text>
         <Text 
           style={[
             pdfStyles.riskLevel, 
-            diagnosis.riskProfile.mental === 'low' ? pdfStyles.low :
-            diagnosis.riskProfile.mental === 'medium' ? pdfStyles.medium : pdfStyles.high
+            diagnosis.riskProfile.perdida_peso === 'low' ? pdfStyles.low :
+            diagnosis.riskProfile.perdida_peso === 'medium' ? pdfStyles.medium : pdfStyles.high
           ]}
         >
-          {diagnosis.riskProfile.mental.toUpperCase()}
+          {diagnosis.riskProfile.perdida_peso.toUpperCase()}
         </Text>
         <Text style={pdfStyles.riskDescription}>
-          {diagnosis.riskProfile.mental === 'low' 
-            ? 'Salud mental óptima'
-            : diagnosis.riskProfile.mental === 'medium'
-            ? 'Signos moderados de estrés'
-            : 'Signos importantes de desequilibrio'}
+          {diagnosis.riskProfile.perdida_peso === 'low' 
+            ? 'Peso saludable'
+            : diagnosis.riskProfile.perdida_peso === 'medium'
+            ? 'Necesidad moderada de cambios'
+            : 'Requiere intervención'}
         </Text>
       </View>
       
       <View style={pdfStyles.riskItem}>
-        <Text>Adrenal</Text>
+        <Text>Fuerza</Text>
         <Text 
           style={[
             pdfStyles.riskLevel, 
-            diagnosis.riskProfile.adrenal === 'low' ? pdfStyles.low :
-            diagnosis.riskProfile.adrenal === 'medium' ? pdfStyles.medium : pdfStyles.high
+            diagnosis.riskProfile.fuerza === 'low' ? pdfStyles.low :
+            diagnosis.riskProfile.fuerza === 'medium' ? pdfStyles.medium : pdfStyles.high
           ]}
         >
-          {diagnosis.riskProfile.adrenal.toUpperCase()}
+          {diagnosis.riskProfile.fuerza.toUpperCase()}
         </Text>
         <Text style={pdfStyles.riskDescription}>
-          {diagnosis.riskProfile.adrenal === 'low' 
-            ? 'Función adrenal equilibrada'
-            : diagnosis.riskProfile.adrenal === 'medium'
-            ? 'Signos de adaptación al estrés'
-            : 'Desregulación significativa'}
+          {diagnosis.riskProfile.fuerza === 'low' 
+            ? 'Fuerza y resistencia óptimas'
+            : diagnosis.riskProfile.fuerza === 'medium'
+            ? 'Capacidad física moderada'
+            : 'Debilidad muscular significativa'}
         </Text>
       </View>
       
       <View style={pdfStyles.riskItem}>
-        <Text>Metabólico</Text>
+        <Text>Salud Cerebral</Text>
         <Text 
           style={[
             pdfStyles.riskLevel, 
-            diagnosis.riskProfile.metabolic === 'low' ? pdfStyles.low :
-            diagnosis.riskProfile.metabolic === 'medium' ? pdfStyles.medium : pdfStyles.high
+            diagnosis.riskProfile.salud_cerebral === 'low' ? pdfStyles.low :
+            diagnosis.riskProfile.salud_cerebral === 'medium' ? pdfStyles.medium : pdfStyles.high
           ]}
         >
-          {diagnosis.riskProfile.metabolic.toUpperCase()}
+          {diagnosis.riskProfile.salud_cerebral.toUpperCase()}
         </Text>
         <Text style={pdfStyles.riskDescription}>
-          {diagnosis.riskProfile.metabolic === 'low' 
-            ? 'Metabolismo óptimo'
-            : diagnosis.riskProfile.metabolic === 'medium'
-            ? 'Señales tempranas de desregulación'
-            : 'Desregulación significativa'}
+          {diagnosis.riskProfile.salud_cerebral === 'low' 
+            ? 'Función cognitiva excelente'
+            : diagnosis.riskProfile.salud_cerebral === 'medium'
+            ? 'Signos moderados de estrés mental'
+            : 'Problemas cognitivos importantes'}
+        </Text>
+      </View>
+      
+      <View style={pdfStyles.riskItem}>
+        <Text>Salud Sexual</Text>
+        <Text 
+          style={[
+            pdfStyles.riskLevel, 
+            diagnosis.riskProfile.salud_sexual === 'low' ? pdfStyles.low :
+            diagnosis.riskProfile.salud_sexual === 'medium' ? pdfStyles.medium : pdfStyles.high
+          ]}
+        >
+          {diagnosis.riskProfile.salud_sexual.toUpperCase()}
+        </Text>
+        <Text style={pdfStyles.riskDescription}>
+          {diagnosis.riskProfile.salud_sexual === 'low' 
+            ? 'Salud sexual óptima'
+            : diagnosis.riskProfile.salud_sexual === 'medium'
+            ? 'Cambios moderados'
+            : 'Disfunción significativa'}
+        </Text>
+      </View>
+      
+      <View style={pdfStyles.riskItem}>
+        <Text>Longevidad</Text>
+        <Text 
+          style={[
+            pdfStyles.riskLevel, 
+            diagnosis.riskProfile.longevidad === 'low' ? pdfStyles.low :
+            diagnosis.riskProfile.longevidad === 'medium' ? pdfStyles.medium : pdfStyles.high
+          ]}
+        >
+          {diagnosis.riskProfile.longevidad.toUpperCase()}
+        </Text>
+        <Text style={pdfStyles.riskDescription}>
+          {diagnosis.riskProfile.longevidad === 'low' 
+            ? 'Excelente potencial de longevidad'
+            : diagnosis.riskProfile.longevidad === 'medium'
+            ? 'Factores de riesgo moderados'
+            : 'Múltiples factores de riesgo'}
         </Text>
       </View>
     </View>

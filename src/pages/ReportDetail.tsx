@@ -5,11 +5,11 @@ import { Suspense } from 'react';
 import { Skeleton } from '../components/ui/skeleton';
 
 const ReportDetail = () => {
-  const { id } = useParams<{ id: string }>();
+  const { reportId } = useParams<{ reportId: string }>();
 
-  console.log('ReportDetail rendering with id:', id);
+  console.log('ReportDetail rendering with reportId:', reportId);
 
-  if (!id) {
+  if (!reportId) {
     return (
       <div className="max-w-5xl mx-auto p-6 text-center">
         <p className="text-healz-brown/70">ID de reporte no válido</p>
@@ -30,7 +30,7 @@ const ReportDetail = () => {
           <Skeleton className="h-96 w-full" />
         </div>
       }>
-        <ReportDetailContent reportId={id} />
+        <ReportDetailContent reportId={reportId} />
       </Suspense>
     </div>
   );

@@ -4,23 +4,27 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 
 interface RiskBarsProps {
   risks: {
-    cardio: number;
-    mental: number;
-    adrenal: number;
-    oncologic: number;
-    metabolic: number;
-    inflammatory: number;
+    hormonas: number;
+    vitalidad: number;
+    riesgo_cardiaco: number;
+    perdida_peso: number;
+    fuerza: number;
+    salud_cerebral: number;
+    salud_sexual: number;
+    longevidad: number;
   };
 }
 
 export const RiskBars: React.FC<RiskBarsProps> = ({ risks }) => {
   const riskNames = {
-    cardio: 'Cardiovascular',
-    mental: 'Mental',
-    adrenal: 'Adrenal',
-    oncologic: 'Oncológico',
-    metabolic: 'Metabólico',
-    inflammatory: 'Inflamatorio'
+    hormonas: 'Hormonas',
+    vitalidad: 'Vitalidad',
+    riesgo_cardiaco: 'Riesgo Cardíaco',
+    perdida_peso: 'Pérdida de Peso',
+    fuerza: 'Fuerza',
+    salud_cerebral: 'Salud Cerebral',
+    salud_sexual: 'Salud Sexual',
+    longevidad: 'Longevidad'
   };
 
   const getRiskColor = (value: number) => {

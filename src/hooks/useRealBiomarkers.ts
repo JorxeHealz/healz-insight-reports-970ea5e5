@@ -2,6 +2,9 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import { Biomarker } from '../components/report/biomarkers/types';
+import { evaluateBiomarkerStatus, formatBiomarkerValue } from '../utils/biomarkerEvaluation';
+import { formatDistanceToNow } from 'date-fns';
+import { es } from 'date-fns/locale';
 
 export const useRealBiomarkers = (patientId: string) => {
   return useQuery({
@@ -11,7 +14,7 @@ export const useRealBiomarkers = (patientId: string) => {
 
       console.log('Fetching real biomarkers for patient:', patientId);
 
-      // Fetch biomarkers with their definitions
+      // Fetch biomarkers with their definitions using simplified structure
       const { data, error } = await supabase
         .from('patient_biomarkers')
         .select(`
@@ -32,28 +35,23 @@ export const useRealBiomarkers = (patientId: string) => {
       const transformedBiomarkers: Biomarker[] = (data || []).map(record => {
         const biomarkerInfo = record.biomarker;
         
-        // Determine status based on ranges
-        let status: 'optimal' | 'caution' | 'outOfRange' = 'optimal';
-        
-        if (record.is_out_of_range) {
-          status = 'outOfRange';
-        } else if (biomarkerInfo && (
-          record.value < biomarkerInfo.optimal_min || 
-          record.value > biomarkerInfo.optimal_max
-        )) {
-          status = 'caution';
-        }
+        // Determine status based on ranges using evaluation utility
+        const evaluation = evaluateBiomarkerStatus(record.value, biomarkerInfo);
+        const valueWithUnit = formatBiomarkerValue(record.value, biomarkerInfo?.unit || '');
+        const collectedAgo = formatDistanceToNow(new Date(record.date), { 
+          addSuffix: false,
+          locale: es 
+        });
 
         return {
           name: biomarkerInfo?.name || 'Unknown',
-          valueWithUnit: `${record.value} ${biomarkerInfo?.unit || ''}`,
-          status,
-          collectedAgo: new Date(record.date).toLocaleDateString('es-ES'),
+          valueWithUnit,
+          status: evaluation.status,
+          collectedAgo,
           rawValue: record.value,
           unit: biomarkerInfo?.unit || '',
           biomarkerData: biomarkerInfo,
-          collectedAt: record.date,
-          notes: record.notes
+          collectedAt: record.date
         };
       });
 

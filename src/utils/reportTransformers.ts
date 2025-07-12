@@ -57,14 +57,150 @@ export const buildRiskProfile = (riskProfiles: any[]) => {
   return { ...defaultRisks, ...risks };
 };
 
+// Función auxiliar para determinar si una respuesta indica presencia de síntoma
+function shouldReportSymptom(answer: string): boolean {
+  const lowerAnswer = answer.toLowerCase().trim();
+  
+  // Respuestas que indican presencia del síntoma
+  const positiveAnswers = [
+    'sí', 'si', 'yes', 'true', 
+    'frecuentemente', 'siempre', 'always', 'frequently',
+    'moderadamente', 'severamente', 'mucho', 'bastante',
+    'a veces', 'ocasionalmente', 'sometimes', 'occasionally'
+  ];
+  
+  // Respuestas que indican ausencia del síntoma
+  const negativeAnswers = [
+    'no', 'never', 'nunca', 'false',
+    'información no disponible', 'n/a', 'na',
+    'rara vez', 'rarely', 'poco', 'nada'
+  ];
+  
+  // Verificar respuestas positivas
+  if (positiveAnswers.some(pos => lowerAnswer.includes(pos))) {
+    return true;
+  }
+  
+  // Verificar respuestas negativas
+  if (negativeAnswers.some(neg => lowerAnswer.includes(neg))) {
+    return false;
+  }
+  
+  // Para respuestas numéricas (escalas), considerar >= 3 como positivo
+  const numericValue = parseInt(lowerAnswer);
+  if (!isNaN(numericValue)) {
+    return numericValue >= 3;
+  }
+  
+  // Para respuestas no categorizadas, considerar como positiva si no está vacía
+  return lowerAnswer.length > 0 && lowerAnswer !== '0';
+}
+
+// Función para extraer el nombre del síntoma del texto de la pregunta
+function extractSymptomFromQuestion(questionText: string): string | null {
+  const lowerText = questionText.toLowerCase();
+  
+  // Mapeo de palabras clave a síntomas
+  const symptomKeywords: Record<string, string> = {
+    'energía baja': 'Energía baja',
+    'cansancio': 'Energía baja',
+    'fatiga': 'Fatiga constante',
+    'libido': 'Libido bajo',
+    'deseo sexual': 'Libido bajo',
+    'sueño': 'Sueño deficiente',
+    'dormir': 'Sueño deficiente',
+    'peso': 'Cambios de peso',
+    'cabello': 'Pérdida de cabello',
+    'concentra': 'Dificultad para concentrarse',
+    'niebla mental': 'Niebla mental',
+    'memoria': 'Pérdida de memoria',
+    'humor': 'Cambios de humor',
+    'ánimo': 'Cambios de humor',
+    'sofocos': 'Sofocos',
+    'calor': 'Intolerancia al calor o frío',
+    'frío': 'Intolerancia al calor o frío',
+    'antojos': 'Antojos de comida',
+    'resistencia': 'Resistencia disminuida',
+    'motivación': 'Falta de motivación',
+    'enfermedad': 'Enfermedades frecuentes',
+    'dolor pecho': 'Dolor en el pecho',
+    'falta aire': 'Falta de aliento',
+    'mareo': 'Mareos',
+    'náusea': 'Náuseas',
+    'sudor': 'Sudoración',
+    'ejercicio': 'Poca tolerancia al ejercicio',
+    'grasa corporal': 'Exceso de grasa corporal',
+    'ronquidos': 'Ronquidos',
+    'piel': 'Problemas de piel',
+    'articular': 'Dolor en articulaciones',
+    'espalda': 'Dolor de espalda',
+    'autoestima': 'Baja autoestima',
+    'presión arterial': 'Presión arterial alta',
+    'glucosa': 'Disregulación de glucosa en sangre',
+    'confusión': 'Confusión',
+    'problemas': 'Dificultad para resolver problemas',
+    'lenguaje': 'Problemas de lenguaje',
+    'coordinación': 'Coordinación deficiente',
+    'comportamiento': 'Cambios en el comportamiento',
+    'disfunción eréctil': 'Disfunción eréctil',
+    'sequedad vaginal': 'Sequedad vaginal',
+    'dolor relaciones': 'Dolor durante las relaciones',
+    'infertilidad': 'Infertilidad',
+    'fragilidad': 'Fragilidad',
+    'deterioro cognitivo': 'Deterioro cognitivo',
+    'ansiedad': 'Ansiedad',
+    'sop': 'Síntomas de SOP'
+  };
+
+  // Buscar coincidencias de palabras clave
+  for (const [keyword, symptom] of Object.entries(symptomKeywords)) {
+    if (lowerText.includes(keyword)) {
+      return symptom;
+    }
+  }
+
+  return null;
+}
+
+// Función para determinar la severidad basada en la respuesta
+function getSeverityFromAnswer(answer: string): 'low' | 'med' | 'high' {
+  const lowerAnswer = answer.toLowerCase().trim();
+  
+  if (lowerAnswer.includes('siempre') || lowerAnswer.includes('always') || 
+      lowerAnswer.includes('severamente') || lowerAnswer.includes('mucho')) {
+    return 'high';
+  }
+  
+  if (lowerAnswer.includes('frecuentemente') || lowerAnswer.includes('frequently') || 
+      lowerAnswer.includes('moderadamente') || lowerAnswer.includes('bastante')) {
+    return 'med';
+  }
+  
+  // "A veces", "ocasionalmente", etc.
+  return 'low';
+}
+
 export const transformSymptoms = (symptoms: any[]) => {
   return symptoms
-    .filter(answer => answer.answer && typeof answer.answer === 'string' && answer.answer.toLowerCase().includes('sí'))
-    .slice(0, 5)
-    .map(symptom => ({
-      name: symptom.question_id.replace(/_/g, ' '),
-      severity: symptom.answer.includes('muy') ? 'high' as const : 'med' as const
-    }));
+    .filter(answer => {
+      // Verificar que tenemos la respuesta y que indica presencia de síntoma
+      return answer.answer && 
+             typeof answer.answer === 'string' && 
+             shouldReportSymptom(answer.answer);
+    })
+    .map(symptom => {
+      // Acceder al question_text desde la estructura JOIN
+      const questionText = symptom.form_questions?.question_text || symptom.question_text;
+      const symptomName = extractSymptomFromQuestion(questionText) || 
+                          questionText?.replace(/.*[¿?]\s*/, '').replace(/[¿?]*$/, '') ||
+                          symptom.question_id.replace(/_/g, ' ');
+      
+      return {
+        name: symptomName,
+        severity: getSeverityFromAnswer(symptom.answer)
+      };
+    })
+    .slice(0, 5); // Limitar a 5 síntomas principales
 };
 
 // Update transformClinicalNotes to preserve all evaluation properties
@@ -95,19 +231,42 @@ export const transformClinicalNotes = (clinicalNotes: any[]) => {
   }));
 };
 
-// Actualizar la función de transformación de action plans para devolver el array completo
-export const transformActionPlan = (actionPlans: any[]) => {
-  // Devolver el array completo de action plans en lugar de agrupar por categoría
-  // El componente ActionPlan se encargará de agrupar los datos
-  return actionPlans.map(plan => ({
-    id: plan.id,
-    category: plan.category,
-    title: plan.title,
-    description: plan.description,
-    priority: plan.priority,
-    duration: plan.duration,
-    dosage: plan.dosage
-  }));
+// Transform specialized action plans structure
+export const transformActionPlan = (actionPlans: any) => {
+  // Handle the new specialized structure with categories
+  if (actionPlans && typeof actionPlans === 'object' && !Array.isArray(actionPlans)) {
+    return {
+      foods: actionPlans.foods || [],
+      lifestyle: actionPlans.lifestyle || [],
+      activity: actionPlans.activity || [],
+      supplements: actionPlans.supplements || [],
+      therapy: actionPlans.therapy || [],
+      followup: actionPlans.followup || []
+    };
+  }
+  
+  // Fallback for old structure (array)
+  if (Array.isArray(actionPlans)) {
+    return actionPlans.map(plan => ({
+      id: plan.id,
+      category: plan.category,
+      title: plan.title,
+      description: plan.description,
+      priority: plan.priority,
+      duration: plan.duration,
+      dosage: plan.dosage
+    }));
+  }
+  
+  // Default empty structure
+  return {
+    foods: [],
+    lifestyle: [],
+    activity: [],
+    supplements: [],
+    therapy: [],
+    followup: []
+  };
 };
 
 export const transformSummarySections = (summarySections: any[]) => {
@@ -147,11 +306,12 @@ export const buildTransformedReport = (
     recentBiomarkers,
     // Use clinical_notes instead of clinicalNotes to match component expectations
     clinical_notes: transformedClinicalNotes,
-    summary: reportData.diagnosis?.summary || generateSummary(patient, finalRisks, biomarkerSummary),
+    summary: reportData.diagnosis || generateSummary(patient, finalRisks, biomarkerSummary),
     manualNotes: reportData.manual_notes,
     // Cambiar de actionPlan a actionPlans para usar el array completo
     actionPlans: transformedActionPlan,
-    summarySections: summarySections
+    summarySections: summarySections,
+    keyFindings: [] // This will be populated in useReportData
   };
 };
 

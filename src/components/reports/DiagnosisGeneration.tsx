@@ -65,39 +65,75 @@ export const DiagnosisGeneration = ({ patient, diagnosis, onBack, onNext }: Diag
         <CardContent>
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div className="p-3 bg-white rounded shadow-sm border border-healz-brown/10">
-              <div className="font-medium">Cardiovascular</div>
+              <div className="font-medium">Riesgo Cardíaco</div>
               <div className={`mt-1 text-xs px-1.5 py-0.5 rounded inline-block
-                ${diagnosis.riskProfile.cardio === 'low' ? 'bg-healz-green/20 text-healz-green' : 
-                diagnosis.riskProfile.cardio === 'medium' ? 'bg-healz-yellow/20 text-healz-yellow' : 
+                ${diagnosis.riskProfile.riesgo_cardiaco === 'low' ? 'bg-healz-green/20 text-healz-green' : 
+                diagnosis.riskProfile.riesgo_cardiaco === 'medium' ? 'bg-healz-yellow/20 text-healz-yellow' : 
                 'bg-healz-red/20 text-healz-red'}`}>
-                {diagnosis.riskProfile.cardio.toUpperCase()}
+                {diagnosis.riskProfile.riesgo_cardiaco?.toUpperCase() || 'N/A'}
               </div>
             </div>
             <div className="p-3 bg-white rounded shadow-sm border border-healz-brown/10">
-              <div className="font-medium">Mental</div>
+              <div className="font-medium">Salud Cerebral</div>
               <div className={`mt-1 text-xs px-1.5 py-0.5 rounded inline-block
-                ${diagnosis.riskProfile.mental === 'low' ? 'bg-healz-green/20 text-healz-green' : 
-                diagnosis.riskProfile.mental === 'medium' ? 'bg-healz-yellow/20 text-healz-yellow' : 
+                ${diagnosis.riskProfile.salud_cerebral === 'low' ? 'bg-healz-green/20 text-healz-green' : 
+                diagnosis.riskProfile.salud_cerebral === 'medium' ? 'bg-healz-yellow/20 text-healz-yellow' : 
                 'bg-healz-red/20 text-healz-red'}`}>
-                {diagnosis.riskProfile.mental.toUpperCase()}
+                {diagnosis.riskProfile.salud_cerebral?.toUpperCase() || 'N/A'}
               </div>
             </div>
             <div className="p-3 bg-white rounded shadow-sm border border-healz-brown/10">
-              <div className="font-medium">Adrenal</div>
+              <div className="font-medium">Hormonas</div>
               <div className={`mt-1 text-xs px-1.5 py-0.5 rounded inline-block
-                ${diagnosis.riskProfile.adrenal === 'low' ? 'bg-healz-green/20 text-healz-green' : 
-                diagnosis.riskProfile.adrenal === 'medium' ? 'bg-healz-yellow/20 text-healz-yellow' : 
+                ${diagnosis.riskProfile.hormonas === 'low' ? 'bg-healz-green/20 text-healz-green' : 
+                diagnosis.riskProfile.hormonas === 'medium' ? 'bg-healz-yellow/20 text-healz-yellow' : 
                 'bg-healz-red/20 text-healz-red'}`}>
-                {diagnosis.riskProfile.adrenal.toUpperCase()}
+                {diagnosis.riskProfile.hormonas?.toUpperCase() || 'N/A'}
               </div>
             </div>
             <div className="p-3 bg-white rounded shadow-sm border border-healz-brown/10">
-              <div className="font-medium">Metabólico</div>
+              <div className="font-medium">Pérdida de Peso</div>
               <div className={`mt-1 text-xs px-1.5 py-0.5 rounded inline-block
-                ${diagnosis.riskProfile.metabolic === 'low' ? 'bg-healz-green/20 text-healz-green' : 
-                diagnosis.riskProfile.metabolic === 'medium' ? 'bg-healz-yellow/20 text-healz-yellow' : 
+                ${diagnosis.riskProfile.perdida_peso === 'low' ? 'bg-healz-green/20 text-healz-green' : 
+                diagnosis.riskProfile.perdida_peso === 'medium' ? 'bg-healz-yellow/20 text-healz-yellow' : 
                 'bg-healz-red/20 text-healz-red'}`}>
-                {diagnosis.riskProfile.metabolic.toUpperCase()}
+                {diagnosis.riskProfile.perdida_peso?.toUpperCase() || 'N/A'}
+              </div>
+            </div>
+            <div className="p-3 bg-white rounded shadow-sm border border-healz-brown/10">
+              <div className="font-medium">Vitalidad</div>
+              <div className={`mt-1 text-xs px-1.5 py-0.5 rounded inline-block
+                ${diagnosis.riskProfile.vitalidad === 'low' ? 'bg-healz-green/20 text-healz-green' : 
+                diagnosis.riskProfile.vitalidad === 'medium' ? 'bg-healz-yellow/20 text-healz-yellow' : 
+                'bg-healz-red/20 text-healz-red'}`}>
+                {diagnosis.riskProfile.vitalidad?.toUpperCase() || 'N/A'}
+              </div>
+            </div>
+            <div className="p-3 bg-white rounded shadow-sm border border-healz-brown/10">
+              <div className="font-medium">Fuerza</div>
+              <div className={`mt-1 text-xs px-1.5 py-0.5 rounded inline-block
+                ${diagnosis.riskProfile.fuerza === 'low' ? 'bg-healz-green/20 text-healz-green' : 
+                diagnosis.riskProfile.fuerza === 'medium' ? 'bg-healz-yellow/20 text-healz-yellow' : 
+                'bg-healz-red/20 text-healz-red'}`}>
+                {diagnosis.riskProfile.fuerza?.toUpperCase() || 'N/A'}
+              </div>
+            </div>
+            <div className="p-3 bg-white rounded shadow-sm border border-healz-brown/10">
+              <div className="font-medium">Salud Sexual</div>
+              <div className={`mt-1 text-xs px-1.5 py-0.5 rounded inline-block
+                ${diagnosis.riskProfile.salud_sexual === 'low' ? 'bg-healz-green/20 text-healz-green' : 
+                diagnosis.riskProfile.salud_sexual === 'medium' ? 'bg-healz-yellow/20 text-healz-yellow' : 
+                'bg-healz-red/20 text-healz-red'}`}>
+                {diagnosis.riskProfile.salud_sexual?.toUpperCase() || 'N/A'}
+              </div>
+            </div>
+            <div className="p-3 bg-white rounded shadow-sm border border-healz-brown/10">
+              <div className="font-medium">Longevidad</div>
+              <div className={`mt-1 text-xs px-1.5 py-0.5 rounded inline-block
+                ${diagnosis.riskProfile.longevidad === 'low' ? 'bg-healz-green/20 text-healz-green' : 
+                diagnosis.riskProfile.longevidad === 'medium' ? 'bg-healz-yellow/20 text-healz-yellow' : 
+                'bg-healz-red/20 text-healz-red'}`}>
+                {diagnosis.riskProfile.longevidad?.toUpperCase() || 'N/A'}
               </div>
             </div>
           </div>

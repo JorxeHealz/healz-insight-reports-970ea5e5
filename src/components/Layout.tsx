@@ -1,107 +1,134 @@
-import { Outlet, Link, useLocation } from "react-router-dom";
-import { cn } from "@/lib/utils";
+
+import { Outlet, Link, useLocation } from 'react-router-dom';
 import { 
+  LayoutDashboard, 
   Users, 
   FileText, 
-  BarChart3, 
-  Calendar as CalendarIcon,
+  Calendar, 
+  ClipboardList,
+  BarChart3,
   Settings,
-  ClipboardList 
-} from "lucide-react";
+  TestTube,
+  ChevronDown,
+  FolderOpen
+} from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
-const navigation = [
-  { name: "Dashboard", href: "/dashboard", icon: BarChart3 },
-  { name: "Pacientes", href: "/patients", icon: Users },
-  { name: "Formularios", href: "/formularios", icon: ClipboardList },
-  { name: "Calendario", href: "/calendar", icon: CalendarIcon },
-  { name: "Informes", href: "/reports", icon: FileText },
+const navigationItems = [
+  { name: 'Dashboard', href: '/', icon: LayoutDashboard },
+  { name: 'Pacientes', href: '/pacientes', icon: Users },
+  { name: 'Calendario', href: '/calendario', icon: Calendar },
+];
+
+const resourcesItems = [
+  { name: 'Formularios', href: '/formularios', icon: FileText },
+  { name: 'Informes', href: '/informes', icon: ClipboardList },
+  { name: 'Analíticas', href: '/analiticas', icon: TestTube }
 ];
 
 export function Layout() {
   const location = useLocation();
 
+  const isResourcesActive = resourcesItems.some(item => 
+    location.pathname === item.href || 
+    (item.href !== '/' && location.pathname.startsWith(item.href))
+  );
+
   return (
-    <div className="min-h-screen bg-[#F8F6F1]">
+    <div className="min-h-screen bg-healz-cream">
       {/* Header horizontal */}
-      <header className="bg-white shadow-sm border-b border-gray-200">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex h-16 justify-between items-center">
-            {/* Logo */}
-            <div className="flex items-center">
-              <Link to="/" className="flex items-center space-x-2">
-                <div className="h-8 w-8 bg-[#E48D58] rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold text-sm">H</span>
-                </div>
-                <span className="text-xl font-bold text-[#3A2E1C]">Healz</span>
-              </Link>
-            </div>
-
-            {/* Navegación horizontal */}
-            <nav className="hidden md:flex space-x-8">
-              {navigation.map((item) => {
-                const isActive = location.pathname === item.href || 
-                  (item.href !== "/" && location.pathname.startsWith(item.href));
-                
-                return (
-                  <Link
-                    key={item.name}
-                    to={item.href}
-                    className={cn(
-                      "flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors",
-                      isActive
-                        ? "bg-[#E48D58] text-white"
-                        : "text-[#3A2E1C] hover:bg-[#F8F6F1] hover:text-[#E48D58]"
-                    )}
-                  >
-                    <item.icon className="mr-2 h-4 w-4" />
-                    {item.name}
-                  </Link>
-                );
-              })}
-            </nav>
-
-            {/* Admin Tools */}
-            <div className="flex items-center">
-              <Link
-                to="/cleanup"
-                className="flex items-center px-3 py-2 text-sm text-gray-500 hover:text-[#E48D58] transition-colors rounded-md"
-              >
-                <Settings className="mr-2 h-4 w-4" />
-                <span className="hidden sm:inline">Admin Tools</span>
-              </Link>
-            </div>
+      <header className="bg-white shadow-lg">
+        <div className="flex items-center justify-between px-6 py-4">
+          {/* Logo */}
+          <div className="flex items-center space-x-2">
+            <BarChart3 className="h-8 w-8 text-healz-red" />
+            <span className="text-xl font-bold text-healz-brown">Healz Reports</span>
           </div>
-        </div>
 
-        {/* Navegación móvil */}
-        <div className="md:hidden border-t border-gray-200">
-          <div className="px-2 py-3 space-y-1">
-            {navigation.map((item) => {
+          {/* Navegación horizontal */}
+          <nav className="flex items-center space-x-1">
+            {navigationItems.map((item) => {
               const isActive = location.pathname === item.href || 
-                (item.href !== "/" && location.pathname.startsWith(item.href));
+                (item.href !== '/' && location.pathname.startsWith(item.href));
               
               return (
                 <Link
                   key={item.name}
                   to={item.href}
-                  className={cn(
-                    "flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors",
+                  className={`flex items-center px-4 py-2 text-sm font-medium rounded-md transition-colors ${
                     isActive
-                      ? "bg-[#E48D58] text-white"
-                      : "text-[#3A2E1C] hover:bg-[#F8F6F1] hover:text-[#E48D58]"
-                  )}
+                      ? 'bg-healz-red/10 text-healz-red'
+                      : 'text-healz-brown hover:bg-healz-cream hover:text-healz-red'
+                  }`}
                 >
-                  <item.icon className="mr-3 h-5 w-5" />
+                  <item.icon className="mr-2 h-4 w-4" />
                   {item.name}
                 </Link>
               );
             })}
-          </div>
+
+            {/* Dropdown Recursos */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  className={`flex items-center px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                    isResourcesActive
+                      ? 'bg-healz-red/10 text-healz-red'
+                      : 'text-healz-brown hover:bg-healz-cream hover:text-healz-red'
+                  }`}
+                >
+                  <FolderOpen className="mr-2 h-4 w-4" />
+                  Recursos
+                  <ChevronDown className="ml-1 h-4 w-4" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48 bg-white shadow-lg border z-50">
+                {resourcesItems.map((item) => {
+                  const isActive = location.pathname === item.href || 
+                    (item.href !== '/' && location.pathname.startsWith(item.href));
+                  
+                  return (
+                    <DropdownMenuItem key={item.name} asChild>
+                      <Link
+                        to={item.href}
+                        className={`flex items-center px-3 py-2 text-sm transition-colors ${
+                          isActive
+                            ? 'bg-healz-red/10 text-healz-red font-medium'
+                            : 'text-healz-brown hover:bg-healz-cream hover:text-healz-red'
+                        }`}
+                      >
+                        <item.icon className="mr-3 h-4 w-4" />
+                        {item.name}
+                      </Link>
+                    </DropdownMenuItem>
+                  );
+                })}
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {/* Limpieza DB */}
+            <Link
+              to="/limpieza"
+              className={`flex items-center px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                location.pathname === '/limpieza'
+                  ? 'bg-healz-red/10 text-healz-red'
+                  : 'text-healz-brown/60 hover:bg-healz-cream hover:text-healz-red'
+              }`}
+            >
+              <Settings className="mr-2 h-4 w-4" />
+              Limpieza DB
+            </Link>
+          </nav>
         </div>
       </header>
 
       {/* Contenido principal */}
-      <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6">
+      <main className="flex-1">
         <Outlet />
       </main>
     </div>
