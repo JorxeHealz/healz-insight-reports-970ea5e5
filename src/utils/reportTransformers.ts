@@ -189,9 +189,10 @@ export const transformSymptoms = (symptoms: any[]) => {
              shouldReportSymptom(answer.answer);
     })
     .map(symptom => {
-      // Extraer el nombre del síntoma desde el texto de la pregunta o usar question_text
-      const symptomName = extractSymptomFromQuestion(symptom.question_text || symptom.question_id) || 
-                          symptom.question_text?.replace(/.*[¿?]\s*/, '').replace(/[¿?]*$/, '') ||
+      // Acceder al question_text desde la estructura JOIN
+      const questionText = symptom.form_questions?.question_text || symptom.question_text;
+      const symptomName = extractSymptomFromQuestion(questionText) || 
+                          questionText?.replace(/.*[¿?]\s*/, '').replace(/[¿?]*$/, '') ||
                           symptom.question_id.replace(/_/g, ' ');
       
       return {
