@@ -40,18 +40,34 @@ export const calculateBiomarkerSummary = (reportBiomarkers: any[]) => {
 };
 
 export const buildRiskProfile = (riskProfiles: any[]) => {
+  // Mapeo de categorías de la BD a las esperadas por el componente
+  const categoryMapping: Record<string, string> = {
+    'Hormonas': 'hormonas',
+    'Vitalidad': 'vitalidad', 
+    'Riesgo Cardíaco': 'riesgo_cardiaco',
+    'Pérdida de Peso': 'perdida_peso',
+    'Fuerza': 'fuerza',
+    'Salud Cerebral': 'salud_cerebral',
+    'Salud Sexual': 'salud_sexual',
+    'Longevidad': 'longevidad'
+  };
+
   const risks = riskProfiles.reduce((acc, profile) => {
-    acc[profile.category] = profile.percentage || getRiskPercentage(profile.risk_level);
+    const mappedCategory = categoryMapping[profile.category] || profile.category.toLowerCase().replace(/\s+/g, '_');
+    acc[mappedCategory] = profile.percentage || getRiskPercentage(profile.risk_level);
     return acc;
   }, {} as Record<string, number>);
 
+  // Valores por defecto para categorías faltantes
   const defaultRisks = {
-    cardio: 25,
-    mental: 30,
-    adrenal: 20,
-    oncologic: 15,
-    metabolic: 35,
-    inflammatory: 25
+    hormonas: 50,
+    vitalidad: 50,
+    riesgo_cardiaco: 50,
+    perdida_peso: 50,
+    fuerza: 50,
+    salud_cerebral: 50,
+    salud_sexual: 50,
+    longevidad: 50
   };
 
   return { ...defaultRisks, ...risks };

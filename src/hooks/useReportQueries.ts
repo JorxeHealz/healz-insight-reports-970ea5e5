@@ -51,10 +51,18 @@ export const fetchReportRiskProfiles = async (reportId: string, formId: string) 
   const { data } = await supabase
     .from('report_risk_profiles')
     .select('*')
-    .eq('report_id', reportId)
-    .eq('form_id', formId);
+    .eq('form_id', formId)
+    .order('created_at', { ascending: false });
 
-  return data || [];
+  // Get the latest entry for each category
+  const latestByCategory = data?.reduce((acc: any[], profile: any) => {
+    if (!acc.find(p => p.category === profile.category)) {
+      acc.push(profile);
+    }
+    return acc;
+  }, []);
+
+  return latestByCategory || [];
 };
 
 export const fetchReportActionPlans = async (reportId: string, formId: string) => {
