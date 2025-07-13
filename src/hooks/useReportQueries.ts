@@ -1,4 +1,3 @@
-
 import { supabase } from '../lib/supabase';
 
 export const fetchReportData = async (reportId: string) => {
@@ -88,13 +87,46 @@ export const fetchReportActionPlans = async (reportId: string, formId: string) =
 };
 
 export const fetchReportComments = async (reportId: string, formId: string) => {
-  const { data } = await supabase
+  console.log('Fetching report comments for:', { reportId, formId });
+  
+  const { data, error } = await supabase
     .from('report_comments')
-    .select('*')
-    .eq('report_id', reportId)
+    .select(`
+      id,
+      report_id,
+      form_id,
+      patient_id,
+      title,
+      content,
+      category,
+      priority,
+      author,
+      date,
+      created_at,
+      evaluation_type,
+      target_id,
+      evaluation_score,
+      criticality_level,
+      recommendations,
+      is_auto_generated,
+      comment_type,
+      panel_affected,
+      technical_details,
+      patient_friendly_content,
+      action_steps,
+      warning_signs,
+      expected_timeline,
+      order_index
+    `)
     .eq('form_id', formId)
     .order('created_at', { ascending: false });
 
+  if (error) {
+    console.error('Error fetching report comments:', error);
+    throw error;
+  }
+
+  console.log('Report comments fetched:', data);
   return data || [];
 };
 
@@ -132,4 +164,3 @@ export const fetchReportKeyFindings = async (reportId: string, formId: string) =
 
   return data || [];
 };
-

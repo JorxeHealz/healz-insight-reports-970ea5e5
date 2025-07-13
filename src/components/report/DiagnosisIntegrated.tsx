@@ -13,7 +13,9 @@ import {
   Eye,
   EyeOff,
   Calendar,
-  Target
+  Target,
+  User,
+  Clock
 } from 'lucide-react';
 import { EditableClinicalNote } from './EditableClinicalNote';
 import { AddClinicalNoteDialog } from './AddClinicalNoteDialog';
@@ -31,11 +33,7 @@ export const DiagnosisIntegrated: React.FC<DiagnosisIntegratedProps> = ({ report
   
   // Debug: Log the report data to see its structure
   console.log('DiagnosisIntegrated - Report data:', report);
-  console.log('DiagnosisIntegrated - Diagnosis:', report.diagnosis);
-  console.log('DiagnosisIntegrated - Summary:', report.summary);
   console.log('DiagnosisIntegrated - Clinical notes:', report.clinical_notes);
-  console.log('DiagnosisIntegrated - Personalized insights:', report.personalized_insights);
-  console.log('DiagnosisIntegrated - Critical biomarkers:', report.critical_biomarkers);
   
   // Fetch biomarkers for this report
   const { data: reportBiomarkers } = useReportBiomarkers(report.id);
@@ -54,6 +52,7 @@ export const DiagnosisIntegrated: React.FC<DiagnosisIntegratedProps> = ({ report
     return { general, panels, biomarkers };
   };
 
+  // Use clinical_notes from report (which should come from report_comments table)
   const notes = report.clinical_notes || [];
   const { general, panels, biomarkers } = categorizeNotes(notes);
 
@@ -293,16 +292,134 @@ export const DiagnosisIntegrated: React.FC<DiagnosisIntegratedProps> = ({ report
       ) : (
         <div className="space-y-4">
           {notes.map((note) => (
-            <EditableClinicalNote
-              key={note.id}
-              note={note}
-              reportId={report.id}
-              onDelete={handleDeleteNote}
-              isEvaluation={!!note.evaluation_type}
-              availablePanels={availablePanels}
-              availableBiomarkers={availableBiomarkers}
-              showTechnicalView={showTechnicalView}
-            />
+            <Card key={note.id} className="border-l-4 border-l-healz-blue/30">
+              <CardHeader className="pb-3">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <CardTitle className="text-base">{note.title}</CardTitle>
+                      {note.evaluation_type && (
+                        <Badge variant="outline" className="text-xs">
+                          {note.evaluation_type === 'general' ? 'General' : 
+                           note.evaluation_type === 'panel' ? 'Panel' : 'Biomarcador'}
+                        </Badge>
+                      )}
+                      {note.criticality_level && (
+                        <Badge 
+                          variant={note.criticality_level === 'critical' ? 'destructive' : 
+                                  note.criticality_level === 'high' ? 'secondary' : 'outline'}
+                          className="text-xs"
+                        >
+                          {note.criticality_level === 'critical' ? 'Crítico' :
+                           note.criticality_level === 'high' ? 'Alto' :
+                           note.criticality_level === 'medium' ? 'Medio' : 'Bajo'}
+                        </Badge>
+                      )}
+                      {note.is_auto_generated && (
+                        <Badge variant="outline" className="text-xs bg-healz-blue/10 text-healz-blue">
+                          Auto-generado
+                        </Badge>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-4 text-sm text-healz-brown/70">
+                      {note.author && (
+                        <div className="flex items-center gap-1">
+                          <User className="h-3 w-3" />
+                          {note.author}
+                        </div>
+                      )}
+                      <div className="flex items-center gap-1">
+                        <Clock className="h-3 w-3" />
+                        {new Date(note.date || note.created_at).toLocaleDateString('es-ES')}
+                      </div>
+                      {note.evaluation_score && (
+                        <div className="flex items-center gap-1">
+                          <Target className="h-3 w-3" />
+                          Puntuación: {note.evaluation_score}/10
+                        </div>
+                      )}
+                      {note.target_id && (
+                        <div className="flex items-center gap-1">
+                          <span className="text-xs">🎯 {note.target_id}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div className="prose prose-sm max-w-none">
+                    <p className="text-healz-brown whitespace-pre-wrap">
+                      {note.content}
+                    </p>
+                  </div>
+                  
+                  {showTechnicalView && note.technical_details && (
+                    <div className="bg-healz-cream/30 rounded-lg p-3">
+                      <h5 className="font-medium text-healz-brown mb-2 text-sm">Detalles Técnicos:</h5>
+                      <p className="text-sm text-healz-brown/80 whitespace-pre-wrap">
+                        {note.technical_details}
+                      </p>
+                    </div>
+                  )}
+                  
+                  {note.patient_friendly_content && (
+                    <div className="bg-healz-green/10 rounded-lg p-3">
+                      <h5 className="font-medium text-healz-brown mb-2 text-sm">Explicación para el Paciente:</h5>
+                      <p className="text-sm text-healz-brown/80 whitespace-pre-wrap">
+                        {note.patient_friendly_content}
+                      </p>
+                    </div>
+                  )}
+                  
+                  {note.action_steps && (
+                    <div className="bg-healz-orange/10 rounded-lg p-3">
+                      <h5 className="font-medium text-healz-brown mb-2 text-sm">Pasos de Acción:</h5>
+                      <p className="text-sm text-healz-brown/80 whitespace-pre-wrap">
+                        {note.action_steps}
+                      </p>
+                    </div>
+                  )}
+                  
+                  {note.warning_signs && (
+                    <div className="bg-healz-red/10 rounded-lg p-3 border border-healz-red/20">
+                      <h5 className="font-medium text-healz-red mb-2 text-sm flex items-center gap-1">
+                        <AlertTriangle className="h-4 w-4" />
+                        Señales de Advertencia:
+                      </h5>
+                      <p className="text-sm text-healz-red/80 whitespace-pre-wrap">
+                        {note.warning_signs}
+                      </p>
+                    </div>
+                  )}
+                  
+                  {note.expected_timeline && (
+                    <div className="bg-healz-blue/10 rounded-lg p-3">
+                      <h5 className="font-medium text-healz-brown mb-2 text-sm">Cronograma Esperado:</h5>
+                      <p className="text-sm text-healz-brown/80">
+                        {note.expected_timeline}
+                      </p>
+                    </div>
+                  )}
+                  
+                  {note.recommendations && Object.keys(note.recommendations).length > 0 && (
+                    <div className="bg-healz-teal/10 rounded-lg p-3">
+                      <h5 className="font-medium text-healz-brown mb-2 text-sm">Recomendaciones:</h5>
+                      <div className="text-sm text-healz-brown/80">
+                        {typeof note.recommendations === 'string' ? (
+                          <p className="whitespace-pre-wrap">{note.recommendations}</p>
+                        ) : (
+                          <pre className="whitespace-pre-wrap font-sans">
+                            {JSON.stringify(note.recommendations, null, 2)}
+                          </pre>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
           ))}
         </div>
       )}
@@ -341,15 +458,15 @@ export const DiagnosisIntegrated: React.FC<DiagnosisIntegratedProps> = ({ report
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="general" className="flex items-center gap-2">
             <Brain className="h-4 w-4" />
-            Evaluación General
+            Evaluación General ({general.length})
           </TabsTrigger>
           <TabsTrigger value="panels" className="flex items-center gap-2">
             <Activity className="h-4 w-4" />
-            Por Paneles
+            Por Paneles ({panels.length})
           </TabsTrigger>
           <TabsTrigger value="biomarkers" className="flex items-center gap-2">
             <Heart className="h-4 w-4" />
-            Por Biomarcadores
+            Por Biomarcadores ({biomarkers.length})
           </TabsTrigger>
         </TabsList>
 
