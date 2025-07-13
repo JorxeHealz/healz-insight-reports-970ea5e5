@@ -27,7 +27,9 @@ export const ReportSummary: React.FC<ReportSummaryProps> = ({ report }) => {
         formId={report.form_id}
         sectionType="general_summary"
         title="Resumen General"
-        content={summarySections.general_summary?.content || report.summary || ''}
+        content={summarySections.general_summary?.content || 
+                (typeof report.summary === 'object' && report.summary?.summary ? report.summary.summary :
+                 typeof report.summary === 'string' ? report.summary : '') || ''}
         icon={<FileText className="h-4 w-4" />}
         className="col-span-full"
       />
