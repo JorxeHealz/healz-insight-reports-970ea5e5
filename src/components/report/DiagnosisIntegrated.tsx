@@ -85,7 +85,7 @@ export const DiagnosisIntegrated: React.FC<DiagnosisIntegratedProps> = ({ report
   const vitalityScore = report.vitality_score || 0;
   const riskScore = report.risk_score;
   const diagnosisDate = report.diagnosis_date ? new Date(report.diagnosis_date).toLocaleDateString('es-ES') : 
-                       new Date(report.createdAt).toLocaleDateString('es-ES');
+                       new Date(report.created_at).toLocaleDateString('es-ES');
 
   const renderMainDiagnosis = () => (
     <Card className="mb-6">
