@@ -12,7 +12,7 @@ export * from './ActionPlan';
 export * from './VitalityScoreCard';
 export * from './QualityOfLifeStars';
 export * from './RiskBars';
-export * from './BiologicalAgeCard';
+export * from './AverageRiskCard';
 export * from './BiomarkerStatus';
 export * from './SymptomsList';
 export * from './RecentBiomarkers';

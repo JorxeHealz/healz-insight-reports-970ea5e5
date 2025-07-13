@@ -3,7 +3,7 @@ import React from 'react';
 import { VitalityScoreCard } from './VitalityScoreCard';
 import { QualityOfLifeStars } from './QualityOfLifeStars';
 import { RiskBars } from './RiskBars';
-import { BiologicalAgeCard } from './BiologicalAgeCard';
+import { AverageRiskCard } from './AverageRiskCard';
 import { BiomarkerStatus } from './BiomarkerStatus';
 import { SymptomsList } from './SymptomsList';
 import { RecentBiomarkers } from './RecentBiomarkers';
@@ -64,9 +64,8 @@ export const ReportSummary: React.FC<ReportSummaryProps> = ({ report }) => {
         </div>
         
         <div className="space-y-6">
-          <BiologicalAgeCard 
-            biologicalAge={report.biologicalAge} 
-            chronologicalAge={report.chronologicalAge} 
+          <AverageRiskCard 
+            averageRisk={report.average_risk || 0} 
           />
           
           <BiomarkerStatus 
