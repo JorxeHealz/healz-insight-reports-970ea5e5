@@ -63,9 +63,13 @@ export const MainDiagnosisCard: React.FC<MainDiagnosisCardProps> = ({
         <div className="bg-healz-cream/30 rounded-lg p-5">
           <h3 className="font-semibold text-healz-brown mb-3 text-lg">Evaluación Clínica Principal</h3>
           <div className="prose prose-sm max-w-none">
-            <p className="text-healz-brown leading-relaxed whitespace-pre-wrap text-base">
-              {diagnosis}
-            </p>
+            <div className="text-healz-brown leading-relaxed whitespace-pre-wrap text-base space-y-3">
+              {diagnosis.split('\n\n').map((paragraph: string, index: number) => (
+                <p key={index} className="mb-3 last:mb-0">
+                  {paragraph}
+                </p>
+              ))}
+            </div>
           </div>
         </div>
 

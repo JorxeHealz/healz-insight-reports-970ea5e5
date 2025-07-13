@@ -15,6 +15,8 @@ export const fetchReportData = async (reportId: string) => {
       critical_biomarkers,
       manual_notes,
       form_id,
+      patient_id,
+      analytics_id,
       patients!inner (
         id,
         first_name,

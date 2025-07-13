@@ -336,7 +336,9 @@ export const buildTransformedReport = (
     recentBiomarkers,
     // Use clinical_notes instead of clinicalNotes to match component expectations
     clinical_notes: transformedClinicalNotes,
-    summary: reportData.diagnosis || generateSummary(patient, finalRisks, biomarkerSummary),
+    summary: typeof reportData.diagnosis === 'string' ? reportData.diagnosis : 
+             (typeof reportData.diagnosis?.summary === 'string' ? reportData.diagnosis.summary : 
+              generateSummary(patient, finalRisks, biomarkerSummary)),
     manualNotes: reportData.manual_notes,
     // Cambiar de actionPlan a actionPlans para usar el array completo
     actionPlans: transformedActionPlan,
