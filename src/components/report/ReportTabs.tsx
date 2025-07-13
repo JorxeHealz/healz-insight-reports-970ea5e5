@@ -5,7 +5,7 @@ import { ReportSummary } from './ReportSummary';
 import { ReportPanels } from './ReportPanels';
 import { KeyFindings } from './KeyFindings';
 import { ActionPlan } from './ActionPlan';
-import { ClinicalNotesStructured } from './ClinicalNotesStructured';
+import { DiagnosisIntegrated } from './DiagnosisIntegrated';
 import { FileText, Activity, Target, Brain, Search } from 'lucide-react';
 
 interface ReportTabsProps {
@@ -55,7 +55,7 @@ export const ReportTabs: React.FC<ReportTabsProps> = ({
       </TabsContent>
 
       <TabsContent value="diagnosis" className="space-y-6">
-        {clinicalNotesComponent || <ClinicalNotesStructured report={report} />}
+        {clinicalNotesComponent || <DiagnosisIntegrated report={report} />}
       </TabsContent>
 
       <TabsContent value="action-plan" className="space-y-6">

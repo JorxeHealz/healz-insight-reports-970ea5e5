@@ -243,6 +243,12 @@ export const transformClinicalNotes = (clinicalNotes: any[]) => {
     evaluation_score: note.evaluation_score,
     criticality_level: note.criticality_level,
     is_auto_generated: note.is_auto_generated,
+    // Additional clinical fields from report_comments
+    technical_details: note.technical_details,
+    patient_friendly_content: note.patient_friendly_content,
+    warning_signs: note.warning_signs,
+    action_steps: note.action_steps,
+    expected_timeline: note.expected_timeline,
     // Legacy properties for backward compatibility
     type: note.category,
     summary: note.content,
@@ -320,9 +326,9 @@ export const buildTransformedReport = (
     form_id: reportData.form_id,
     patient: patient,
     createdAt: reportData.created_at,
-    vitalityScore: reportData.diagnosis?.vitalityScore || 45,
-    qualityOfLife: Math.min(5, Math.max(1, Math.round((reportData.diagnosis?.vitalityScore || 45) / 20))) as 1 | 2 | 3 | 4 | 5,
-    biologicalAge: calculateBiologicalAge(patient?.date_of_birth, reportData.diagnosis?.vitalityScore || 45),
+    vitalityScore: reportData.diagnosis?.vitalityScore || reportData.vitality_score || 45,
+    qualityOfLife: Math.min(5, Math.max(1, Math.round((reportData.diagnosis?.vitalityScore || reportData.vitality_score || 45) / 20))) as 1 | 2 | 3 | 4 | 5,
+    biologicalAge: calculateBiologicalAge(patient?.date_of_birth, reportData.diagnosis?.vitalityScore || reportData.vitality_score || 45),
     chronologicalAge: calculateChronologicalAge(patient?.date_of_birth),
     risks: finalRisks,
     biomarkerSummary,
@@ -335,7 +341,13 @@ export const buildTransformedReport = (
     // Cambiar de actionPlan a actionPlans para usar el array completo
     actionPlans: transformedActionPlan,
     summarySections: summarySections,
-    keyFindings: [] // This will be populated in useReportData
+    keyFindings: [], // This will be populated in useReportData
+    // Additional diagnostic fields from reports table
+    risk_score: reportData.risk_score,
+    average_risk: reportData.average_risk,
+    personalized_insights: reportData.personalized_insights || {},
+    critical_biomarkers: reportData.critical_biomarkers || [],
+    diagnosis_date: reportData.diagnosis_date || reportData.created_at
   };
 };
 
