@@ -118,7 +118,6 @@ export const fetchReportSummarySections = async (reportId: string, formId: strin
   const { data } = await supabase
     .from('report_summary_sections')
     .select('*')
-    .eq('report_id', reportId)
     .eq('form_id', formId);
 
   return data || [];
