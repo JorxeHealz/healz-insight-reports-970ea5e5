@@ -8,7 +8,6 @@ import { BiomarkerStatus } from './BiomarkerStatus';
 import { SymptomsList } from './SymptomsList';
 import { RecentBiomarkers } from './RecentBiomarkers';
 import { EditableSummarySection } from './EditableSummarySection';
-import { CriticalBiomarkersCard } from './CriticalBiomarkersCard';
 import { FileText, Heart, Activity, Brain } from 'lucide-react';
 
 type ReportSummaryProps = {
@@ -47,11 +46,6 @@ export const ReportSummary: React.FC<ReportSummaryProps> = ({ report }) => {
             title="Notas sobre Vitalidad"
             content={summarySections.vitality_notes?.content || ''}
             icon={<Heart className="h-4 w-4" />}
-          />
-          
-          {/* Biomarcadores Críticos */}
-          <CriticalBiomarkersCard 
-            criticalBiomarkers={Array.isArray(report.critical_biomarkers) ? report.critical_biomarkers : []}
           />
           
           <QualityOfLifeStars rating={report.qualityOfLife} />

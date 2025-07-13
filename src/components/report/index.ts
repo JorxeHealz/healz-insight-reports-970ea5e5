@@ -17,7 +17,6 @@ export * from './BiomarkerStatus';
 export * from './SymptomsList';
 export * from './RecentBiomarkers';
 export * from './ReportDetailContent';
-export * from './CriticalBiomarkersCard';
 export * from './biomarkers/BiomarkerStatusBadge';
 export * from './biomarkers/BiomarkerItem';
 export * from './biomarkers/types';
