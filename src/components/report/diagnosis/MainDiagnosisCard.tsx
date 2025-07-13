@@ -21,9 +21,19 @@ export const MainDiagnosisCard: React.FC<MainDiagnosisCardProps> = ({
   personalizedInsights,
   criticalBiomarkers
 }) => {
+  // Debugging del diagnóstico recibido
+  console.log('🏥 DEBUG MainDiagnosisCard - diagnosis prop:', diagnosis);
+  console.log('🏥 DEBUG MainDiagnosisCard - diagnosis length:', diagnosis?.length);
+  console.log('🏥 DEBUG MainDiagnosisCard - diagnosis type:', typeof diagnosis);
+  
   const systemsAffected = personalizedInsights.sistemas_afectados || personalizedInsights.systems_affected || [];
   const rootCauses = personalizedInsights.causas_raiz || personalizedInsights.root_causes || [];
   const interconnections = personalizedInsights.interconexiones || personalizedInsights.interconnections || '';
+  
+  // Validación mejorada del diagnóstico
+  if (!diagnosis || diagnosis.trim() === '' || diagnosis === 'No se ha generado un diagnóstico para este reporte.') {
+    console.log('⚠️ WARNING: No hay diagnóstico válido para mostrar');
+  }
 
   return (
     <Card className="border-2 border-healz-blue/20 shadow-lg">
@@ -63,13 +73,20 @@ export const MainDiagnosisCard: React.FC<MainDiagnosisCardProps> = ({
         <div className="bg-healz-cream/30 rounded-lg p-5">
           <h3 className="font-semibold text-healz-brown mb-3 text-lg">Evaluación Clínica Principal</h3>
           <div className="prose prose-sm max-w-none">
-            <div className="text-healz-brown leading-relaxed whitespace-pre-wrap text-base space-y-3">
-              {diagnosis.split('\n\n').map((paragraph: string, index: number) => (
-                <p key={index} className="mb-3 last:mb-0">
-                  {paragraph}
-                </p>
-              ))}
-            </div>
+            {diagnosis && diagnosis.trim() !== '' && diagnosis !== 'No se ha generado un diagnóstico para este reporte.' ? (
+              <div className="text-healz-brown leading-relaxed whitespace-pre-wrap text-base space-y-3">
+                {diagnosis.split('\n\n').map((paragraph: string, index: number) => (
+                  <p key={index} className="mb-3 last:mb-0">
+                    {paragraph.trim()}
+                  </p>
+                ))}
+              </div>
+            ) : (
+              <div className="text-healz-brown/60 italic text-center py-8">
+                <p className="text-lg">No se ha generado un diagnóstico para este reporte.</p>
+                <p className="text-sm mt-2">Los datos del paciente están siendo procesados.</p>
+              </div>
+            )}
           </div>
         </div>
 

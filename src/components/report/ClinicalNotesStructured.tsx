@@ -31,10 +31,16 @@ export const ClinicalNotesStructured: React.FC<ClinicalNotesStructuredProps> = (
   // Fetch biomarkers para este reporte
   const { data: reportBiomarkers } = useReportBiomarkers(report.id);
 
+  // Debugging del diagnóstico
+  console.log('🔍 DEBUG ClinicalNotesStructured - report.diagnosis:', report.diagnosis);
+  console.log('🔍 DEBUG ClinicalNotesStructured - typeof report.diagnosis:', typeof report.diagnosis);
+  
   // Extraer información principal del diagnóstico
   const mainDiagnosis = typeof report.diagnosis === 'string' ? report.diagnosis : 
                        typeof report.diagnosis?.summary === 'string' ? report.diagnosis.summary : 
                        'No se ha generado un diagnóstico para este reporte.';
+                       
+  console.log('🔍 DEBUG ClinicalNotesStructured - mainDiagnosis resultado:', mainDiagnosis);
   
   const personalizedInsights = report.personalized_insights || {};
   const criticalBiomarkers = Array.isArray(report.critical_biomarkers) ? report.critical_biomarkers : [];
