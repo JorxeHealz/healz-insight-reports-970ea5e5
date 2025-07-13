@@ -130,19 +130,19 @@ export const MainDiagnosisCard: React.FC<MainDiagnosisCardProps> = ({
 
         {/* Biomarcadores Críticos */}
         {criticalBiomarkers.length > 0 && (
-          <div className="bg-gradient-to-r from-healz-red/5 to-healz-orange/5 border-2 border-healz-red/30 rounded-xl p-6 shadow-lg animate-fade-in relative overflow-hidden">
+          <div className="bg-gradient-to-r from-healz.red/5 to-healz.orange/5 border-2 border-healz.red/30 rounded-xl p-6 shadow-lg animate-fade-in relative overflow-hidden">
             {/* Subtle background pattern */}
-            <div className="absolute inset-0 bg-gradient-to-br from-healz-red/5 via-transparent to-healz-orange/5 opacity-50"></div>
+            <div className="absolute inset-0 bg-gradient-to-br from-healz.red/5 via-transparent to-healz.orange/5 opacity-50"></div>
             
             <div className="relative z-10">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="font-bold text-healz-red flex items-center gap-3 text-xl">
-                  <div className="p-2 bg-healz-red/10 rounded-lg">
+                <h3 className="font-bold text-healz.red flex items-center gap-3 text-xl">
+                  <div className="p-2 bg-healz.red/10 rounded-lg">
                     <AlertTriangle className="h-6 w-6 animate-pulse" />
                   </div>
                   <div>
                     <div className="text-lg font-semibold">Biomarcadores Críticos</div>
-                    <div className="text-sm font-normal text-healz-red/70">
+                    <div className="text-sm font-normal text-healz.red/70">
                       {criticalBiomarkers.length} {criticalBiomarkers.length === 1 ? 'marcador requiere' : 'marcadores requieren'} atención inmediata
                     </div>
                   </div>
@@ -159,31 +159,23 @@ export const MainDiagnosisCard: React.FC<MainDiagnosisCardProps> = ({
                 {criticalBiomarkers.map((biomarker, index) => (
                   <div
                     key={index}
-                    className="group relative bg-white/60 backdrop-blur-sm border border-healz-red/20 rounded-lg p-4 hover-scale transition-all duration-300 hover:shadow-lg hover:border-healz-red/40 hover:bg-white/80"
+                    className="group relative bg-white/60 backdrop-blur-sm border border-healz.red/20 rounded-lg p-4 hover-scale transition-all duration-300 hover:shadow-lg hover:border-healz.red/40 hover:bg-white/80"
                     title={`${typeof biomarker === 'string' ? biomarker : biomarker.name} - Requiere seguimiento inmediato`}
                   >
                     <div className="flex items-center justify-between">
-                      <div className="flex-1">
-                        <div className="font-semibold text-healz-brown text-sm mb-1">
-                          {typeof biomarker === 'string' ? biomarker : biomarker.name || 'Biomarcador'}
-                        </div>
-                        <Badge 
-                          variant="destructive" 
-                          className="text-xs font-medium"
-                        >
-                          Fuera de rango
-                        </Badge>
+                      <div className="font-semibold text-healz.brown text-sm">
+                        {typeof biomarker === 'string' ? biomarker : biomarker.name || 'Biomarcador'}
                       </div>
-                      <div className="ml-2 p-1 bg-healz-red/10 rounded-full group-hover:bg-healz-red/20 transition-colors">
-                        <AlertTriangle className="h-4 w-4 text-healz-red" />
+                      <div className="ml-2 p-1 bg-healz.red/10 rounded-full group-hover:bg-healz.red/20 transition-colors">
+                        <AlertTriangle className="h-4 w-4 text-healz.red" />
                       </div>
                     </div>
                   </div>
                 ))}
               </div>
               
-              <div className="mt-6 p-4 bg-healz-red/10 rounded-lg border border-healz-red/20">
-                <p className="text-sm text-healz-red font-medium flex items-center gap-2">
+              <div className="mt-6 p-4 bg-healz.red/10 rounded-lg border border-healz.red/20">
+                <p className="text-sm text-healz.red font-medium flex items-center gap-2">
                   <AlertTriangle className="h-4 w-4" />
                   <span>
                     Estos biomarcadores requieren evaluación profesional y posible intervención terapéutica.
