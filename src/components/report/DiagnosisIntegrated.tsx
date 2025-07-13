@@ -77,13 +77,13 @@ export const DiagnosisIntegrated: React.FC<DiagnosisIntegratedProps> = ({ report
   };
 
   // Extract key information from the main diagnosis
-  const mainDiagnosis = typeof report.summary === 'string' ? report.summary : 
-                       typeof report.summary?.summary === 'string' ? report.summary.summary : '';
+  const mainDiagnosis = typeof report.diagnosis === 'string' ? report.diagnosis : 
+                       typeof report.diagnosis?.summary === 'string' ? report.diagnosis.summary : '';
   
   const personalizedInsights = report.personalized_insights || {};
   const criticalBiomarkers = Array.isArray(report.critical_biomarkers) ? report.critical_biomarkers : [];
-  const vitalityScore = report.vitalityScore || 0;
-  const riskScore = report.risk_score || 0;
+  const vitalityScore = report.vitality_score || 0;
+  const riskScore = report.risk_score;
   const diagnosisDate = report.diagnosis_date ? new Date(report.diagnosis_date).toLocaleDateString('es-ES') : 
                        new Date(report.createdAt).toLocaleDateString('es-ES');
 
