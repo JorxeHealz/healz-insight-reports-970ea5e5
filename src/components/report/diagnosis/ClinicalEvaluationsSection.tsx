@@ -10,8 +10,6 @@ import {
   Activity, 
   Heart, 
   Plus,
-  Eye,
-  EyeOff,
   ChevronDown,
   ChevronRight,
   User,
@@ -40,7 +38,6 @@ export const ClinicalEvaluationsSection: React.FC<ClinicalEvaluationsSectionProp
   onDeleteNote
 }) => {
   const [showAddDialog, setShowAddDialog] = useState(false);
-  const [showTechnicalView, setShowTechnicalView] = useState(false);
   const [expandedCards, setExpandedCards] = useState<Record<string, boolean>>({});
 
   const categorizeNotes = (notes: any[]) => {
@@ -149,8 +146,8 @@ export const ClinicalEvaluationsSection: React.FC<ClinicalEvaluationsSectionProp
                   </p>
                 </div>
                 
-                {/* Secciones Adicionales */}
-                {showTechnicalView && note.technical_details && (
+                {/* Detalles Técnicos */}
+                {note.technical_details && (
                   <div className="bg-healz-cream/40 rounded-lg p-4 border border-healz-brown/10">
                     <h5 className="font-semibold text-healz-brown mb-2 text-sm flex items-center gap-2">
                       <Brain className="h-4 w-4" />
@@ -265,21 +262,10 @@ export const ClinicalEvaluationsSection: React.FC<ClinicalEvaluationsSectionProp
               Análisis específicos por categorías y biomarcadores
             </p>
           </div>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowTechnicalView(!showTechnicalView)}
-              className="flex items-center gap-2"
-            >
-              {showTechnicalView ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              {showTechnicalView ? 'Vista Simple' : 'Vista Técnica'}
-            </Button>
-            <Button onClick={() => setShowAddDialog(true)} className="flex items-center gap-2">
-              <Plus className="h-4 w-4" />
-              Nueva Evaluación
-            </Button>
-          </div>
+          <Button onClick={() => setShowAddDialog(true)} className="flex items-center gap-2">
+            <Plus className="h-4 w-4" />
+            Nueva Evaluación
+          </Button>
         </div>
       </CardHeader>
 
