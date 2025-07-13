@@ -90,7 +90,6 @@ export const ClinicalNotesStructured: React.FC<ClinicalNotesStructuredProps> = (
         vitalityScore={vitalityScore}
         riskScore={riskScore}
         personalizedInsights={personalizedInsights}
-        criticalBiomarkers={criticalBiomarkers}
       />
 
       {/* Evaluaciones Clínicas Detalladas */}

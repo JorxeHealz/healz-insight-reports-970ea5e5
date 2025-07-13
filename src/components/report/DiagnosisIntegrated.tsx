@@ -207,26 +207,6 @@ export const DiagnosisIntegrated: React.FC<DiagnosisIntegratedProps> = ({ report
           </div>
         )}
 
-        {criticalBiomarkers.length > 0 && (
-          <div className="space-y-3">
-            <h4 className="font-semibold text-healz-brown flex items-center gap-2">
-              <AlertTriangle className="h-4 w-4 text-healz-red" />
-              Biomarcadores Críticos ({criticalBiomarkers.length})
-            </h4>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
-              {criticalBiomarkers.map((biomarker, index) => (
-                <Badge 
-                  key={index} 
-                  variant="destructive" 
-                  className="text-xs px-3 py-1 justify-center"
-                  title={`${typeof biomarker === 'string' ? biomarker : biomarker.name} - Requiere atención`}
-                >
-                  {typeof biomarker === 'string' ? biomarker : biomarker.name || 'Biomarcador'}
-                </Badge>
-              ))}
-            </div>
-          </div>
-        )}
 
         {(vitalityScore > 0 || riskScore > 0) && (
           <div className="bg-healz-cream/30 rounded-lg p-4 mt-4">
