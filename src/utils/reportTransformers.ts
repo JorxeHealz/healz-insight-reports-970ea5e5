@@ -343,7 +343,7 @@ export const buildTransformedReport = (
     summarySections: summarySections,
     keyFindings: [], // This will be populated in useReportData
     // Additional diagnostic fields from reports table
-    risk_score: reportData.risk_score,
+    risk_score: reportData.average_risk, // Using average_risk as the correct field
     average_risk: reportData.average_risk,
     personalized_insights: reportData.personalized_insights || {},
     critical_biomarkers: reportData.critical_biomarkers || [],

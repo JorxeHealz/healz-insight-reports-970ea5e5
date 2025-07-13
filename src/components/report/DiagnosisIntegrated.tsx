@@ -83,7 +83,7 @@ export const DiagnosisIntegrated: React.FC<DiagnosisIntegratedProps> = ({ report
   const personalizedInsights = report.personalized_insights || {};
   const criticalBiomarkers = Array.isArray(report.critical_biomarkers) ? report.critical_biomarkers : [];
   const vitalityScore = report.vitality_score || 0;
-  const riskScore = report.risk_score;
+  const riskScore = report.average_risk;
   const diagnosisDate = report.diagnosis_date ? new Date(report.diagnosis_date).toLocaleDateString('es-ES') : 
                        new Date(report.created_at).toLocaleDateString('es-ES');
 
