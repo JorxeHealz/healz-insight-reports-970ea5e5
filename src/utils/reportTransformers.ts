@@ -321,7 +321,11 @@ export const buildTransformedReport = (
   transformedActionPlan: any,
   summarySections: any = {}
 ) => {
-  return {
+  console.log('🔄 buildTransformedReport: Input reportData:', reportData);
+  console.log('🔄 buildTransformedReport: reportData.diagnosis:', reportData.diagnosis);
+  console.log('🔄 buildTransformedReport: reportData.diagnosis type:', typeof reportData.diagnosis);
+
+  const transformedReport = {
     id: reportData.id,
     form_id: reportData.form_id,
     patient: patient,
@@ -349,8 +353,15 @@ export const buildTransformedReport = (
     average_risk: reportData.average_risk,
     personalized_insights: reportData.personalized_insights || {},
     critical_biomarkers: reportData.critical_biomarkers || [],
-    diagnosis_date: reportData.diagnosis_date || reportData.created_at
+    diagnosis_date: reportData.diagnosis_date || reportData.created_at,
+    // IMPORTANT: Pass through the raw diagnosis field
+    diagnosis: reportData.diagnosis
   };
+
+  console.log('✅ buildTransformedReport: Final transformedReport.diagnosis:', transformedReport.diagnosis);
+  console.log('✅ buildTransformedReport: Final transformedReport.summary:', transformedReport.summary);
+  
+  return transformedReport;
 };
 
 function generateSummary(patient: any, risks: Record<string, number>, biomarkerSummary: any) {

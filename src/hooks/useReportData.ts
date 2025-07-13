@@ -103,7 +103,10 @@ export const useReportData = (reportId: string | undefined) => {
       // Add key findings to the report
       transformedReport.keyFindings = keyFindings;
 
-      console.log('Transformed report:', transformedReport);
+      console.log('🏁 useReportData: Final transformed report:', transformedReport);
+      console.log('🏁 useReportData: transformedReport.diagnosis:', transformedReport.diagnosis);
+      console.log('🏁 useReportData: transformedReport.summary:', transformedReport.summary);
+      
       return transformedReport;
     },
     enabled: !!reportId

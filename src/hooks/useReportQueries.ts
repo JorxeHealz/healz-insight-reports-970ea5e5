@@ -1,6 +1,8 @@
 import { supabase } from '../lib/supabase';
 
 export const fetchReportData = async (reportId: string) => {
+  console.log('🔍 fetchReportData: Fetching report with ID:', reportId);
+  
   const { data: reportData, error: reportError } = await supabase
     .from('reports')
     .select(`
@@ -30,14 +32,19 @@ export const fetchReportData = async (reportId: string) => {
     .single();
 
   if (reportError) {
-    console.error('Error fetching report:', reportError);
+    console.error('❌ fetchReportData error:', reportError);
     throw reportError;
   }
 
   if (!reportData) {
+    console.error('❌ fetchReportData: No data found for report ID:', reportId);
     throw new Error('Report not found');
   }
 
+  console.log('✅ fetchReportData: Raw data from database:', reportData);
+  console.log('🔍 fetchReportData: Diagnosis field:', reportData.diagnosis);
+  console.log('🔍 fetchReportData: Diagnosis type:', typeof reportData.diagnosis);
+  
   return reportData;
 };
 
