@@ -148,7 +148,7 @@ export const MainDiagnosisCard: React.FC<MainDiagnosisCardProps> = ({
                   </div>
                 </h3>
                 <Badge 
-                  className="text-sm px-4 py-2 font-bold bg-healz.red text-healz.cream border border-healz.red shadow-lg animate-pulse"
+                  className="text-sm px-4 py-2 font-bold bg-healz-red text-healz-cream border border-healz-red shadow-lg animate-pulse"
                 >
                   URGENTE
                 </Badge>
