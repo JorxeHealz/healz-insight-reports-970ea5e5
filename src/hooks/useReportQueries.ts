@@ -7,6 +7,12 @@ export const fetchReportData = async (reportId: string) => {
       id,
       created_at,
       diagnosis,
+      diagnosis_date,
+      vitality_score,
+      risk_score,
+      average_risk,
+      personalized_insights,
+      critical_biomarkers,
       manual_notes,
       form_id,
       patients!inner (
