@@ -29,6 +29,14 @@ export const DiagnosisIntegrated: React.FC<DiagnosisIntegratedProps> = ({ report
   const [showTechnicalView, setShowTechnicalView] = useState(false);
   const { deleteClinicalNote } = useClinicalNotes(report.id);
   
+  // Debug: Log the report data to see its structure
+  console.log('DiagnosisIntegrated - Report data:', report);
+  console.log('DiagnosisIntegrated - Diagnosis:', report.diagnosis);
+  console.log('DiagnosisIntegrated - Summary:', report.summary);
+  console.log('DiagnosisIntegrated - Clinical notes:', report.clinical_notes);
+  console.log('DiagnosisIntegrated - Personalized insights:', report.personalized_insights);
+  console.log('DiagnosisIntegrated - Critical biomarkers:', report.critical_biomarkers);
+  
   // Fetch biomarkers for this report
   const { data: reportBiomarkers } = useReportBiomarkers(report.id);
 
