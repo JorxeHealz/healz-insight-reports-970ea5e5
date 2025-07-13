@@ -1,21 +1,21 @@
 
-import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { Button } from '../ui/button';
-import { Badge } from '../ui/badge';
-import { Brain, Plus, FileText } from 'lucide-react';
-import { EditableClinicalNote } from './EditableClinicalNote';
-import { AddClinicalNoteDialog } from './AddClinicalNoteDialog';
+import React from 'react';
+import { MainDiagnosisCard } from './diagnosis/MainDiagnosisCard';
+import { ClinicalEvaluationsSection } from './diagnosis/ClinicalEvaluationsSection';
 import { useClinicalNotes } from '../../hooks/useClinicalNotes';
+import { useReportClinicalNotes } from '../../hooks/useReportClinicalNotes';
 import { useReportBiomarkers } from '../../hooks/useReportBiomarkers';
 
 interface Report {
   id: string;
   form_id?: string;
-  clinical_notes?: any[];
-  panels?: Record<string, any>;
-  biomarkers?: any[];
-  recentBiomarkers?: any[];
+  diagnosis?: any;
+  personalized_insights?: any;
+  critical_biomarkers?: any[];
+  vitality_score?: number;
+  average_risk?: number;
+  diagnosis_date?: string;
+  created_at?: string;
 }
 
 interface ClinicalNotesStructuredProps {
@@ -23,31 +23,27 @@ interface ClinicalNotesStructuredProps {
 }
 
 export const ClinicalNotesStructured: React.FC<ClinicalNotesStructuredProps> = ({ report }) => {
-  const [showAddDialog, setShowAddDialog] = useState(false);
   const { deleteClinicalNote } = useClinicalNotes(report.id);
   
-  // Fetch biomarkers for this report
+  // Usar el nuevo hook específico para obtener las notas clínicas
+  const { data: clinicalNotes = [], isLoading } = useReportClinicalNotes(report.form_id);
+  
+  // Fetch biomarkers para este reporte
   const { data: reportBiomarkers } = useReportBiomarkers(report.id);
 
-  const categorizeNotes = (notes: any[]) => {
-    const general = notes.filter(note => 
-      !note.evaluation_type || note.evaluation_type === 'general'
-    );
-    const panels = notes.filter(note => 
-      note.evaluation_type === 'panel'
-    );
-    const biomarkers = notes.filter(note => 
-      note.evaluation_type === 'biomarker'
-    );
-    
-    return { general, panels, biomarkers };
-  };
+  // Extraer información principal del diagnóstico
+  const mainDiagnosis = typeof report.diagnosis === 'string' ? report.diagnosis : 
+                       typeof report.diagnosis?.summary === 'string' ? report.diagnosis.summary : 
+                       'No se ha generado un diagnóstico para este reporte.';
+  
+  const personalizedInsights = report.personalized_insights || {};
+  const criticalBiomarkers = Array.isArray(report.critical_biomarkers) ? report.critical_biomarkers : [];
+  const vitalityScore = report.vitality_score || 0;
+  const riskScore = report.average_risk || 0;
+  const diagnosisDate = report.diagnosis_date ? new Date(report.diagnosis_date).toLocaleDateString('es-ES') : 
+                       new Date(report.created_at || '').toLocaleDateString('es-ES');
 
-  // Use clinical_notes instead of clinicalNotes to match the transformed data
-  const notes = report.clinical_notes || [];
-  const { general, panels, biomarkers } = categorizeNotes(notes);
-
-  // Get available panels and biomarkers
+  // Paneles y biomarcadores disponibles
   const availablePanels = [
     'Salud Cardiovascular',
     'Función Tiroidea', 
@@ -61,16 +57,10 @@ export const ClinicalNotesStructured: React.FC<ClinicalNotesStructuredProps> = (
     'Inflamación'
   ];
   
-  const availableBiomarkers = (reportBiomarkers || report.recentBiomarkers || []).map((biomarker: any) => ({
+  const availableBiomarkers = (reportBiomarkers || []).map((biomarker: any) => ({
     id: biomarker.biomarkerData?.id || biomarker.name?.toLowerCase().replace(/\s+/g, '_'),
     name: biomarker.name
   }));
-
-  console.log('ClinicalNotesStructured - Available data:', {
-    availablePanels: availablePanels.length,
-    availableBiomarkers: availableBiomarkers.length,
-    biomarkerNames: availableBiomarkers.map(b => b.name)
-  });
 
   const handleDeleteNote = async (noteId: string) => {
     try {
@@ -80,81 +70,37 @@ export const ClinicalNotesStructured: React.FC<ClinicalNotesStructuredProps> = (
     }
   };
 
-  const renderNoteSection = (title: string, notes: any[], icon: React.ReactNode) => (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-lg">
-          {icon}
-          {title}
-          <Badge variant="outline" className="ml-auto">
-            {notes.length}
-          </Badge>
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {notes.length === 0 ? (
-          <p className="text-healz-brown/60 text-center py-8">
-            No hay evaluaciones en esta categoría
-          </p>
-        ) : (
-          notes.map((note) => (
-            <EditableClinicalNote
-              key={note.id}
-              note={note}
-              reportId={report.id}
-              onDelete={handleDeleteNote}
-              isEvaluation={!!note.evaluation_type}
-              availablePanels={availablePanels}
-              availableBiomarkers={availableBiomarkers}
-            />
-          ))
-        )}
-      </CardContent>
-    </Card>
-  );
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="animate-pulse">
+          <div className="h-48 bg-healz-cream/30 rounded-lg mb-6"></div>
+          <div className="h-96 bg-healz-cream/30 rounded-lg"></div>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-healz-brown">Diagnóstico Clínico</h2>
-          <p className="text-healz-brown/70 mt-1">
-            Evaluaciones estructuradas por categorías
-          </p>
-        </div>
-        <Button onClick={() => setShowAddDialog(true)} className="flex items-center gap-2">
-          <Plus className="h-4 w-4" />
-          Nueva Evaluación
-        </Button>
-      </div>
+    <div className="space-y-8">
+      {/* Diagnóstico Principal - Prominente */}
+      <MainDiagnosisCard
+        diagnosis={mainDiagnosis}
+        diagnosisDate={diagnosisDate}
+        vitalityScore={vitalityScore}
+        riskScore={riskScore}
+        personalizedInsights={personalizedInsights}
+        criticalBiomarkers={criticalBiomarkers}
+      />
 
-      <div className="space-y-6">
-        {renderNoteSection(
-          'Evaluación General',
-          general,
-          <Brain className="h-5 w-5 text-healz-blue" />
-        )}
-        
-        {renderNoteSection(
-          'Evaluaciones por Panel',
-          panels,
-          <FileText className="h-5 w-5 text-healz-orange" />
-        )}
-        
-        {renderNoteSection(
-          'Evaluaciones por Biomarcador',
-          biomarkers,
-          <FileText className="h-5 w-5 text-healz-green" />
-        )}
-      </div>
-
-      <AddClinicalNoteDialog
+      {/* Evaluaciones Clínicas Detalladas */}
+      <ClinicalEvaluationsSection
+        clinicalNotes={clinicalNotes}
         reportId={report.id}
         formId={report.form_id || 'default'}
-        open={showAddDialog}
-        onOpenChange={setShowAddDialog}
         availablePanels={availablePanels}
         availableBiomarkers={availableBiomarkers}
+        onDeleteNote={handleDeleteNote}
       />
     </div>
   );
