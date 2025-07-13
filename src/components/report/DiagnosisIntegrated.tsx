@@ -83,9 +83,14 @@ export const DiagnosisIntegrated: React.FC<DiagnosisIntegratedProps> = ({ report
   const personalizedInsights = report.personalized_insights || {};
   const criticalBiomarkers = Array.isArray(report.critical_biomarkers) ? report.critical_biomarkers : [];
   const vitalityScore = report.vitality_score || 0;
-  const riskScore = report.average_risk;
+  const riskScore = report.average_risk || 0;
   const diagnosisDate = report.diagnosis_date ? new Date(report.diagnosis_date).toLocaleDateString('es-ES') : 
                        new Date(report.created_at).toLocaleDateString('es-ES');
+
+  // Extract structured insights for better display
+  const systemsAffected = personalizedInsights.sistemas_afectados || personalizedInsights.systems_affected || [];
+  const rootCauses = personalizedInsights.causas_raiz || personalizedInsights.root_causes || [];
+  const interconnections = personalizedInsights.interconexiones || personalizedInsights.interconnections || '';
 
   const renderMainDiagnosis = () => (
     <Card className="mb-6">
@@ -117,26 +122,78 @@ export const DiagnosisIntegrated: React.FC<DiagnosisIntegratedProps> = ({ report
           </div>
         )}
 
-        {Object.keys(personalizedInsights).length > 0 && (
-          <div className="space-y-3">
+        {(systemsAffected.length > 0 || rootCauses.length > 0 || interconnections || Object.keys(personalizedInsights).length > 0) && (
+          <div className="space-y-4">
             <h4 className="font-semibold text-healz-brown flex items-center gap-2">
               <Target className="h-4 w-4" />
-              Análisis por Sistema
+              Insights Personalizados
             </h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {Object.entries(personalizedInsights).map(([system, insight]) => (
-                <Card key={system} className="border-l-4 border-l-healz-orange">
-                  <CardContent className="p-3">
-                    <div className="font-medium text-sm text-healz-brown capitalize">
-                      {system.replace('_', ' ')}
+            
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+              {systemsAffected.length > 0 && (
+                <Card className="border-l-4 border-l-healz-blue">
+                  <CardContent className="p-4">
+                    <div className="font-semibold text-sm text-healz-brown mb-2">
+                      Sistemas Afectados
                     </div>
-                    <div className="text-xs text-healz-brown/70 mt-1">
-                      {String(insight)}
+                    <div className="flex flex-wrap gap-1">
+                      {systemsAffected.map((system: string, index: number) => (
+                        <Badge key={index} variant="secondary" className="text-xs">
+                          {system}
+                        </Badge>
+                      ))}
                     </div>
                   </CardContent>
                 </Card>
-              ))}
+              )}
+
+              {rootCauses.length > 0 && (
+                <Card className="border-l-4 border-l-healz-orange">
+                  <CardContent className="p-4">
+                    <div className="font-semibold text-sm text-healz-brown mb-2">
+                      Causas Raíz
+                    </div>
+                    <div className="flex flex-wrap gap-1">
+                      {rootCauses.map((cause: string, index: number) => (
+                        <Badge key={index} variant="outline" className="text-xs">
+                          {cause}
+                        </Badge>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {interconnections && (
+                <Card className="border-l-4 border-l-healz-teal">
+                  <CardContent className="p-4">
+                    <div className="font-semibold text-sm text-healz-brown mb-2">
+                      Interconexiones
+                    </div>
+                    <div className="text-xs text-healz-brown/70">
+                      {interconnections}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
             </div>
+
+            {Object.keys(personalizedInsights).length > 0 && !systemsAffected.length && !rootCauses.length && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {Object.entries(personalizedInsights).map(([system, insight]) => (
+                  <Card key={system} className="border-l-4 border-l-healz-orange">
+                    <CardContent className="p-3">
+                      <div className="font-medium text-sm text-healz-brown capitalize">
+                        {system.replace(/[_-]/g, ' ')}
+                      </div>
+                      <div className="text-xs text-healz-brown/70 mt-1">
+                        {Array.isArray(insight) ? insight.join(', ') : String(insight)}
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
@@ -144,11 +201,16 @@ export const DiagnosisIntegrated: React.FC<DiagnosisIntegratedProps> = ({ report
           <div className="space-y-3">
             <h4 className="font-semibold text-healz-brown flex items-center gap-2">
               <AlertTriangle className="h-4 w-4 text-healz-red" />
-              Biomarcadores Críticos
+              Biomarcadores Críticos ({criticalBiomarkers.length})
             </h4>
-            <div className="flex flex-wrap gap-2">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
               {criticalBiomarkers.map((biomarker, index) => (
-                <Badge key={index} variant="destructive" className="text-xs">
+                <Badge 
+                  key={index} 
+                  variant="destructive" 
+                  className="text-xs px-3 py-1 justify-center"
+                  title={`${typeof biomarker === 'string' ? biomarker : biomarker.name} - Requiere atención`}
+                >
                   {typeof biomarker === 'string' ? biomarker : biomarker.name || 'Biomarcador'}
                 </Badge>
               ))}
@@ -157,19 +219,42 @@ export const DiagnosisIntegrated: React.FC<DiagnosisIntegratedProps> = ({ report
         )}
 
         {(vitalityScore > 0 || riskScore > 0) && (
-          <div className="grid grid-cols-2 gap-4 pt-4 border-t">
-            {vitalityScore > 0 && (
-              <div className="text-center">
-                <div className="text-2xl font-bold text-healz-blue">{vitalityScore}%</div>
-                <div className="text-sm text-healz-brown/70">Puntuación de Vitalidad</div>
-              </div>
-            )}
-            {riskScore > 0 && (
-              <div className="text-center">
-                <div className="text-2xl font-bold text-healz-orange">{riskScore}%</div>
-                <div className="text-sm text-healz-brown/70">Puntuación de Riesgo</div>
-              </div>
-            )}
+          <div className="bg-healz-cream/30 rounded-lg p-4 mt-4">
+            <h4 className="font-semibold text-healz-brown mb-3 text-center">
+              Puntuaciones Clave
+            </h4>
+            <div className="grid grid-cols-2 gap-6">
+              {vitalityScore > 0 && (
+                <div className="text-center">
+                  <div className={`text-3xl font-bold mb-1 ${
+                    vitalityScore >= 70 ? 'text-healz-green' : 
+                    vitalityScore >= 50 ? 'text-healz-yellow' : 'text-healz-orange'
+                  }`}>
+                    {vitalityScore}%
+                  </div>
+                  <div className="text-sm font-medium text-healz-brown">Vitalidad</div>
+                  <div className="text-xs text-healz-brown/60 mt-1">
+                    {vitalityScore >= 70 ? 'Excelente' : 
+                     vitalityScore >= 50 ? 'Moderada' : 'Necesita atención'}
+                  </div>
+                </div>
+              )}
+              {riskScore > 0 && (
+                <div className="text-center">
+                  <div className={`text-3xl font-bold mb-1 ${
+                    riskScore >= 70 ? 'text-healz-red' : 
+                    riskScore >= 40 ? 'text-healz-orange' : 'text-healz-green'
+                  }`}>
+                    {riskScore}%
+                  </div>
+                  <div className="text-sm font-medium text-healz-brown">Riesgo Promedio</div>
+                  <div className="text-xs text-healz-brown/60 mt-1">
+                    {riskScore >= 70 ? 'Alto - requiere atención' : 
+                     riskScore >= 40 ? 'Moderado' : 'Bajo'}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </CardContent>
