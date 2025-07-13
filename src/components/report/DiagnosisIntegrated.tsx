@@ -195,7 +195,10 @@ export const DiagnosisIntegrated: React.FC<DiagnosisIntegratedProps> = ({ report
                         {system.replace(/[_-]/g, ' ')}
                       </div>
                       <div className="text-xs text-healz-brown/70 mt-1">
-                        {Array.isArray(insight) ? insight.join(', ') : String(insight)}
+                        {Array.isArray(insight) ? insight.join(', ') : 
+                         typeof insight === 'object' && insight !== null ? 
+                         JSON.stringify(insight) : 
+                         String(insight)}
                       </div>
                     </CardContent>
                   </Card>
