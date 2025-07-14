@@ -1,9 +1,11 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { CheckCircle, XCircle, Clock, AlertTriangle } from 'lucide-react';
 import { useReportGeneration } from '../../hooks/useReportGeneration';
+import { supabase } from '../../lib/supabase';
+import { useQuery } from '@tanstack/react-query';
 
 interface DiagnosisGenerationStatusProps {
   patient: any;
@@ -21,34 +23,64 @@ export const DiagnosisGenerationStatus = ({
   onComplete
 }: DiagnosisGenerationStatusProps) => {
   const { generationState, generateDiagnosis, isGenerating, resetGeneration, getLatestReport } = useReportGeneration();
+  const [currentReportId, setCurrentReportId] = useState<string | null>(null);
 
-  // Start generation when component mounts
+  // Get the current report ID from localStorage
   useEffect(() => {
-    if (generationState.status === 'idle') {
+    const reportId = localStorage.getItem('currentReportId');
+    if (reportId) {
+      setCurrentReportId(reportId);
+    }
+  }, []);
+
+  // Poll for report status updates
+  const { data: currentReport } = useQuery({
+    queryKey: ['report-status', currentReportId],
+    queryFn: async () => {
+      if (!currentReportId) return null;
+      
+      const { data, error } = await supabase
+        .from('reports')
+        .select('*')
+        .eq('id', currentReportId)
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!currentReportId,
+    refetchInterval: 3000, // Poll every 3 seconds
+  });
+
+  // Start generation when component mounts (only if no current report or report is processing)
+  useEffect(() => {
+    if (currentReport?.status === 'processing') {
+      // Report already exists and is processing, no need to start generation
+      return;
+    }
+    
+    if (generationState.status === 'idle' && currentReportId) {
       generateDiagnosis({
         patient_id: patient.id,
         form_id: selectedForm?.id,
         analytics_id: analyticsId
       });
     }
-  }, []);
+  }, [currentReport, currentReportId]);
 
-  // Handle completion
+  // Handle completion based on report status
   useEffect(() => {
-    if (generationState.status === 'completed') {
-      // Get the latest report for this patient
-      getLatestReport(patient.id).then((report) => {
-        if (report) {
-          onComplete(report.id);
-        }
-      }).catch((error) => {
-        console.error('Error fetching latest report:', error);
-      });
+    if (currentReport?.status === 'completed') {
+      localStorage.removeItem('currentReportId');
+      onComplete(currentReport.id);
     }
-  }, [generationState.status, patient.id, getLatestReport, onComplete]);
+  }, [currentReport?.status, currentReport?.id, onComplete]);
+
+  // Get status from current report or generation state
+  const currentStatus = currentReport?.status || generationState.status || 'processing';
 
   const getStatusIcon = () => {
-    switch (generationState.status) {
+    switch (currentStatus) {
       case 'pending':
       case 'processing':
         return <Clock className="w-8 h-8 text-healz-blue animate-pulse" />;
@@ -62,7 +94,7 @@ export const DiagnosisGenerationStatus = ({
   };
 
   const getStatusText = () => {
-    switch (generationState.status) {
+    switch (currentStatus) {
       case 'pending':
         return 'Iniciando procesamiento...';
       case 'processing':
@@ -77,7 +109,7 @@ export const DiagnosisGenerationStatus = ({
   };
 
   const getProgress = () => {
-    switch (generationState.status) {
+    switch (currentStatus) {
       case 'pending':
         return 25;
       case 'processing':
@@ -128,13 +160,13 @@ export const DiagnosisGenerationStatus = ({
             <Progress value={getProgress()} className="h-3" />
             <div className="flex justify-between text-sm text-healz-brown/60">
               <span>{generationState.progress || 'Inicializando...'}</span>
-              {generationState.estimatedTime && generationState.status === 'processing' && (
+              {generationState.estimatedTime && currentStatus === 'processing' && (
                 <span>{formatTimeRemaining()}</span>
               )}
             </div>
           </div>
 
-          {generationState.status === 'processing' && (
+          {currentStatus === 'processing' && (
             <div className="bg-healz-blue/10 p-4 rounded-lg">
               <h4 className="font-medium text-healz-brown mb-2">¿Qué está sucediendo?</h4>
               <ul className="text-sm text-healz-brown/70 space-y-1">
@@ -146,7 +178,7 @@ export const DiagnosisGenerationStatus = ({
             </div>
           )}
 
-          {generationState.status === 'completed' && (
+          {currentStatus === 'completed' && (
             <div className="bg-healz-green/10 p-4 rounded-lg text-center">
               <h4 className="font-medium text-healz-green mb-2">¡Diagnóstico Completado!</h4>
               <p className="text-sm text-healz-brown/70">
@@ -155,7 +187,7 @@ export const DiagnosisGenerationStatus = ({
             </div>
           )}
 
-          {generationState.status === 'failed' && (
+          {currentStatus === 'failed' && (
             <div className="bg-healz-red/10 p-4 rounded-lg">
               <h4 className="font-medium text-healz-red mb-2">Error en el Procesamiento</h4>
               <p className="text-sm text-healz-brown/70 mb-3">
