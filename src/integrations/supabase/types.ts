@@ -407,6 +407,7 @@ export type Database = {
           date: string
           id: string
           patient_id: string
+          unit: string | null
           value: number
         }
         Insert: {
@@ -417,6 +418,7 @@ export type Database = {
           date?: string
           id?: string
           patient_id: string
+          unit?: string | null
           value: number
         }
         Update: {
@@ -427,6 +429,7 @@ export type Database = {
           date?: string
           id?: string
           patient_id?: string
+          unit?: string | null
           value?: number
         }
         Relationships: [

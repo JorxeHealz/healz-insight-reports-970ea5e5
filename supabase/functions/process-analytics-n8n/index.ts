@@ -50,6 +50,44 @@ serve(async (req) => {
       throw new Error('Analytics record not found')
     }
 
+    // Check if analytics is already being processed to prevent duplicates
+    if (analyticsData.status === 'processing') {
+      console.log('⚠️ Analytics is already being processed, skipping to prevent duplicates')
+      return new Response(
+        JSON.stringify({
+          success: true,
+          message: 'Analytics is already being processed',
+          analytics_id: analytics_id,
+          current_status: analyticsData.status
+        }),
+        { 
+          headers: { 
+            ...corsHeaders, 
+            'Content-Type': 'application/json' 
+          } 
+        }
+      )
+    }
+
+    // Check if analytics was already processed successfully
+    if (analyticsData.status === 'processed') {
+      console.log('✅ Analytics was already processed successfully, skipping')
+      return new Response(
+        JSON.stringify({
+          success: true,
+          message: 'Analytics was already processed',
+          analytics_id: analytics_id,
+          current_status: analyticsData.status
+        }),
+        { 
+          headers: { 
+            ...corsHeaders, 
+            'Content-Type': 'application/json' 
+          } 
+        }
+      )
+    }
+
     const patient = Array.isArray(analyticsData.patient) ? analyticsData.patient[0] : analyticsData.patient
     console.log('👤 Found patient:', patient.first_name, patient.last_name)
 

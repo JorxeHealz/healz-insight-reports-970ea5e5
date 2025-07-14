@@ -107,23 +107,55 @@ serve(async (req) => {
             continue
           }
 
-          // Insert patient biomarker with simplified structure
-          const { error: insertError } = await supabase
+          // Check if biomarker already exists for this analytics_id
+          const { data: existingBiomarker, error: checkError } = await supabase
             .from('patient_biomarkers')
-            .insert({
-              patient_id: analyticsData.patient_id,
-              biomarker_id: biomarkerDef.id,
-              analytics_id: analytics_id,
-              value: biomarkerData.value,
-              date: biomarkerData.date ? new Date(biomarkerData.date) : new Date()
-            })
+            .select('id, value')
+            .eq('patient_id', analyticsData.patient_id)
+            .eq('biomarker_id', biomarkerDef.id)
+            .eq('analytics_id', analytics_id)
+            .single()
 
-          if (insertError) {
-            console.error('❌ Error inserting patient biomarker:', insertError)
+          if (checkError && checkError.code !== 'PGRST116') {
+            console.error('❌ Error checking existing biomarker:', checkError)
             continue
           }
 
-          console.log('✅ Inserted biomarker:', biomarkerData.name, '=', biomarkerData.value)
+          if (existingBiomarker) {
+            // Update existing biomarker instead of inserting duplicate
+            const { error: updateError } = await supabase
+              .from('patient_biomarkers')
+              .update({
+                value: biomarkerData.value,
+                date: biomarkerData.date ? new Date(biomarkerData.date) : new Date()
+              })
+              .eq('id', existingBiomarker.id)
+
+            if (updateError) {
+              console.error('❌ Error updating existing biomarker:', updateError)
+              continue
+            }
+
+            console.log('🔄 Updated existing biomarker:', biomarkerData.name, '=', biomarkerData.value, '(was:', existingBiomarker.value, ')')
+          } else {
+            // Insert new biomarker record
+            const { error: insertError } = await supabase
+              .from('patient_biomarkers')
+              .insert({
+                patient_id: analyticsData.patient_id,
+                biomarker_id: biomarkerDef.id,
+                analytics_id: analytics_id,
+                value: biomarkerData.value,
+                date: biomarkerData.date ? new Date(biomarkerData.date) : new Date()
+              })
+
+            if (insertError) {
+              console.error('❌ Error inserting patient biomarker:', insertError)
+              continue
+            }
+
+            console.log('✅ Inserted new biomarker:', biomarkerData.name, '=', biomarkerData.value)
+          }
         } catch (biomarkerError) {
           console.error('❌ Error processing biomarker:', biomarkerData.name, biomarkerError)
         }
