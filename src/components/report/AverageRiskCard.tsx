@@ -25,7 +25,7 @@ export const AverageRiskCard: React.FC<AverageRiskCardProps> = ({
   return (
     <Card>
       <CardHeader className="pb-2">
-        <CardTitle className="text-lg text-healz-brown">Riesgo Medio</CardTitle>
+        <CardTitle className="text-lg text-healz-brown">AVG. Risk Score</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="flex flex-col items-center">
