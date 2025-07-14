@@ -122,7 +122,7 @@ const Reports = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-healz-red/20 text-healz-red">
-                      {report.risk_score || 0}%
+                      {report.average_risk || 0}%
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
