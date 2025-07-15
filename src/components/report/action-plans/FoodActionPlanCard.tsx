@@ -74,7 +74,7 @@ export const FoodActionPlanCard: React.FC<FoodActionPlanCardProps> = ({
             <Apple className="w-4 h-4 text-healz-green" />
           </div>
           <div>
-            <h3 className="font-medium text-healz-blue">Alimentación</h3>
+            <h3 className="text-left text-base font-bold text-slate-900">Alimentación</h3>
             <p className="text-sm text-gray-500">{foodPlans.length} recomendaciones</p>
           </div>
         </div>
