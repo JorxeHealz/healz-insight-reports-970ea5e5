@@ -112,6 +112,7 @@ export const ActionPlan: React.FC<ActionPlanProps> = ({ report }) => {
                 category={category}
                 reportId={report.id}
                 formId={report.form_id}
+                patientId={report.patient?.id || report.patient_id}
                 showAddForm={showAddForm}
                 setShowAddForm={setShowAddForm}
                 onDeleteAction={handleDeleteAction}

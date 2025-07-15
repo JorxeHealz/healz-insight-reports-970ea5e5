@@ -1,164 +1,297 @@
-import React, { useState } from 'react';
-import { Badge } from '../../ui/badge';
-import { Button } from '../../ui/button';
-import { Card, CardContent } from '../../ui/card';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../../ui/collapsible';
-import { ChevronDown, ChevronUp, Edit2, Trash2, Activity, Clock, Target, Eye, AlertTriangle, User } from 'lucide-react';
+import React from 'react';
+import { Card, CardContent, CardHeader } from "../../ui/card";
+import { Badge } from "../../ui/badge";
+import { Button } from "../../ui/button";
+import { Pencil, Trash2, Plus } from "lucide-react";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../../ui/accordion";
 
-type TherapyActionPlanCardProps = {
-  item: any;
-  onEdit: () => void;
-  onDelete: (id: string) => void;
-};
+interface Therapy {
+  id: string;
+  patient_id: string;
+  form_id: string;
+  therapy_type: string;
+  priority: 'high' | 'medium' | 'low';
+  protocol?: string;
+  frequency?: string;
+  duration?: string;
+  provider_type?: string;
+  monitoring_requirements?: string[];
+  expected_outcomes?: string[];
+  precautions?: string[];
+}
 
-export const TherapyActionPlanCard: React.FC<TherapyActionPlanCardProps> = ({ item, onEdit, onDelete }) => {
-  const [isExpanded, setIsExpanded] = useState(false);
+interface TherapyActionPlanCardProps {
+  therapyPlans: Therapy[];
+  onEdit?: (item: Therapy) => void;
+  onDelete?: (id: string) => void;
+  onAdd?: () => void;
+  isEditable?: boolean;
+}
 
-  const getPriorityStyle = (priority: string) => {
-    switch (priority) {
-      case 'high': return 'bg-healz-red/20 text-healz-red border-healz-red/30';
-      case 'medium': return 'bg-healz-yellow/20 text-healz-orange border-healz-orange/30';
-      default: return 'bg-healz-green/20 text-healz-green border-healz-green/30';
-    }
+export const TherapyActionPlanCard: React.FC<TherapyActionPlanCardProps> = ({
+  therapyPlans,
+  onEdit,
+  onDelete,
+  onAdd,
+  isEditable = true
+}) => {
+  if (!therapies || therapies.length === 0) {
+    return (
+      <Card className="w-full">
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-full bg-healz-red/20 flex items-center justify-center">
+                🩺
+              </div>
+              <div>
+                <h3 className="font-medium text-healz-blue">Terapia</h3>
+                <p className="text-sm text-gray-500">Sin recomendaciones</p>
+              </div>
+            </div>
+            {isEditable && onAdd && (
+              <Button variant="outline" size="sm" onClick={onAdd}>
+                <Plus className="w-4 h-4 mr-1" />
+                Agregar
+              </Button>
+            )}
+          </div>
+        </CardHeader>
+      </Card>
+    );
+  }
+
+  const getPriorityBadge = (priority: string) => {
+    const styles = {
+      high: 'bg-healz-orange text-white',
+      medium: 'bg-healz-yellow text-healz-blue',
+      low: 'bg-healz-green/20 text-healz-green'
+    };
+    const labels = {
+      high: 'Alta Prioridad',
+      medium: 'Media Prioridad',
+      low: 'Baja Prioridad'
+    };
+    return { style: styles[priority as keyof typeof styles], label: labels[priority as keyof typeof labels] };
   };
 
-  const getPriorityText = (priority: string) => {
-    switch (priority) {
-      case 'high': return 'Alta';
-      case 'medium': return 'Media';
-      default: return 'Baja';
-    }
+  const getTherapyIcon = (therapyType: string) => {
+    const icons: Record<string, string> = {
+      hormone_replacement: '🧬',
+      iv_therapy: '💉',
+      red_light: '🔴',
+      hyperbaric: '🫁',
+      physical_therapy: '🤸',
+      acupuncture: '📍',
+      massage: '👐',
+      default: '🩺'
+    };
+    return icons[therapyType?.toLowerCase().replace(' ', '_')] || icons.default;
   };
 
   return (
-    <Card className="bg-healz-cream/30 border-healz-brown/10">
-      <CardContent className="p-4">
-        <div className="flex items-start justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <Activity className="h-4 w-4 text-healz-red" />
-            <h4 className="font-semibold text-sm text-healz-brown">
-              {item.therapy_type}
-            </h4>
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-full bg-healz-red/20 flex items-center justify-center">
+            🩺
           </div>
-          <div className="flex items-center gap-1">
-            <Badge className={`text-xs ${getPriorityStyle(item.priority)}`}>
-              {getPriorityText(item.priority)}
-            </Badge>
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={onEdit}
-              className="h-6 w-6 p-0"
-            >
-              <Edit2 className="h-3 w-3" />
-            </Button>
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => onDelete(item.id)}
-              className="h-6 w-6 p-0 text-healz-red hover:text-healz-red"
-            >
-              <Trash2 className="h-3 w-3" />
-            </Button>
+          <div>
+            <h3 className="font-medium text-healz-blue">Terapia</h3>
+            <p className="text-sm text-gray-500">{therapies.length} recomendaciones</p>
           </div>
         </div>
+        {isEditable && onAdd && (
+          <Button variant="outline" size="sm" onClick={onAdd}>
+            <Plus className="w-4 h-4 mr-1" />
+            Agregar
+          </Button>
+        )}
+      </div>
 
-        {/* Información básica siempre visible */}
-        <div className="space-y-2 mb-3">
-          {item.frequency && (
-            <p className="text-xs text-healz-brown/80">
-              <strong>Frecuencia:</strong> {item.frequency}
-            </p>
-          )}
-          
-          {item.duration && (
-            <div className="flex items-center gap-1">
-              <Clock className="h-3 w-3 text-healz-brown/60" />
-              <p className="text-xs text-healz-brown/80">
-                <strong>Duración:</strong> {item.duration}
-              </p>
-            </div>
-          )}
-
-          {item.provider_type && (
-            <div className="flex items-center gap-1">
-              <User className="h-3 w-3 text-healz-brown/60" />
-              <p className="text-xs text-healz-brown/80">
-                <strong>Proveedor:</strong> {item.provider_type}
-              </p>
-            </div>
-          )}
-        </div>
-
-        {/* Contenido expandible */}
-        <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
-          <CollapsibleTrigger asChild>
-            <Button variant="ghost" size="sm" className="w-full justify-between p-2 h-8">
-              <span className="text-xs">Ver detalles completos</span>
-              {isExpanded ? (
-                <ChevronUp className="h-3 w-3" />
-              ) : (
-                <ChevronDown className="h-3 w-3" />
-              )}
-            </Button>
-          </CollapsibleTrigger>
-          
-          <CollapsibleContent className="mt-3 space-y-3">
-            {/* Protocolo */}
-            {item.protocol && (
-              <div>
-                <h5 className="text-xs font-medium text-healz-brown mb-1">Protocolo de tratamiento:</h5>
-                <p className="text-xs text-healz-brown/70">{item.protocol}</p>
+      {therapies.map((therapy) => {
+        const priorityBadge = getPriorityBadge(therapy.priority);
+        const therapyIcon = getTherapyIcon(therapy.therapy_type);
+        
+        return (
+          <Card key={therapy.id} className="w-full">
+            <CardHeader className="pb-3">
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-lg">{therapyIcon}</span>
+                    <h4 className="font-medium text-healz-blue">
+                      {therapy.therapy_type}
+                    </h4>
+                    <Badge className={priorityBadge.style}>
+                      {priorityBadge.label}
+                    </Badge>
+                  </div>
+                  <div className="flex items-center gap-4 text-sm text-gray-600">
+                    {therapy.frequency && (
+                      <span><span className="font-semibold">Frecuencia:</span> {therapy.frequency}</span>
+                    )}
+                    {therapy.duration && (
+                      <span><span className="font-semibold">Duración:</span> {therapy.duration}</span>
+                    )}
+                  </div>
+                </div>
+                {isEditable && (
+                  <div className="flex items-center gap-1">
+                    {onEdit && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => onEdit(therapy.id)}
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </Button>
+                    )}
+                    {onDelete && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => onDelete(therapy.id)}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    )}
+                  </div>
+                )}
               </div>
-            )}
+            </CardHeader>
 
-            {/* Resultados esperados */}
-            {item.expected_outcomes && Array.isArray(item.expected_outcomes) && item.expected_outcomes.length > 0 && (
-              <div>
-                <h5 className="text-xs font-medium text-healz-green mb-1 flex items-center gap-1">
-                  <Target className="h-3 w-3" />
-                  Resultados esperados:
-                </h5>
-                <ul className="space-y-1">
-                  {item.expected_outcomes.map((outcome: string, index: number) => (
-                    <li key={index} className="text-xs text-healz-brown/70">• {outcome}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
+            <CardContent className="pt-0">
+              <Accordion type="multiple" className="w-full">
+                {/* Protocolo de Tratamiento */}
+                {therapy.protocol && (
+                  <AccordionItem value="protocol">
+                    <AccordionTrigger className="text-sm font-medium text-healz-blue">
+                      <div className="flex items-center gap-2">
+                        <span className="text-healz-blue">📋</span>
+                        Protocolo de Tratamiento
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      <div className="p-3 bg-healz-cream/30 rounded-lg">
+                        <p className="text-sm text-gray-700 leading-relaxed">
+                          {therapy.protocol}
+                        </p>
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                )}
 
-            {/* Requisitos de monitoreo */}
-            {item.monitoring_requirements && Array.isArray(item.monitoring_requirements) && item.monitoring_requirements.length > 0 && (
-              <div>
-                <h5 className="text-xs font-medium text-healz-blue mb-1 flex items-center gap-1">
-                  <Eye className="h-3 w-3" />
-                  Requisitos de monitoreo:
-                </h5>
-                <ul className="space-y-1">
-                  {item.monitoring_requirements.map((requirement: string, index: number) => (
-                    <li key={index} className="text-xs text-healz-brown/70">• {requirement}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
+                {/* Programación */}
+                <AccordionItem value="scheduling">
+                  <AccordionTrigger className="text-sm font-medium text-healz-blue">
+                    <div className="flex items-center gap-2">
+                      <span className="text-healz-purple">⏰</span>
+                      Programación
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="p-3 bg-purple-50 rounded-lg border border-purple-200">
+                        <p className="text-sm">
+                          <span className="font-semibold text-healz-blue">Frecuencia:</span><br />
+                          {therapy.frequency || 'No especificada'}
+                        </p>
+                      </div>
+                      <div className="p-3 bg-purple-50 rounded-lg border border-purple-200">
+                        <p className="text-sm">
+                          <span className="font-semibold text-healz-blue">Duración Total:</span><br />
+                          {therapy.duration || 'No especificada'}
+                        </p>
+                      </div>
+                      {therapy.provider_type && (
+                        <div className="p-3 bg-purple-50 rounded-lg border border-purple-200 md:col-span-2">
+                          <p className="text-sm">
+                            <span className="font-semibold text-healz-blue">Tipo de Proveedor:</span><br />
+                            {therapy.provider_type}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
 
-            {/* Precauciones */}
-            {item.precautions && Array.isArray(item.precautions) && item.precautions.length > 0 && (
-              <div>
-                <h5 className="text-xs font-medium text-healz-red mb-1 flex items-center gap-1">
-                  <AlertTriangle className="h-3 w-3" />
-                  Precauciones:
-                </h5>
-                <ul className="space-y-1">
-                  {item.precautions.map((precaution: string, index: number) => (
-                    <li key={index} className="text-xs text-healz-red/80">• {precaution}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </CollapsibleContent>
-        </Collapsible>
-      </CardContent>
-    </Card>
+                {/* Resultados Esperados */}
+                {therapy.expected_outcomes && therapy.expected_outcomes.length > 0 && (
+                  <AccordionItem value="outcomes">
+                    <AccordionTrigger className="text-sm font-medium text-healz-blue">
+                      <div className="flex items-center gap-2">
+                        <span className="text-healz-green">🎯</span>
+                        Resultados Esperados
+                        <Badge variant="secondary" className="ml-2">
+                          {therapy.expected_outcomes.length}
+                        </Badge>
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      <div className="space-y-2">
+                        {therapy.expected_outcomes.map((outcome, index) => (
+                          <div key={index} className="p-3 bg-green-50 rounded-lg border border-green-200">
+                            <div className="flex items-start gap-2">
+                              <span className="text-healz-green font-medium">{index + 1}.</span>
+                              <p className="text-sm text-gray-700">{outcome}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                )}
+
+                {/* Monitoreo Requerido */}
+                {therapy.monitoring_requirements && therapy.monitoring_requirements.length > 0 && (
+                  <AccordionItem value="monitoring">
+                    <AccordionTrigger className="text-sm font-medium text-healz-blue">
+                      <div className="flex items-center gap-2">
+                        <span className="text-healz-teal">📊</span>
+                        Monitoreo Requerido
+                        <Badge variant="secondary" className="ml-2">
+                          {therapy.monitoring_requirements.length}
+                        </Badge>
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      <div className="space-y-2">
+                        {therapy.monitoring_requirements.map((requirement, index) => (
+                          <div key={index} className="p-3 bg-teal-50 rounded-lg border border-teal-200">
+                            <p className="text-sm text-gray-700">{requirement}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                )}
+
+                {/* Precauciones */}
+                {therapy.precautions && therapy.precautions.length > 0 && (
+                  <AccordionItem value="precautions">
+                    <AccordionTrigger className="text-sm font-medium text-healz-blue">
+                      <div className="flex items-center gap-2">
+                        <span className="text-red-500">⚠️</span>
+                        Precauciones
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      <div className="space-y-2">
+                        {therapy.precautions.map((precaution, index) => (
+                          <div key={index} className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                            <p className="text-sm text-gray-700">{precaution}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                )}
+              </Accordion>
+            </CardContent>
+          </Card>
+        );
+      })}
+    </div>
   );
 };

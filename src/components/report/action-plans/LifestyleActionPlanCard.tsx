@@ -1,298 +1,324 @@
 import React from 'react';
-import { Badge } from '../../ui/badge';
-import { Button } from '../../ui/button';
-import { Card, CardContent, CardHeader } from '../../ui/card';
-import { 
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from '../../ui/accordion';
-import { Heart, Moon, Brain, Clock, Home, Edit2, Trash2 } from 'lucide-react';
+import { Card, CardContent, CardHeader } from "../../ui/card";
+import { Badge } from "../../ui/badge";
+import { Button } from "../../ui/button";
+import { Pencil, Trash2, Plus } from "lucide-react";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../../ui/accordion";
 
-type LifestyleActionPlanCardProps = {
-  item: any;
-  onEdit: () => void;
-  onDelete: (id: string) => void;
-};
+interface LifestylePlan {
+  id: string;
+  patient_id: string;
+  form_id: string;
+  priority: 'high' | 'medium' | 'low';
+  stress_management_techniques?: any[]; // JSON array
+  sleep_target_hours?: string;
+  sleep_interventions?: any[]; // JSON array
+  daily_routine_recommendations?: any[]; // JSON array
+}
 
-export const LifestyleActionPlanCard: React.FC<LifestyleActionPlanCardProps> = ({ item, onEdit, onDelete }) => {
-  
-  const getPriorityStyle = (priority: string) => {
-    switch (priority) {
-      case 'high': return 'bg-red-50 text-red-700 border-red-200';
-      case 'medium': return 'bg-orange-50 text-orange-700 border-orange-200';
-      default: return 'bg-green-50 text-green-700 border-green-200';
-    }
-  };
+interface LifestyleActionPlanCardProps {
+  lifestylePlans: LifestylePlan[];
+  onEdit?: (item: LifestylePlan) => void;
+  onDelete?: (id: string) => void;
+  onAdd?: () => void;
+  isEditable?: boolean;
+}
 
-  const getPriorityText = (priority: string) => {
-    switch (priority) {
-      case 'high': return 'Alta Prioridad';
-      case 'medium': return 'Prioridad Media';
-      default: return 'Prioridad Baja';
-    }
+export const LifestyleActionPlanCard: React.FC<LifestyleActionPlanCardProps> = ({
+  lifestylePlans,
+  onEdit,
+  onDelete,
+  onAdd,
+  isEditable = true
+}) => {
+  if (!lifestylePlans || lifestylePlans.length === 0) {
+    return (
+      <Card className="w-full">
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-full bg-healz-blue/20 flex items-center justify-center">
+                🧘
+              </div>
+              <div>
+                <h3 className="font-medium text-healz-blue">Estilo de Vida</h3>
+                <p className="text-sm text-gray-500">Sin recomendaciones</p>
+              </div>
+            </div>
+            {isEditable && onAdd && (
+              <Button variant="outline" size="sm" onClick={onAdd}>
+                <Plus className="w-4 h-4 mr-1" />
+                Agregar
+              </Button>
+            )}
+          </div>
+        </CardHeader>
+      </Card>
+    );
+  }
+
+  const getPriorityBadge = (priority: string) => {
+    const styles = {
+      high: 'bg-healz-orange text-white',
+      medium: 'bg-healz-yellow text-healz-blue',
+      low: 'bg-healz-green/20 text-healz-green'
+    };
+    const labels = {
+      high: 'Alta Prioridad',
+      medium: 'Media Prioridad',
+      low: 'Baja Prioridad'
+    };
+    return { style: styles[priority as keyof typeof styles], label: labels[priority as keyof typeof labels] };
   };
 
   return (
-    <Card className="border-healz-brown/10 bg-white shadow-sm">
-      <CardHeader className="pb-3">
-        <div className="flex items-start justify-between">
-          <div className="flex items-center gap-3">
-            <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-healz-blue/10">
-              <Heart className="h-4 w-4 text-healz-blue" />
-            </div>
-            <div>
-              <h3 className="font-semibold text-healz-brown text-lg">
-                {item.habit_type || 'Plan de Estilo de Vida'}
-              </h3>
-              {(item.frequency || item.duration) && (
-                <div className="flex items-center gap-2 mt-1">
-                  {item.frequency && (
-                    <span className="text-sm text-healz-brown/70 font-medium">{item.frequency}</span>
-                  )}
-                  {item.frequency && item.duration && (
-                    <span className="text-healz-brown/40">•</span>
-                  )}
-                  {item.duration && (
-                    <span className="text-sm text-healz-brown/70">{item.duration}</span>
-                  )}
-                </div>
-              )}
-            </div>
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-full bg-healz-blue/20 flex items-center justify-center">
+            🧘
           </div>
-          <div className="flex items-center gap-2">
-            <Badge className={`text-xs border ${getPriorityStyle(item.priority)}`}>
-              {getPriorityText(item.priority)}
-            </Badge>
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={onEdit}
-              className="h-8 w-8 p-0 hover:bg-healz-brown/5"
-            >
-              <Edit2 className="h-3 w-3" />
-            </Button>
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => onDelete(item.id)}
-              className="h-8 w-8 p-0 text-healz-red hover:text-healz-red hover:bg-red-50"
-            >
-              <Trash2 className="h-3 w-3" />
-            </Button>
+          <div>
+            <h3 className="font-medium text-healz-blue">Estilo de Vida</h3>
+            <p className="text-sm text-gray-500">{lifestylePlans.length} recomendaciones</p>
           </div>
         </div>
-
-        {/* Meta de Sueño - Fija al inicio (solo si existe) */}
-        {item.sleep_target_hours && (
-          <div className="mt-4 p-4 rounded-lg bg-healz-blue/10 border border-healz-blue/20">
-            <div className="flex items-center gap-2 mb-2">
-              <Moon className="h-5 w-5 text-healz-blue" />
-              <h4 className="font-semibold text-healz-blue">Meta de Sueño</h4>
-            </div>
-            <p className="text-sm text-healz-brown leading-relaxed">{item.sleep_target_hours}</p>
-          </div>
+        {isEditable && onAdd && (
+          <Button variant="outline" size="sm" onClick={onAdd}>
+            <Plus className="w-4 h-4 mr-1" />
+            Agregar
+          </Button>
         )}
-      </CardHeader>
+      </div>
 
-      <CardContent>
-        <Accordion type="single" className="w-full" collapsible>
-          
-          {/* Manejo de Estrés */}
-          <AccordionItem value="stress" className="border-b border-healz-brown/5">
-            <AccordionTrigger className="hover:text-healz-orange text-healz-brown font-medium py-3">
-              <div className="flex items-center gap-2">
-                <Brain className="h-4 w-4 text-healz-orange" />
-                Manejo de Estrés
-                {item.stress_management_techniques?.length && (
-                  <Badge variant="secondary" className="ml-2 text-xs bg-healz-orange/10 text-healz-orange border-0">
-                    {item.stress_management_techniques.length} técnicas
-                  </Badge>
-                )}
-              </div>
-            </AccordionTrigger>
-            <AccordionContent>
-              <div className="pt-2 pb-4">
-                {item.stress_management_techniques && Array.isArray(item.stress_management_techniques) && item.stress_management_techniques.length > 0 ? (
-                  <div className="space-y-3">
-                    {item.stress_management_techniques.map((technique: string, index: number) => (
-                      <div key={index} className="flex items-start gap-3 p-3 rounded-lg bg-healz-orange/5 border border-healz-orange/10">
-                        <div className="flex items-center justify-center w-6 h-6 rounded-full bg-healz-orange text-white text-xs font-semibold mt-0.5 flex-shrink-0">
-                          {index + 1}
-                        </div>
-                        <p className="text-sm text-healz-brown leading-relaxed">{technique}</p>
-                      </div>
-                    ))}
+      {lifestylePlans.map((plan) => {
+        const priorityBadge = getPriorityBadge(plan.priority);
+        
+        return (
+          <Card key={plan.id} className="w-full">
+            <CardHeader className="pb-3">
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Badge className={priorityBadge.style}>
+                      {priorityBadge.label}
+                    </Badge>
                   </div>
-                ) : (
-                  <div className="space-y-3">
-                    <p className="text-sm text-healz-brown/60 italic mb-3">Técnicas recomendadas para el manejo del estrés:</p>
-                    <div className="space-y-3">
-                      <div className="p-3 rounded-lg bg-healz-orange/5 border border-healz-orange/10">
-                        <p className="text-sm text-healz-brown leading-relaxed">
-                          <span className="font-medium">Respiración profunda:</span> Técnica de respiración diafragmática 5-10 minutos diarios
-                        </p>
-                      </div>
-                      <div className="p-3 rounded-lg bg-healz-orange/5 border border-healz-orange/10">
-                        <p className="text-sm text-healz-brown leading-relaxed">
-                          <span className="font-medium">Mindfulness:</span> Práctica de atención plena durante actividades cotidianas
-                        </p>
-                      </div>
-                      <div className="p-3 rounded-lg bg-healz-orange/5 border border-healz-orange/10">
-                        <p className="text-sm text-healz-brown leading-relaxed">
-                          <span className="font-medium">Gestión del tiempo:</span> Planificación y priorización de tareas diarias
-                        </p>
+                  <h4 className="font-medium text-healz-blue mb-2">Plan de Estilo de Vida</h4>
+                  
+                  {/* Objetivo de sueño fijo si existe */}
+                  {plan.sleep_target_hours && (
+                    <div className="p-3 bg-healz-blue/10 rounded-lg border border-healz-blue/20 mb-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-healz-blue">🌙</span>
+                        <span className="font-semibold text-healz-blue">Objetivo de Sueño:</span>
+                        <span className="text-healz-blue">{plan.sleep_target_hours}</span>
                       </div>
                     </div>
-                  </div>
-                )}
-              </div>
-            </AccordionContent>
-          </AccordionItem>
-
-          {/* Intervenciones de Sueño */}
-          <AccordionItem value="sleep" className="border-b border-healz-brown/5">
-            <AccordionTrigger className="hover:text-healz-blue text-healz-brown font-medium py-3">
-              <div className="flex items-center gap-2">
-                <Moon className="h-4 w-4 text-healz-blue" />
-                Intervenciones de Sueño
-                {item.sleep_interventions?.length && (
-                  <Badge variant="secondary" className="ml-2 text-xs bg-healz-blue/10 text-healz-blue border-0">
-                    {item.sleep_interventions.length} intervenciones
-                  </Badge>
-                )}
-              </div>
-            </AccordionTrigger>
-            <AccordionContent>
-              <div className="pt-2 pb-4">
-                {item.sleep_interventions && Array.isArray(item.sleep_interventions) && item.sleep_interventions.length > 0 ? (
-                  <div className="space-y-3">
-                    {item.sleep_interventions.map((intervention: string, index: number) => (
-                      <div key={index} className="flex items-start gap-3 p-3 rounded-lg bg-healz-blue/5 border border-healz-blue/10">
-                        <Moon className="h-4 w-4 text-healz-blue mt-0.5 flex-shrink-0" />
-                        <p className="text-sm text-healz-brown leading-relaxed">{intervention}</p>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    <p className="text-sm text-healz-brown/60 italic mb-3">Intervenciones recomendadas para mejorar el sueño:</p>
-                    <div className="space-y-3">
-                      <div className="p-3 rounded-lg bg-healz-blue/5 border border-healz-blue/10">
-                        <p className="text-sm text-healz-brown leading-relaxed">
-                          <span className="font-medium">Higiene del sueño:</span> Mantener horarios regulares de sueño y vigilia
-                        </p>
-                      </div>
-                      <div className="p-3 rounded-lg bg-healz-blue/5 border border-healz-blue/10">
-                        <p className="text-sm text-healz-brown leading-relaxed">
-                          <span className="font-medium">Ambiente óptimo:</span> Habitación oscura, silenciosa y temperatura fresca
-                        </p>
-                      </div>
-                      <div className="p-3 rounded-lg bg-healz-blue/5 border border-healz-blue/10">
-                        <p className="text-sm text-healz-brown leading-relaxed">
-                          <span className="font-medium">Rutina relajante:</span> Actividades calmantes 30-60 minutos antes de dormir
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </AccordionContent>
-          </AccordionItem>
-
-          {/* Rutina Diaria */}
-          <AccordionItem value="routine" className="border-b-0">
-            <AccordionTrigger className="hover:text-healz-green text-healz-brown font-medium py-3">
-              <div className="flex items-center gap-2">
-                <Home className="h-4 w-4 text-healz-green" />
-                Rutina Diaria
-                {item.daily_routine_recommendations?.length && (
-                  <Badge variant="secondary" className="ml-2 text-xs bg-healz-green/10 text-healz-green border-0">
-                    {item.daily_routine_recommendations.length} recomendaciones
-                  </Badge>
-                )}
-              </div>
-            </AccordionTrigger>
-            <AccordionContent>
-              <div className="pt-2 pb-4">
-                {item.daily_routine_recommendations && Array.isArray(item.daily_routine_recommendations) && item.daily_routine_recommendations.length > 0 ? (
-                  <div className="space-y-3">
-                    {item.daily_routine_recommendations.map((recommendation: string, index: number) => (
-                      <div key={index} className="flex items-start gap-3 p-3 rounded-lg bg-healz-green/5 border border-healz-green/10">
-                        <Clock className="h-4 w-4 text-healz-green mt-0.5 flex-shrink-0" />
-                        <p className="text-sm text-healz-brown leading-relaxed">{recommendation}</p>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    <p className="text-sm text-healz-brown/60 italic mb-3">Recomendaciones para establecer una rutina diaria saludable:</p>
-                    <div className="grid gap-3">
-                      <div className="p-3 rounded-lg bg-healz-green/5 border border-healz-green/10">
-                        <p className="text-sm text-healz-brown leading-relaxed">
-                          <span className="font-medium">Mañana:</span> Despertar a la misma hora, hidratación y actividad física ligera
-                        </p>
-                      </div>
-                      <div className="p-3 rounded-lg bg-healz-green/5 border border-healz-green/10">
-                        <p className="text-sm text-healz-brown leading-relaxed">
-                          <span className="font-medium">Mediodía:</span> Comida equilibrada y pausa activa de 10-15 minutos
-                        </p>
-                      </div>
-                      <div className="p-3 rounded-lg bg-healz-green/5 border border-healz-green/10">
-                        <p className="text-sm text-healz-brown leading-relaxed">
-                          <span className="font-medium">Tarde:</span> Evitar cafeína después de las 16h, ejercicio moderado
-                        </p>
-                      </div>
-                      <div className="p-3 rounded-lg bg-healz-green/5 border border-healz-green/10">
-                        <p className="text-sm text-healz-brown leading-relaxed">
-                          <span className="font-medium">Noche:</span> Rutina relajante, desconexión digital 1h antes de dormir
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-                
-                {/* Información adicional de timing y seguimiento */}
-                {(item.timing || item.tracking_method || item.specific_actions?.length > 0) && (
-                  <div className="mt-4 pt-4 border-t border-healz-brown/10 space-y-3">
-                    {item.timing && (
-                      <div className="p-3 rounded-lg bg-healz-purple/5 border border-healz-purple/10">
-                        <div className="flex items-center gap-2 mb-1">
-                          <Clock className="h-4 w-4 text-healz-purple" />
-                          <span className="font-medium text-healz-brown text-sm">Timing recomendado:</span>
-                        </div>
-                        <p className="text-sm text-healz-brown/80">{item.timing}</p>
-                      </div>
+                  )}
+                </div>
+                {isEditable && (
+                  <div className="flex items-center gap-1">
+                    {onEdit && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => onEdit(plan.id)}
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </Button>
                     )}
-                    
-                    {item.tracking_method && (
-                      <div className="p-3 rounded-lg bg-healz-teal/5 border border-healz-teal/10">
-                        <span className="font-medium text-healz-brown text-sm block mb-1">Método de seguimiento:</span>
-                        <p className="text-sm text-healz-brown/80">{item.tracking_method}</p>
-                      </div>
+                    {onDelete && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => onDelete(plan.id)}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
                     )}
-                    
-                    {item.specific_actions && Array.isArray(item.specific_actions) && item.specific_actions.length > 0 && (
-                      <div>
-                        <h5 className="text-sm font-medium text-healz-brown mb-2">Acciones específicas:</h5>
-                        <div className="flex flex-wrap gap-2">
-                          {item.specific_actions.map((action: string, index: number) => (
-                            <Badge key={index} variant="outline" className="text-xs bg-healz-teal/10 text-healz-teal border-healz-teal/20">
-                              {action}
-                            </Badge>
+                  </div>
+                )}
+              </div>
+            </CardHeader>
+
+            <CardContent className="pt-0">
+              <Accordion type="multiple" className="w-full">
+                {/* Manejo de Estrés */}
+                <AccordionItem value="stress-management">
+                  <AccordionTrigger className="text-sm font-medium text-healz-blue">
+                    <div className="flex items-center gap-2">
+                      <span className="text-healz-orange">🧠</span>
+                      Manejo de Estrés
+                      {plan.stress_management_techniques && plan.stress_management_techniques.length > 0 && (
+                        <Badge variant="secondary" className="ml-2">
+                          {plan.stress_management_techniques.length}
+                        </Badge>
+                      )}
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <div className="space-y-2">
+                      {plan.stress_management_techniques && plan.stress_management_techniques.length > 0 ? (
+                        plan.stress_management_techniques.map((technique, index) => (
+                          <div key={index} className="flex items-start gap-3 p-3 bg-orange-50 rounded-lg border border-orange-200">
+                            <span className="text-healz-orange font-medium mt-0.5">{index + 1}.</span>
+                            <span className="text-sm text-gray-700">{technique}</span>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="space-y-2">
+                          <div className="flex items-start gap-3 p-3 bg-orange-50 rounded-lg border border-orange-200">
+                            <span className="text-healz-orange font-medium mt-0.5">1.</span>
+                            <span className="text-sm text-gray-700">Técnicas de respiración profunda (5-10 minutos diarios)</span>
+                          </div>
+                          <div className="flex items-start gap-3 p-3 bg-orange-50 rounded-lg border border-orange-200">
+                            <span className="text-healz-orange font-medium mt-0.5">2.</span>
+                            <span className="text-sm text-gray-700">Meditación mindfulness (10-15 minutos)</span>
+                          </div>
+                          <div className="flex items-start gap-3 p-3 bg-orange-50 rounded-lg border border-orange-200">
+                            <span className="text-healz-orange font-medium mt-0.5">3.</span>
+                            <span className="text-sm text-gray-700">Paseos en naturaleza (20-30 minutos)</span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+
+                {/* Calidad del Sueño */}
+                <AccordionItem value="sleep-interventions">
+                  <AccordionTrigger className="text-sm font-medium text-healz-blue">
+                    <div className="flex items-center gap-2">
+                      <span className="text-healz-purple">🌙</span>
+                      Calidad del Sueño
+                      {plan.sleep_interventions && plan.sleep_interventions.length > 0 && (
+                        <Badge variant="secondary" className="ml-2">
+                          {plan.sleep_interventions.length}
+                        </Badge>
+                      )}
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <div className="space-y-2">
+                      {plan.sleep_interventions && plan.sleep_interventions.length > 0 ? (
+                        plan.sleep_interventions.map((intervention, index) => (
+                          <div key={index} className="p-3 bg-purple-50 rounded-lg border border-purple-200">
+                            <p className="text-sm text-gray-700">{intervention}</p>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="space-y-2">
+                          <div className="p-3 bg-purple-50 rounded-lg border border-purple-200">
+                            <p className="text-sm text-gray-700">Establecer horario fijo de sueño y despertar</p>
+                          </div>
+                          <div className="p-3 bg-purple-50 rounded-lg border border-purple-200">
+                            <p className="text-sm text-gray-700">Evitar pantallas 1 hora antes de dormir</p>
+                          </div>
+                          <div className="p-3 bg-purple-50 rounded-lg border border-purple-200">
+                            <p className="text-sm text-gray-700">Crear rutina de relajación antes de acostarse</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+
+                {/* Tareas Diarias */}
+                <AccordionItem value="daily-routine">
+                  <AccordionTrigger className="text-sm font-medium text-healz-blue">
+                    <div className="flex items-center gap-2">
+                      <span className="text-healz-green">📅</span>
+                      Tareas Diarias
+                      {plan.daily_routine_recommendations && plan.daily_routine_recommendations.length > 0 && (
+                        <Badge variant="secondary" className="ml-2">
+                          {plan.daily_routine_recommendations.length}
+                        </Badge>
+                      )}
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <div className="space-y-4">
+                      {plan.daily_routine_recommendations && plan.daily_routine_recommendations.length > 0 ? (
+                        <div className="space-y-3">
+                          {plan.daily_routine_recommendations.map((routine, index) => (
+                            <div key={index} className="p-3 bg-green-50 rounded-lg border border-green-200">
+                              <p className="text-sm text-gray-700">{routine}</p>
+                            </div>
                           ))}
                         </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            </AccordionContent>
-          </AccordionItem>
+                      ) : (
+                        <div className="grid gap-4">
+                          {/* Rutina por períodos del día */}
+                          <div className="border border-gray-200 rounded-lg p-3">
+                            <h4 className="font-medium text-healz-blue mb-2">🌅 Mañana (7:00 - 12:00)</h4>
+                            <div className="space-y-1">
+                              <div className="text-sm text-gray-600 flex items-start gap-2">
+                                <span className="text-healz-green">•</span>
+                                Hidratación al despertar (1-2 vasos de agua)
+                              </div>
+                              <div className="text-sm text-gray-600 flex items-start gap-2">
+                                <span className="text-healz-green">•</span>
+                                5-10 minutos de estiramientos
+                              </div>
+                              <div className="text-sm text-gray-600 flex items-start gap-2">
+                                <span className="text-healz-green">•</span>
+                                Exposición a luz natural (10-15 minutos)
+                              </div>
+                            </div>
+                          </div>
 
-        </Accordion>
-      </CardContent>
-    </Card>
+                          <div className="border border-gray-200 rounded-lg p-3">
+                            <h4 className="font-medium text-healz-blue mb-2">☀️ Mediodía (12:00 - 17:00)</h4>
+                            <div className="space-y-1">
+                              <div className="text-sm text-gray-600 flex items-start gap-2">
+                                <span className="text-healz-green">•</span>
+                                Descanso activo (5-10 minutos cada 2 horas)
+                              </div>
+                              <div className="text-sm text-gray-600 flex items-start gap-2">
+                                <span className="text-healz-green">•</span>
+                                Hidratación regular
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="border border-gray-200 rounded-lg p-3">
+                            <h4 className="font-medium text-healz-blue mb-2">🌇 Tarde (17:00 - 21:00)</h4>
+                            <div className="space-y-1">
+                              <div className="text-sm text-gray-600 flex items-start gap-2">
+                                <span className="text-healz-green">•</span>
+                                Actividad física moderada (20-30 minutos)
+                              </div>
+                              <div className="text-sm text-gray-600 flex items-start gap-2">
+                                <span className="text-healz-green">•</span>
+                                Tiempo de desconexión digital
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="border border-gray-200 rounded-lg p-3">
+                            <h4 className="font-medium text-healz-blue mb-2">🌃 Noche (21:00 - 23:00)</h4>
+                            <div className="space-y-1">
+                              <div className="text-sm text-gray-600 flex items-start gap-2">
+                                <span className="text-healz-green">•</span>
+                                Rutina de relajación (lectura, música suave)
+                              </div>
+                              <div className="text-sm text-gray-600 flex items-start gap-2">
+                                <span className="text-healz-green">•</span>
+                                Preparación para el descanso
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
+            </CardContent>
+          </Card>
+        );
+      })}
+    </div>
   );
 };

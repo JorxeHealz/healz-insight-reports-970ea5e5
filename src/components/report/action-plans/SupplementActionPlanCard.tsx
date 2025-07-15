@@ -1,245 +1,283 @@
 import React from 'react';
-import { Badge } from '../../ui/badge';
-import { Button } from '../../ui/button';
-import { Card, CardContent, CardHeader } from '../../ui/card';
-import { 
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from '../../ui/accordion';
-import { Pill, Clock, Shield, AlertTriangle, Package, Edit2, Trash2, Target } from 'lucide-react';
+import { Card, CardContent, CardHeader } from "../../ui/card";
+import { Badge } from "../../ui/badge";
+import { Button } from "../../ui/button";
+import { Pencil, Trash2, Plus } from "lucide-react";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../../ui/accordion";
 
-type SupplementActionPlanCardProps = {
-  item: any;
-  onEdit: () => void;
-  onDelete: (id: string) => void;
-};
+interface Supplement {
+  id: string;
+  patient_id: string;
+  form_id: string;
+  supplement_name: string;
+  priority: 'high' | 'medium' | 'low';
+  dosage: string;
+  timing?: string;
+  reason?: string;
+  frequency?: string;
+  duration?: string;
+  brand_recommendations?: string[];
+  contraindications?: string[];
+  monitoring_notes?: string;
+}
 
-export const SupplementActionPlanCard: React.FC<SupplementActionPlanCardProps> = ({ item, onEdit, onDelete }) => {
+interface SupplementActionPlanCardProps {
+  supplements: Supplement[];
+  onEdit?: (item: Supplement) => void;
+  onDelete?: (id: string) => void;
+  onAdd?: () => void;
+  isEditable?: boolean;
+}
 
-  const getPriorityStyle = (priority: string) => {
-    switch (priority) {
-      case 'high': return 'bg-red-50 text-red-700 border-red-200';
-      case 'medium': return 'bg-orange-50 text-orange-700 border-orange-200';
-      default: return 'bg-green-50 text-green-700 border-green-200';
-    }
-  };
+export const SupplementActionPlanCard: React.FC<SupplementActionPlanCardProps> = ({
+  supplements,
+  onEdit,
+  onDelete,
+  onAdd,
+  isEditable = true
+}) => {
+  if (!supplements || supplements.length === 0) {
+    return (
+      <Card className="w-full">
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-full bg-healz-orange/20 flex items-center justify-center">
+                💊
+              </div>
+              <div>
+                <h3 className="font-medium text-healz-blue">Suplementos</h3>
+                <p className="text-sm text-gray-500">Sin recomendaciones</p>
+              </div>
+            </div>
+            {isEditable && onAdd && (
+              <Button variant="outline" size="sm" onClick={onAdd}>
+                <Plus className="w-4 h-4 mr-1" />
+                Agregar
+              </Button>
+            )}
+          </div>
+        </CardHeader>
+      </Card>
+    );
+  }
 
-  const getPriorityText = (priority: string) => {
-    switch (priority) {
-      case 'high': return 'Alta Prioridad';
-      case 'medium': return 'Prioridad Media';
-      default: return 'Prioridad Baja';
-    }
+  const getPriorityBadge = (priority: string) => {
+    const styles = {
+      high: 'bg-healz-orange text-white',
+      medium: 'bg-healz-yellow text-healz-blue',
+      low: 'bg-healz-green/20 text-healz-green'
+    };
+    const labels = {
+      high: 'Alta Prioridad',
+      medium: 'Media Prioridad',
+      low: 'Baja Prioridad'
+    };
+    return { style: styles[priority as keyof typeof styles], label: labels[priority as keyof typeof labels] };
   };
 
   return (
-    <Card className="border-healz-brown/10 bg-white shadow-sm">
-      <CardHeader className="pb-3">
-        <div className="flex items-start justify-between">
-          <div className="flex items-center gap-3">
-            <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-healz-orange/10">
-              <Pill className="h-4 w-4 text-healz-orange" />
-            </div>
-            <div>
-              <h3 className="font-semibold text-healz-brown text-lg">
-                {item.supplement_name}
-              </h3>
-              <div className="flex items-center gap-2 mt-1">
-                <span className="text-sm text-healz-brown/70 font-medium">{item.dosage}</span>
-                {item.frequency && (
-                  <>
-                    <span className="text-healz-brown/40">•</span>
-                    <span className="text-sm text-healz-brown/70">{item.frequency}</span>
-                  </>
-                )}
-              </div>
-            </div>
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-full bg-healz-orange/20 flex items-center justify-center">
+            💊
           </div>
-          <div className="flex items-center gap-2">
-            <Badge className={`text-xs border ${getPriorityStyle(item.priority)}`}>
-              {getPriorityText(item.priority)}
-            </Badge>
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={onEdit}
-              className="h-8 w-8 p-0 hover:bg-healz-brown/5"
-            >
-              <Edit2 className="h-3 w-3" />
-            </Button>
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => onDelete(item.id)}
-              className="h-8 w-8 p-0 text-healz-red hover:text-healz-red hover:bg-red-50"
-            >
-              <Trash2 className="h-3 w-3" />
-            </Button>
+          <div>
+            <h3 className="font-medium text-healz-blue">Suplementos</h3>
+            <p className="text-sm text-gray-500">{supplements.length} recomendaciones</p>
           </div>
         </div>
-      </CardHeader>
+        {isEditable && onAdd && (
+          <Button variant="outline" size="sm" onClick={onAdd}>
+            <Plus className="w-4 h-4 mr-1" />
+            Agregar
+          </Button>
+        )}
+      </div>
 
-      <CardContent>
-        <Accordion type="single" className="w-full" collapsible>
-          
-          {/* Indicación Médica */}
-          <AccordionItem value="indication" className="border-b border-healz-brown/5">
-            <AccordionTrigger className="hover:text-healz-teal text-healz-brown font-medium py-3">
-              <div className="flex items-center gap-2">
-                <Target className="h-4 w-4 text-healz-teal" />
-                Indicación Médica
-              </div>
-            </AccordionTrigger>
-            <AccordionContent>
-              <div className="pt-2 pb-4">
-                {item.reason ? (
-                  <div className="p-4 rounded-lg bg-healz-teal/5 border border-healz-teal/10">
-                    <p className="text-sm text-healz-brown leading-relaxed">{item.reason}</p>
+      {supplements.map((supplement) => {
+        const priorityBadge = getPriorityBadge(supplement.priority);
+        
+        return (
+          <Card key={supplement.id} className="w-full">
+            <CardHeader className="pb-3">
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-2">
+                    <h4 className="font-medium text-healz-blue">{supplement.supplement_name}</h4>
+                    <Badge className={priorityBadge.style}>
+                      {priorityBadge.label}
+                    </Badge>
                   </div>
-                ) : (
-                  <p className="text-sm text-healz-brown/60 italic">No se ha especificado la indicación médica</p>
-                )}
-              </div>
-            </AccordionContent>
-          </AccordionItem>
-
-          {/* Protocolo de Toma */}
-          <AccordionItem value="protocol" className="border-b border-healz-brown/5">
-            <AccordionTrigger className="hover:text-healz-blue text-healz-brown font-medium py-3">
-              <div className="flex items-center gap-2">
-                <Clock className="h-4 w-4 text-healz-blue" />
-                Protocolo de Toma
-              </div>
-            </AccordionTrigger>
-            <AccordionContent>
-              <div className="pt-2 pb-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="p-3 rounded-lg bg-healz-blue/5 border border-healz-blue/10">
-                    <span className="font-medium text-healz-brown text-sm block mb-2">Dosis:</span>
-                    <p className="text-sm text-healz-brown/80">{item.dosage || 'No especificada'}</p>
-                  </div>
-                  
-                  <div className="p-3 rounded-lg bg-healz-blue/5 border border-healz-blue/10">
-                    <span className="font-medium text-healz-brown text-sm block mb-2">Frecuencia:</span>
-                    <p className="text-sm text-healz-brown/80">{item.frequency || 'No especificada'}</p>
-                  </div>
-                  
-                  {item.timing && (
-                    <div className="p-3 rounded-lg bg-healz-blue/5 border border-healz-blue/10">
-                      <span className="font-medium text-healz-brown text-sm block mb-2">Momento:</span>
-                      <p className="text-sm text-healz-brown/80">{item.timing}</p>
-                    </div>
-                  )}
-                  
-                  {item.with_or_without_food && (
-                    <div className="p-3 rounded-lg bg-healz-blue/5 border border-healz-blue/10">
-                      <span className="font-medium text-healz-brown text-sm block mb-2">Con comida:</span>
-                      <p className="text-sm text-healz-brown/80">{item.with_or_without_food}</p>
-                    </div>
-                  )}
+                  <p className="text-sm text-gray-600">
+                    <span className="font-semibold">Dosis:</span> {supplement.dosage}
+                    {supplement.frequency && (
+                      <span> • <span className="font-semibold">Frecuencia:</span> {supplement.frequency}</span>
+                    )}
+                  </p>
                 </div>
-                
-                {item.duration && (
-                  <div className="mt-4 p-3 rounded-lg bg-healz-blue/10 border border-healz-blue/20">
-                    <div className="flex items-center gap-2 mb-1">
-                      <Clock className="h-4 w-4 text-healz-blue" />
-                      <span className="font-medium text-healz-brown text-sm">Duración del tratamiento:</span>
-                    </div>
-                    <p className="text-sm text-healz-brown/80">{item.duration}</p>
+                {isEditable && (
+                  <div className="flex items-center gap-1">
+                    {onEdit && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => onEdit(supplement.id)}
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </Button>
+                    )}
+                    {onDelete && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => onDelete(supplement.id)}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    )}
                   </div>
                 )}
               </div>
-            </AccordionContent>
-          </AccordionItem>
+            </CardHeader>
 
-          {/* Marcas Recomendadas */}
-          {item.brand_recommendations && Array.isArray(item.brand_recommendations) && item.brand_recommendations.length > 0 && (
-            <AccordionItem value="brands" className="border-b border-healz-brown/5">
-              <AccordionTrigger className="hover:text-healz-orange text-healz-brown font-medium py-3">
-                <div className="flex items-center gap-2">
-                  <Package className="h-4 w-4 text-healz-orange" />
-                  Marcas Recomendadas
-                  <Badge variant="secondary" className="ml-2 text-xs bg-healz-orange/10 text-healz-orange border-0">
-                    {item.brand_recommendations.length} marcas
-                  </Badge>
-                </div>
-              </AccordionTrigger>
-              <AccordionContent>
-                <div className="pt-2 pb-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {item.brand_recommendations.map((brand: string, index: number) => (
-                      <div key={index} className="flex items-center gap-2 p-3 rounded-lg bg-healz-orange/5 border border-healz-orange/10">
-                        <div className="w-2 h-2 rounded-full bg-healz-orange flex-shrink-0"></div>
-                        <span className="text-sm text-healz-brown font-medium">{brand}</span>
+            <CardContent className="pt-0">
+              <Accordion type="multiple" className="w-full">
+                {/* Indicación Médica */}
+                {supplement.reason && (
+                  <AccordionItem value="indication">
+                    <AccordionTrigger className="text-sm font-medium text-healz-blue">
+                      <div className="flex items-center gap-2">
+                        <span className="text-healz-green">🩺</span>
+                        Indicación Médica
                       </div>
-                    ))}
-                  </div>
-                </div>
-              </AccordionContent>
-            </AccordionItem>
-          )}
-
-          {/* Interacciones y Precauciones */}
-          {item.interactions && Array.isArray(item.interactions) && item.interactions.length > 0 && (
-            <AccordionItem value="interactions" className="border-b border-healz-brown/5">
-              <AccordionTrigger className="hover:text-healz-red text-healz-brown font-medium py-3">
-                <div className="flex items-center gap-2">
-                  <AlertTriangle className="h-4 w-4 text-healz-red" />
-                  Interacciones y Precauciones
-                  <Badge variant="secondary" className="ml-2 text-xs bg-healz-red/10 text-healz-red border-0">
-                    {item.interactions.length} interacciones
-                  </Badge>
-                </div>
-              </AccordionTrigger>
-              <AccordionContent>
-                <div className="pt-2 pb-4">
-                  <div className="space-y-3">
-                    {item.interactions.map((interaction: string, index: number) => (
-                      <div key={index} className="flex items-start gap-3 p-3 rounded-lg bg-healz-red/5 border border-healz-red/10">
-                        <AlertTriangle className="h-4 w-4 text-healz-red mt-0.5 flex-shrink-0" />
-                        <p className="text-sm text-healz-brown leading-relaxed">{interaction}</p>
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      <div className="p-3 bg-healz-cream/30 rounded-lg">
+                        <p className="text-sm text-gray-700 leading-relaxed">
+                          {supplement.reason}
+                        </p>
                       </div>
-                    ))}
-                  </div>
-                </div>
-              </AccordionContent>
-            </AccordionItem>
-          )}
+                    </AccordionContent>
+                  </AccordionItem>
+                )}
 
-          {/* Monitoreo y Seguimiento */}
-          {item.monitoring_notes && (
-            <AccordionItem value="monitoring" className="border-b-0">
-              <AccordionTrigger className="hover:text-healz-purple text-healz-brown font-medium py-3">
-                <div className="flex items-center gap-2">
-                  <Shield className="h-4 w-4 text-healz-purple" />
-                  Monitoreo y Seguimiento
-                </div>
-              </AccordionTrigger>
-              <AccordionContent>
-                <div className="pt-2 pb-4">
-                  <div className="p-4 rounded-lg bg-healz-purple/5 border border-healz-purple/10">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Shield className="h-4 w-4 text-healz-purple" />
-                      <span className="font-medium text-healz-brown text-sm">Indicaciones de seguimiento:</span>
+                {/* Protocolo de Toma */}
+                <AccordionItem value="protocol">
+                  <AccordionTrigger className="text-sm font-medium text-healz-blue">
+                    <div className="flex items-center gap-2">
+                      <span className="text-healz-blue">⏰</span>
+                      Protocolo de Toma
                     </div>
-                    <p className="text-sm text-healz-brown/80 leading-relaxed">{item.monitoring_notes}</p>
-                  </div>
-                  
-                  {item.total_monthly_cost && (
-                    <div className="mt-4 p-3 rounded-lg bg-healz-yellow/5 border border-healz-yellow/10">
-                      <span className="font-medium text-healz-brown text-sm block mb-1">Costo mensual estimado:</span>
-                      <p className="text-lg font-bold text-healz-brown">{item.total_monthly_cost}</p>
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <div className="space-y-3">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+                          <p className="text-sm">
+                            <span className="font-semibold text-healz-blue">Dosis:</span><br />
+                            {supplement.dosage}
+                          </p>
+                        </div>
+                        {supplement.timing && (
+                          <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+                            <p className="text-sm">
+                              <span className="font-semibold text-healz-blue">Momento:</span><br />
+                              {supplement.timing}
+                            </p>
+                          </div>
+                        )}
+                        {supplement.frequency && (
+                          <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+                            <p className="text-sm">
+                              <span className="font-semibold text-healz-blue">Frecuencia:</span><br />
+                              {supplement.frequency}
+                            </p>
+                          </div>
+                        )}
+                        {supplement.duration && (
+                          <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+                            <p className="text-sm">
+                              <span className="font-semibold text-healz-blue">Duración:</span><br />
+                              {supplement.duration}
+                            </p>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  )}
-                </div>
-              </AccordionContent>
-            </AccordionItem>
-          )}
+                  </AccordionContent>
+                </AccordionItem>
 
-        </Accordion>
-      </CardContent>
-    </Card>
+                {/* Marcas Recomendadas */}
+                {supplement.brand_recommendations && supplement.brand_recommendations.length > 0 && (
+                  <AccordionItem value="brands">
+                    <AccordionTrigger className="text-sm font-medium text-healz-blue">
+                      <div className="flex items-center gap-2">
+                        <span className="text-healz-purple">🏷️</span>
+                        Marcas Recomendadas
+                        <Badge variant="secondary" className="ml-2">
+                          {supplement.brand_recommendations.length}
+                        </Badge>
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                        {supplement.brand_recommendations.map((brand, index) => (
+                          <div key={index} className="flex items-center gap-2 p-2 bg-purple-50 rounded-lg border border-purple-200">
+                            <span className="text-healz-purple">✓</span>
+                            <span className="text-sm text-gray-700">{brand}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                )}
+
+                {/* Interacciones y Precauciones */}
+                {supplement.contraindications && supplement.contraindications.length > 0 && (
+                  <AccordionItem value="contraindications">
+                    <AccordionTrigger className="text-sm font-medium text-healz-blue">
+                      <div className="flex items-center gap-2">
+                        <span className="text-red-500">⚠️</span>
+                        Interacciones y Precauciones
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      <div className="space-y-2">
+                        {supplement.contraindications.map((contraindication, index) => (
+                          <div key={index} className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                            <p className="text-sm text-gray-700">{contraindication}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                )}
+
+                {/* Monitoreo y Seguimiento */}
+                {supplement.monitoring_notes && (
+                  <AccordionItem value="monitoring">
+                    <AccordionTrigger className="text-sm font-medium text-healz-blue">
+                      <div className="flex items-center gap-2">
+                        <span className="text-healz-brown">📊</span>
+                        Monitoreo y Seguimiento
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                        <p className="text-sm text-gray-700 leading-relaxed">
+                          {supplement.monitoring_notes}
+                        </p>
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                )}
+              </Accordion>
+            </CardContent>
+          </Card>
+        );
+      })}
+    </div>
   );
 };
