@@ -2,7 +2,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader } from "../../ui/card";
 import { Badge } from "../../ui/badge";
 import { Button } from "../../ui/button";
-import { Pencil, Trash2, Plus } from "lucide-react";
+import { Pencil, Trash2, Plus, Stethoscope, Activity, Zap, MapPin, Hand, Heart, ClipboardList, Clock, Target, BarChart3, AlertTriangle } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../../ui/accordion";
 
 interface Therapy {
@@ -42,7 +42,7 @@ export const TherapyActionPlanCard: React.FC<TherapyActionPlanCardProps> = ({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-full bg-healz-red/20 flex items-center justify-center">
-                🩺
+                <Stethoscope className="w-4 h-4 text-healz-red" />
               </div>
               <div>
                 <h3 className="font-medium text-healz-blue">Terapia</h3>
@@ -76,17 +76,18 @@ export const TherapyActionPlanCard: React.FC<TherapyActionPlanCardProps> = ({
   };
 
   const getTherapyIcon = (therapyType: string) => {
-    const icons: Record<string, string> = {
-      hormone_replacement: '🧬',
-      iv_therapy: '💉',
-      red_light: '🔴',
-      hyperbaric: '🫁',
-      physical_therapy: '🤸',
-      acupuncture: '📍',
-      massage: '👐',
-      default: '🩺'
+    const icons: Record<string, any> = {
+      hormone_replacement: Activity,
+      iv_therapy: Zap,
+      red_light: Heart,
+      hyperbaric: Activity,
+      physical_therapy: Activity,
+      acupuncture: MapPin,
+      massage: Hand,
+      default: Stethoscope
     };
-    return icons[therapyType?.toLowerCase().replace(' ', '_')] || icons.default;
+    const IconComponent = icons[therapyType?.toLowerCase().replace(' ', '_')] || icons.default;
+    return <IconComponent className="w-4 h-4" />;
   };
 
   return (
@@ -94,7 +95,7 @@ export const TherapyActionPlanCard: React.FC<TherapyActionPlanCardProps> = ({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-full bg-healz-red/20 flex items-center justify-center">
-            🩺
+            <Stethoscope className="w-4 h-4 text-healz-red" />
           </div>
           <div>
             <h3 className="font-medium text-healz-blue">Terapia</h3>
@@ -119,7 +120,7 @@ export const TherapyActionPlanCard: React.FC<TherapyActionPlanCardProps> = ({
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2">
-                    <span className="text-lg">{therapyIcon}</span>
+                    <span className="text-healz-blue">{therapyIcon}</span>
                     <h4 className="font-medium text-healz-blue">
                       {therapy.therapy_type}
                     </h4>
@@ -168,7 +169,7 @@ export const TherapyActionPlanCard: React.FC<TherapyActionPlanCardProps> = ({
                   <AccordionItem value="protocol">
                     <AccordionTrigger className="text-sm font-medium text-healz-blue">
                       <div className="flex items-center gap-2">
-                        <span className="text-healz-blue">📋</span>
+                        <ClipboardList className="w-4 h-4 text-healz-blue" />
                         Protocolo de Tratamiento
                       </div>
                     </AccordionTrigger>
@@ -186,7 +187,7 @@ export const TherapyActionPlanCard: React.FC<TherapyActionPlanCardProps> = ({
                 <AccordionItem value="scheduling">
                   <AccordionTrigger className="text-sm font-medium text-healz-blue">
                     <div className="flex items-center gap-2">
-                      <span className="text-healz-purple">⏰</span>
+                      <Clock className="w-4 h-4 text-healz-purple" />
                       Programación
                     </div>
                   </AccordionTrigger>
@@ -221,7 +222,7 @@ export const TherapyActionPlanCard: React.FC<TherapyActionPlanCardProps> = ({
                   <AccordionItem value="outcomes">
                     <AccordionTrigger className="text-sm font-medium text-healz-blue">
                       <div className="flex items-center gap-2">
-                        <span className="text-healz-green">🎯</span>
+                        <Target className="w-4 h-4 text-healz-green" />
                         Resultados Esperados
                         <Badge variant="secondary" className="ml-2">
                           {therapy.expected_outcomes.length}
@@ -248,7 +249,7 @@ export const TherapyActionPlanCard: React.FC<TherapyActionPlanCardProps> = ({
                   <AccordionItem value="monitoring">
                     <AccordionTrigger className="text-sm font-medium text-healz-blue">
                       <div className="flex items-center gap-2">
-                        <span className="text-healz-teal">📊</span>
+                        <BarChart3 className="w-4 h-4 text-healz-teal" />
                         Monitoreo Requerido
                         <Badge variant="secondary" className="ml-2">
                           {therapy.monitoring_requirements.length}
@@ -272,7 +273,7 @@ export const TherapyActionPlanCard: React.FC<TherapyActionPlanCardProps> = ({
                   <AccordionItem value="precautions">
                     <AccordionTrigger className="text-sm font-medium text-healz-blue">
                       <div className="flex items-center gap-2">
-                        <span className="text-red-500">⚠️</span>
+                        <AlertTriangle className="w-4 h-4 text-red-500" />
                         Precauciones
                       </div>
                     </AccordionTrigger>
