@@ -4,7 +4,6 @@ import { Badge } from "../../ui/badge";
 import { Button } from "../../ui/button";
 import { Pencil, Trash2, Plus, ChevronDown, ChevronUp, Pill, Clock, Tag, AlertTriangle, BarChart3, Stethoscope } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../../ui/accordion";
-
 interface Supplement {
   id: string;
   patient_id: string;
@@ -20,7 +19,6 @@ interface Supplement {
   contraindications?: string[];
   monitoring_notes?: string;
 }
-
 interface SupplementActionPlanCardProps {
   supplements: Supplement[];
   onEdit?: (item: Supplement) => void;
@@ -28,7 +26,6 @@ interface SupplementActionPlanCardProps {
   onAdd?: () => void;
   isEditable?: boolean;
 }
-
 export const SupplementActionPlanCard: React.FC<SupplementActionPlanCardProps> = ({
   supplements,
   onEdit,
@@ -38,8 +35,7 @@ export const SupplementActionPlanCard: React.FC<SupplementActionPlanCardProps> =
 }) => {
   const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>({});
   if (!supplements || supplements.length === 0) {
-    return (
-      <Card className="w-full">
+    return <Card className="w-full">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -51,18 +47,14 @@ export const SupplementActionPlanCard: React.FC<SupplementActionPlanCardProps> =
                 <p className="text-sm text-gray-500">Sin recomendaciones</p>
               </div>
             </div>
-            {isEditable && onAdd && (
-              <Button variant="outline" size="sm" onClick={onAdd}>
+            {isEditable && onAdd && <Button variant="outline" size="sm" onClick={onAdd}>
                 <Plus className="w-4 h-4 mr-1" />
                 Agregar
-              </Button>
-            )}
+              </Button>}
           </div>
         </CardHeader>
-      </Card>
-    );
+      </Card>;
   }
-
   const getPriorityBadge = (priority: string) => {
     const variants = {
       high: 'priority-high' as const,
@@ -74,45 +66,38 @@ export const SupplementActionPlanCard: React.FC<SupplementActionPlanCardProps> =
       medium: 'Media',
       low: 'Baja'
     };
-    return { 
-      variant: variants[priority as keyof typeof variants], 
-      label: labels[priority as keyof typeof labels] 
+    return {
+      variant: variants[priority as keyof typeof variants],
+      label: labels[priority as keyof typeof labels]
     };
   };
-
-  return (
-    <div className="space-y-4">
+  return <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-full bg-healz-orange/20 flex items-center justify-center">
             <Pill className="w-5 h-5 text-healz-orange" />
           </div>
           <div>
-            <h3 className="font-medium text-healz-blue">Suplementos</h3>
+            <h3 className="text-base font-bold text-slate-900 text-left">Suplementos</h3>
             <p className="text-sm text-gray-500">{supplements.length} recomendaciones</p>
           </div>
         </div>
-        {isEditable && onAdd && (
-          <Button variant="outline" size="sm" onClick={onAdd}>
+        {isEditable && onAdd && <Button variant="outline" size="sm" onClick={onAdd}>
             <Plus className="w-4 h-4 mr-1" />
             Agregar
-          </Button>
-        )}
+          </Button>}
       </div>
 
-      {supplements.map((supplement) => {
-        const priorityBadge = getPriorityBadge(supplement.priority);
-        const isExpanded = expandedItems[supplement.id];
-        
-        const toggleExpanded = () => {
-          setExpandedItems(prev => ({
-            ...prev,
-            [supplement.id]: !prev[supplement.id]
-          }));
-        };
-        
-        return (
-          <Card key={supplement.id} className="w-full">
+      {supplements.map(supplement => {
+      const priorityBadge = getPriorityBadge(supplement.priority);
+      const isExpanded = expandedItems[supplement.id];
+      const toggleExpanded = () => {
+        setExpandedItems(prev => ({
+          ...prev,
+          [supplement.id]: !prev[supplement.id]
+        }));
+      };
+      return <Card key={supplement.id} className="w-full">
             <CardHeader className="pb-3">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
@@ -124,61 +109,34 @@ export const SupplementActionPlanCard: React.FC<SupplementActionPlanCardProps> =
                   </div>
                   <p className="text-sm text-gray-600">
                     <span className="font-semibold">Dosis:</span> {supplement.dosage}
-                    {supplement.frequency && (
-                      <span> • <span className="font-semibold">Frecuencia:</span> {supplement.frequency}</span>
-                    )}
+                    {supplement.frequency && <span> • <span className="font-semibold">Frecuencia:</span> {supplement.frequency}</span>}
                   </p>
                 </div>
-                {isEditable && (
-                  <div className="flex items-center gap-1">
-                    {onEdit && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => onEdit(supplement)}
-                      >
+                {isEditable && <div className="flex items-center gap-1">
+                    {onEdit && <Button variant="ghost" size="sm" onClick={() => onEdit(supplement)}>
                         <Pencil className="w-4 h-4" />
-                      </Button>
-                    )}
-                    {onDelete && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => onDelete(supplement.id)}
-                      >
+                      </Button>}
+                    {onDelete && <Button variant="ghost" size="sm" onClick={() => onDelete(supplement.id)}>
                         <Trash2 className="w-4 h-4" />
-                      </Button>
-                    )}
-                  </div>
-                )}
+                      </Button>}
+                  </div>}
               </div>
               
               <div className="flex justify-center mt-3">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={toggleExpanded}
-                  className="text-healz-blue hover:text-healz-blue/80"
-                >
-                  {isExpanded ? (
-                    <>
+                <Button variant="ghost" size="sm" onClick={toggleExpanded} className="text-healz-blue hover:text-healz-blue/80">
+                  {isExpanded ? <>
                       Ver menos <ChevronUp className="w-4 h-4 ml-1" />
-                    </>
-                  ) : (
-                    <>
+                    </> : <>
                       Ver más <ChevronDown className="w-4 h-4 ml-1" />
-                    </>
-                  )}
+                    </>}
                 </Button>
               </div>
             </CardHeader>
 
-            {isExpanded && (
-              <CardContent className="pt-0">
+            {isExpanded && <CardContent className="pt-0">
                 <Accordion type="multiple" className="w-full">
                   {/* Indicación Médica */}
-                  {supplement.reason && (
-                    <AccordionItem value="indication">
+                  {supplement.reason && <AccordionItem value="indication">
                       <AccordionTrigger className="text-sm font-medium text-healz-blue">
                         <div className="flex items-center gap-2">
                           <Stethoscope className="w-4 h-4 text-healz-green" />
@@ -192,8 +150,7 @@ export const SupplementActionPlanCard: React.FC<SupplementActionPlanCardProps> =
                           </p>
                         </div>
                       </AccordionContent>
-                    </AccordionItem>
-                  )}
+                    </AccordionItem>}
 
                   {/* Protocolo de Toma */}
                   <AccordionItem value="protocol">
@@ -212,38 +169,31 @@ export const SupplementActionPlanCard: React.FC<SupplementActionPlanCardProps> =
                               {supplement.dosage}
                             </p>
                           </div>
-                          {supplement.timing && (
-                            <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+                          {supplement.timing && <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
                               <p className="text-sm">
                                 <span className="font-semibold text-healz-blue">Momento:</span><br />
                                 {supplement.timing}
                               </p>
-                            </div>
-                          )}
-                          {supplement.frequency && (
-                            <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+                            </div>}
+                          {supplement.frequency && <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
                               <p className="text-sm">
                                 <span className="font-semibold text-healz-blue">Frecuencia:</span><br />
                                 {supplement.frequency}
                               </p>
-                            </div>
-                          )}
-                          {supplement.duration && (
-                            <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+                            </div>}
+                          {supplement.duration && <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
                               <p className="text-sm">
                                 <span className="font-semibold text-healz-blue">Duración:</span><br />
                                 {supplement.duration}
                               </p>
-                            </div>
-                          )}
+                            </div>}
                         </div>
                       </div>
                     </AccordionContent>
                   </AccordionItem>
 
                   {/* Marcas Recomendadas */}
-                  {supplement.brand_recommendations && supplement.brand_recommendations.length > 0 && (
-                    <AccordionItem value="brands">
+                  {supplement.brand_recommendations && supplement.brand_recommendations.length > 0 && <AccordionItem value="brands">
                       <AccordionTrigger className="text-sm font-medium text-healz-blue">
                         <div className="flex items-center gap-2">
                           <Tag className="w-4 h-4 text-healz-purple" />
@@ -255,20 +205,16 @@ export const SupplementActionPlanCard: React.FC<SupplementActionPlanCardProps> =
                       </AccordionTrigger>
                       <AccordionContent>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                          {supplement.brand_recommendations.map((brand, index) => (
-                            <div key={index} className="flex items-center gap-2 p-2 bg-purple-50 rounded-lg border border-purple-200">
+                          {supplement.brand_recommendations.map((brand, index) => <div key={index} className="flex items-center gap-2 p-2 bg-purple-50 rounded-lg border border-purple-200">
                               <span className="text-healz-purple">✓</span>
                               <span className="text-sm text-gray-700">{brand}</span>
-                            </div>
-                          ))}
+                            </div>)}
                         </div>
                       </AccordionContent>
-                    </AccordionItem>
-                  )}
+                    </AccordionItem>}
 
                   {/* Interacciones y Precauciones */}
-                  {supplement.contraindications && supplement.contraindications.length > 0 && (
-                    <AccordionItem value="contraindications">
+                  {supplement.contraindications && supplement.contraindications.length > 0 && <AccordionItem value="contraindications">
                       <AccordionTrigger className="text-sm font-medium text-healz-blue">
                         <div className="flex items-center gap-2">
                           <AlertTriangle className="w-4 h-4 text-red-500" />
@@ -277,19 +223,15 @@ export const SupplementActionPlanCard: React.FC<SupplementActionPlanCardProps> =
                       </AccordionTrigger>
                       <AccordionContent>
                         <div className="space-y-2">
-                          {supplement.contraindications.map((contraindication, index) => (
-                            <div key={index} className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                          {supplement.contraindications.map((contraindication, index) => <div key={index} className="p-3 bg-red-50 border border-red-200 rounded-lg">
                               <p className="text-sm text-gray-700">{contraindication}</p>
-                            </div>
-                          ))}
+                            </div>)}
                         </div>
                       </AccordionContent>
-                    </AccordionItem>
-                  )}
+                    </AccordionItem>}
 
                   {/* Monitoreo y Seguimiento */}
-                  {supplement.monitoring_notes && (
-                    <AccordionItem value="monitoring">
+                  {supplement.monitoring_notes && <AccordionItem value="monitoring">
                       <AccordionTrigger className="text-sm font-medium text-healz-blue">
                         <div className="flex items-center gap-2">
                           <BarChart3 className="w-4 h-4 text-healz-brown" />
@@ -303,14 +245,10 @@ export const SupplementActionPlanCard: React.FC<SupplementActionPlanCardProps> =
                           </p>
                         </div>
                       </AccordionContent>
-                    </AccordionItem>
-                  )}
+                    </AccordionItem>}
                 </Accordion>
-              </CardContent>
-            )}
-          </Card>
-        );
-      })}
-    </div>
-  );
+              </CardContent>}
+          </Card>;
+    })}
+    </div>;
 };
