@@ -13,6 +13,39 @@ type SupplementActionPlanCardProps = {
 
 export const SupplementActionPlanCard: React.FC<SupplementActionPlanCardProps> = ({ item, onEdit, onDelete }) => {
 
+  // Priority styling functions - must be declared first
+  const getPriorityStyle = (priority: string) => {
+    switch (priority) {
+      case 'high': return 'bg-red-100 text-red-800 border-red-200';
+      case 'medium': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      default: return 'bg-green-100 text-green-800 border-green-200';
+    }
+  };
+
+  const getPriorityEmoji = (priority: string) => {
+    switch (priority) {
+      case 'high': return '🔥';
+      case 'medium': return '⚡';
+      default: return '✅';
+    }
+  };
+
+  const getPriorityText = (priority: string) => {
+    switch (priority) {
+      case 'high': return 'Prioritario';
+      case 'medium': return 'Importante';
+      default: return 'Opcional';
+    }
+  };
+
+  const getPriorityIcon = (priority: string) => {
+    switch (priority) {
+      case 'high': return '🔥';
+      case 'medium': return '⚡';
+      default: return '✅';
+    }
+  };
+
   // Extract essential information for preview
   const getEssentialTags = () => {
     const tags = [];
@@ -165,30 +198,7 @@ export const SupplementActionPlanCard: React.FC<SupplementActionPlanCardProps> =
     </div>
   );
 
-  // Funciones auxiliares para prioridad
-  const getPriorityStyle = (priority: string) => {
-    switch (priority) {
-      case 'high': return 'bg-healz-red/20 text-healz-red border-healz-red/50';
-      case 'medium': return 'bg-healz-orange/20 text-healz-orange border-healz-orange/50';
-      default: return 'bg-healz-green/20 text-healz-green border-healz-green/50';
-    }
-  };
 
-  const getPriorityIcon = (priority: string) => {
-    switch (priority) {
-      case 'high': return '🔥';
-      case 'medium': return '⚡';
-      default: return '✅';
-    }
-  };
-
-  const getPriorityText = (priority: string) => {
-    switch (priority) {
-      case 'high': return 'Prioritario';
-      case 'medium': return 'Importante';
-      default: return 'Opcional';
-    }
-  };
 
   return (
     <EnhancedActionPlanCard
