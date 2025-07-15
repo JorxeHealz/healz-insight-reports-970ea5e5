@@ -2,7 +2,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader } from "../../ui/card";
 import { Badge } from "../../ui/badge";
 import { Button } from "../../ui/button";
-import { Pencil, Trash2, Plus } from "lucide-react";
+import { Pencil, Trash2, Plus, Apple, Target, Check, X, Utensils, AlertTriangle } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../../ui/accordion";
 
 interface FoodPlan {
@@ -40,7 +40,7 @@ export const FoodActionPlanCard: React.FC<FoodActionPlanCardProps> = ({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-full bg-healz-green/20 flex items-center justify-center">
-                🍎
+                <Apple className="w-4 h-4 text-healz-green" />
               </div>
               <div>
                 <h3 className="font-medium text-healz-blue">Alimentación</h3>
@@ -78,7 +78,7 @@ export const FoodActionPlanCard: React.FC<FoodActionPlanCardProps> = ({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-full bg-healz-green/20 flex items-center justify-center">
-            🍎
+            <Apple className="w-4 h-4 text-healz-green" />
           </div>
           <div>
             <h3 className="font-medium text-healz-blue">Alimentación</h3>
@@ -145,7 +145,7 @@ export const FoodActionPlanCard: React.FC<FoodActionPlanCardProps> = ({
                   <AccordionItem value="main-goals">
                     <AccordionTrigger className="text-sm font-medium text-healz-blue">
                       <div className="flex items-center gap-2">
-                        <span className="text-healz-green">🎯</span>
+                        <Target className="w-4 h-4 text-healz-green" />
                         Objetivos Principales
                         <Badge variant="secondary" className="ml-2">
                           {plan.main_goals.length}
@@ -170,7 +170,7 @@ export const FoodActionPlanCard: React.FC<FoodActionPlanCardProps> = ({
                   <AccordionItem value="foods-include">
                     <AccordionTrigger className="text-sm font-medium text-healz-blue">
                       <div className="flex items-center gap-2">
-                        <span className="text-healz-green">✅</span>
+                        <Check className="w-4 h-4 text-healz-green" />
                         Alimentos a Incluir
                         <Badge variant="secondary" className="ml-2">
                           {plan.foods_to_include.length}
@@ -195,7 +195,7 @@ export const FoodActionPlanCard: React.FC<FoodActionPlanCardProps> = ({
                   <AccordionItem value="foods-avoid">
                     <AccordionTrigger className="text-sm font-medium text-healz-blue">
                       <div className="flex items-center gap-2">
-                        <span className="text-red-500">❌</span>
+                        <X className="w-4 h-4 text-red-500" />
                         Alimentos a Evitar
                         <Badge variant="secondary" className="ml-2">
                           {plan.foods_to_avoid.length}
@@ -220,7 +220,7 @@ export const FoodActionPlanCard: React.FC<FoodActionPlanCardProps> = ({
                   <AccordionItem value="meal-examples">
                     <AccordionTrigger className="text-sm font-medium text-healz-blue">
                       <div className="flex items-center gap-2">
-                        <span className="text-healz-orange">🍽️</span>
+                        <Utensils className="w-4 h-4 text-healz-orange" />
                         Ejemplos de Comidas (España)
                       </div>
                     </AccordionTrigger>
@@ -256,7 +256,7 @@ export const FoodActionPlanCard: React.FC<FoodActionPlanCardProps> = ({
                   <AccordionItem value="special-considerations">
                     <AccordionTrigger className="text-sm font-medium text-healz-blue">
                       <div className="flex items-center gap-2">
-                        <span className="text-healz-brown">⚠️</span>
+                        <AlertTriangle className="w-4 h-4 text-healz-brown" />
                         Consideraciones Especiales
                       </div>
                     </AccordionTrigger>

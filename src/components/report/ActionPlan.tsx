@@ -92,7 +92,7 @@ export const ActionPlan: React.FC<ActionPlanProps> = ({ report }) => {
   const handleDeleteAction = async (id: string) => {
     if (window.confirm('¿Estás seguro de que quieres eliminar esta acción?')) {
       try {
-        await deleteActionPlan.mutateAsync(id);
+        await deleteActionPlan.mutateAsync({ id, category: 'foods' as any });
       } catch (error) {
         console.error('Error deleting action plan:', error);
       }

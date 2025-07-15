@@ -39,12 +39,15 @@ export const AddActionForm: React.FC<AddActionFormProps> = ({
     const actionPlanData = {
       report_id: reportId,
       form_id: formId,
-      category,
+      category: category as any,
       title: formData.title,
       description: formData.description,
       priority: formData.priority,
       duration: formData.duration || undefined,
-      dosage: formData.dosage || undefined
+      dosage: formData.dosage || undefined,
+      patient_id: '',
+      supplement_name: formData.title,
+      frequency: 'daily'
     };
 
     try {

@@ -36,6 +36,7 @@ export const EditableActionItem: React.FC<EditableActionItemProps> = ({
     try {
       await updateActionPlan.mutateAsync({
         id: item.id,
+        category: item.category || 'general',
         ...editData
       });
       setIsEditing(false);
