@@ -63,12 +63,31 @@ export const FoodActionPlanCard: React.FC<FoodActionPlanCardProps> = ({ item, on
           </div>
         </div>
 
+        {/* Objetivos principales destacados */}
+        {item.main_goals && Array.isArray(item.main_goals) && item.main_goals.length > 0 && (
+          <div className="bg-healz-green/10 p-3 rounded-lg mb-3 border border-healz-green/20">
+            <h5 className="text-xs font-semibold text-healz-green mb-2 flex items-center gap-1">
+              <Apple className="h-3 w-3" />
+              Objetivos Principales
+            </h5>
+            <div className="space-y-1">
+              {item.main_goals.map((goal: string, index: number) => (
+                <div key={index} className="flex items-start gap-2">
+                  <span className="w-1 h-1 bg-healz-green rounded-full mt-1.5 flex-shrink-0"></span>
+                  <p className="text-xs text-healz-brown/80 leading-relaxed">{goal}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Información básica siempre visible */}
-        <div className="space-y-2 mb-3">
+        <div className="grid grid-cols-1 gap-2 mb-3">
           {item.dietary_pattern && (
-            <p className="text-xs text-healz-brown/80">
-              <strong>Patrón:</strong> {item.dietary_pattern}
-            </p>
+            <div className="flex justify-between items-center">
+              <span className="text-xs font-medium text-healz-brown/70">Patrón:</span>
+              <span className="text-xs text-healz-brown font-medium">{item.dietary_pattern}</span>
+            </div>
           )}
           {item.meal_timing && (
             <div className="flex items-center gap-1">
@@ -78,7 +97,7 @@ export const FoodActionPlanCard: React.FC<FoodActionPlanCardProps> = ({ item, on
           )}
           {item.hydration_recommendation && (
             <div className="flex items-center gap-1">
-              <Droplets className="h-3 w-3 text-healz-blue" />
+              <Droplets className="h-3 w-3 text-healz-teal" />
               <p className="text-xs text-healz-brown/80">{item.hydration_recommendation}</p>
             </div>
           )}

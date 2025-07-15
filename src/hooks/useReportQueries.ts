@@ -80,15 +80,45 @@ export const fetchReportRiskProfiles = async (reportId: string, formId: string) 
 };
 
 export const fetchReportActionPlans = async (reportId: string, formId: string) => {
-  // Fetch from all specialized action plan tables
+  // First get patient_id from the report
+  const { data: reportData } = await supabase
+    .from('reports')
+    .select('patient_id')
+    .eq('id', reportId)
+    .single();
+
+  if (!reportData?.patient_id) {
+    console.warn('No patient_id found for report:', reportId);
+    return {
+      foods: [],
+      lifestyle: [],
+      activity: [],
+      supplements: [],
+      therapy: [],
+      followup: []
+    };
+  }
+
+  const patientId = reportData.patient_id;
+
+  // Fetch from all specialized action plan tables using form_id and patient_id
   const [foods, lifestyle, activity, supplements, therapy, followup] = await Promise.all([
-    supabase.from('report_action_plans_foods').select('*').eq('report_id', reportId).eq('form_id', formId).order('priority', { ascending: false }),
-    supabase.from('report_action_plans_lifestyle').select('*').eq('report_id', reportId).eq('form_id', formId).order('priority', { ascending: false }),
-    supabase.from('report_action_plans_activity').select('*').eq('report_id', reportId).eq('form_id', formId).order('priority', { ascending: false }),
-    supabase.from('report_action_plans_supplements').select('*').eq('report_id', reportId).eq('form_id', formId).order('priority', { ascending: false }),
-    supabase.from('report_action_plans_therapy').select('*').eq('report_id', reportId).eq('form_id', formId).order('priority', { ascending: false }),
-    supabase.from('report_action_plans_followup').select('*').eq('report_id', reportId).eq('form_id', formId).order('priority', { ascending: false })
+    supabase.from('report_action_plans_foods').select('*').eq('form_id', formId).eq('patient_id', patientId).order('priority', { ascending: false }),
+    supabase.from('report_action_plans_lifestyle').select('*').eq('form_id', formId).eq('patient_id', patientId).order('priority', { ascending: false }),
+    supabase.from('report_action_plans_activity').select('*').eq('form_id', formId).eq('patient_id', patientId).order('priority', { ascending: false }),
+    supabase.from('report_action_plans_supplements').select('*').eq('form_id', formId).eq('patient_id', patientId).order('priority', { ascending: false }),
+    supabase.from('report_action_plans_therapy').select('*').eq('form_id', formId).eq('patient_id', patientId).order('priority', { ascending: false }),
+    supabase.from('report_action_plans_followup').select('*').eq('form_id', formId).eq('patient_id', patientId).order('priority', { ascending: false })
   ]);
+
+  console.log('Action plans fetched for patient:', patientId, 'form:', formId, {
+    foods: foods.data?.length || 0,
+    lifestyle: lifestyle.data?.length || 0,
+    activity: activity.data?.length || 0,
+    supplements: supplements.data?.length || 0,
+    therapy: therapy.data?.length || 0,
+    followup: followup.data?.length || 0
+  });
 
   // Combine all results with category labels
   return {

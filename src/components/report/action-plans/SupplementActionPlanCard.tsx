@@ -63,30 +63,48 @@ export const SupplementActionPlanCard: React.FC<SupplementActionPlanCardProps> =
           </div>
         </div>
 
-        {/* Información básica siempre visible */}
-        <div className="space-y-2 mb-3">
-          <div className="grid grid-cols-2 gap-2">
-            <p className="text-xs text-healz-brown/80">
-              <strong>Dosis:</strong> {item.dosage}
-            </p>
+        {/* Phase Indicator */}
+        {item.immediate_phase_duration && (
+          <div className="bg-healz-orange/10 p-3 rounded-lg mb-3 border-l-4 border-healz-orange">
+            <h5 className="text-xs font-semibold text-healz-orange mb-1 flex items-center gap-1">
+              ⚡ Fase Inmediata
+            </h5>
+            <p className="text-xs text-healz-brown/80">{item.immediate_phase_duration}</p>
+          </div>
+        )}
+
+        {/* Medical Reason - Highlighted */}
+        {item.reason && (
+          <div className="bg-healz-teal/10 p-3 rounded-lg mb-3 border border-healz-teal/20">
+            <h5 className="text-xs font-semibold text-healz-teal mb-1 flex items-center gap-1">
+              <Pill className="h-3 w-3" />
+              Indicación Médica
+            </h5>
+            <p className="text-xs text-healz-brown/80 leading-relaxed">{item.reason}</p>
+          </div>
+        )}
+
+        {/* Dosage Protocol - Essential Info */}
+        <div className="bg-healz-cream/50 p-3 rounded-lg mb-3">
+          <h5 className="text-xs font-semibold text-healz-brown mb-2">Protocolo de Dosificación</h5>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="flex flex-col">
+              <span className="font-medium text-healz-brown/70 text-xs">Dosis:</span>
+              <span className="text-healz-brown font-semibold text-sm">{item.dosage}</span>
+            </div>
             {item.frequency && (
-              <p className="text-xs text-healz-brown/80">
-                <strong>Frecuencia:</strong> {item.frequency}
-              </p>
+              <div className="flex flex-col">
+                <span className="font-medium text-healz-brown/70 text-xs">Frecuencia:</span>
+                <span className="text-healz-brown text-sm">{item.frequency}</span>
+              </div>
             )}
           </div>
           
           {item.timing && (
-            <div className="flex items-center gap-1">
-              <Clock className="h-3 w-3 text-healz-brown/60" />
-              <p className="text-xs text-healz-brown/80">{item.timing}</p>
+            <div className="flex items-center gap-1 mt-2 pt-2 border-t border-healz-cream">
+              <Clock className="h-3 w-3 text-healz-orange" />
+              <span className="text-xs text-healz-brown/80"><strong>Timing:</strong> {item.timing}</span>
             </div>
-          )}
-
-          {item.reason && (
-            <p className="text-xs text-healz-brown/70">
-              <strong>Motivo:</strong> {item.reason}
-            </p>
           )}
         </div>
 

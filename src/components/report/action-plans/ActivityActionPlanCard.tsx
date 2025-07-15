@@ -63,33 +63,47 @@ export const ActivityActionPlanCard: React.FC<ActivityActionPlanCardProps> = ({ 
           </div>
         </div>
 
-        {/* Información básica siempre visible */}
-        <div className="space-y-2 mb-3">
-          <div className="grid grid-cols-2 gap-2">
-            <p className="text-xs text-healz-brown/80">
-              <strong>Frecuencia:</strong> {item.frequency_per_week}/semana
-            </p>
+        {/* Current Capacity Assessment */}
+        {item.current_capacity && (
+          <div className="bg-healz-blue/10 p-3 rounded-lg mb-3 border border-healz-teal/20">
+            <h5 className="text-xs font-semibold text-healz-teal mb-1 flex items-center gap-1">
+              📊 Evaluación Actual
+            </h5>
+            <p className="text-xs text-healz-brown/80">{item.current_capacity}</p>
+          </div>
+        )}
+
+        {/* Phase 1 Program */}
+        {item.phase1_focus && (
+          <div className="bg-healz-green/10 p-3 rounded-lg mb-3 border-l-4 border-healz-green">
+            <h5 className="text-xs font-semibold text-healz-green mb-1 flex items-center gap-1">
+              🎯 Fase 1 - {item.phase1_duration || 'Inicial'}
+            </h5>
+            <p className="text-xs text-healz-brown/80">{item.phase1_focus}</p>
+          </div>
+        )}
+
+        {/* Essential Program Info */}
+        <div className="bg-healz-cream/50 p-3 rounded-lg mb-3">
+          <h5 className="text-xs font-semibold text-healz-brown mb-2">Programa Base</h5>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="flex flex-col">
+              <span className="font-medium text-healz-brown/70 text-xs">Frecuencia:</span>
+              <span className="text-healz-brown font-semibold text-sm">{item.frequency_per_week}/semana</span>
+            </div>
             {item.session_duration && (
-              <div className="flex items-center gap-1">
-                <Clock className="h-3 w-3 text-healz-brown/60" />
-                <p className="text-xs text-healz-brown/80">{item.session_duration}</p>
+              <div className="flex flex-col">
+                <span className="font-medium text-healz-brown/70 text-xs">Duración:</span>
+                <span className="text-healz-brown text-sm">{item.session_duration}</span>
               </div>
             )}
           </div>
           
           {item.intensity_level && (
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1 mt-2 pt-2 border-t border-healz-cream">
               <Zap className="h-3 w-3 text-healz-orange" />
-              <p className="text-xs text-healz-brown/80">
-                <strong>Intensidad:</strong> {item.intensity_level}
-              </p>
+              <span className="text-xs text-healz-brown/80"><strong>Intensidad:</strong> {item.intensity_level}</span>
             </div>
-          )}
-
-          {item.current_capacity && (
-            <p className="text-xs text-healz-brown/70">
-              <strong>Capacidad actual:</strong> {item.current_capacity}
-            </p>
           )}
         </div>
 

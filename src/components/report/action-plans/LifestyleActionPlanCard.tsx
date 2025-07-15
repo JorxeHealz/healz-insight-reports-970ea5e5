@@ -63,34 +63,50 @@ export const LifestyleActionPlanCard: React.FC<LifestyleActionPlanCardProps> = (
           </div>
         </div>
 
-        {/* Información básica siempre visible */}
-        <div className="space-y-2 mb-3">
-          {item.frequency && (
-            <p className="text-xs text-healz-brown/80">
-              <strong>Frecuencia:</strong> {item.frequency}
-            </p>
-          )}
+        {/* Sleep Target - Highlighted */}
+        {item.sleep_target_hours && (
+          <div className="bg-healz-blue/10 p-3 rounded-lg mb-3 border border-healz-blue/20">
+            <h5 className="text-xs font-semibold text-healz-blue mb-1 flex items-center gap-1">
+              <Moon className="h-3 w-3" />
+              Meta de Sueño
+            </h5>
+            <p className="text-xs text-healz-brown/80">{item.sleep_target_hours}</p>
+          </div>
+        )}
+
+        {/* Habit Type */}
+        {item.habit_type && (
+          <div className="bg-healz-green/10 p-3 rounded-lg mb-3 border-l-4 border-healz-green">
+            <h5 className="text-xs font-semibold text-healz-green mb-1 flex items-center gap-1">
+              🔄 Tipo de Hábito
+            </h5>
+            <p className="text-xs text-healz-brown/80">{item.habit_type}</p>
+          </div>
+        )}
+
+        {/* Essential Routine Info */}
+        <div className="bg-healz-cream/50 p-3 rounded-lg mb-3">
+          <h5 className="text-xs font-semibold text-healz-brown mb-2">Rutina Base</h5>
+          <div className="grid grid-cols-2 gap-3">
+            {item.frequency && (
+              <div className="flex flex-col">
+                <span className="font-medium text-healz-brown/70 text-xs">Frecuencia:</span>
+                <span className="text-healz-brown font-semibold text-sm">{item.frequency}</span>
+              </div>
+            )}
+            {item.duration && (
+              <div className="flex flex-col">
+                <span className="font-medium text-healz-brown/70 text-xs">Duración:</span>
+                <span className="text-healz-brown text-sm">{item.duration}</span>
+              </div>
+            )}
+          </div>
           
           {item.timing && (
-            <div className="flex items-center gap-1">
-              <Clock className="h-3 w-3 text-healz-brown/60" />
-              <p className="text-xs text-healz-brown/80">{item.timing}</p>
+            <div className="flex items-center gap-1 mt-2 pt-2 border-t border-healz-cream">
+              <Clock className="h-3 w-3 text-healz-orange" />
+              <span className="text-xs text-healz-brown/80"><strong>Timing:</strong> {item.timing}</span>
             </div>
-          )}
-
-          {item.sleep_target_hours && (
-            <div className="flex items-center gap-1">
-              <Moon className="h-3 w-3 text-healz-blue" />
-              <p className="text-xs text-healz-brown/80">
-                <strong>Meta de sueño:</strong> {item.sleep_target_hours}
-              </p>
-            </div>
-          )}
-
-          {item.duration && (
-            <p className="text-xs text-healz-brown/70">
-              <strong>Duración:</strong> {item.duration}
-            </p>
           )}
         </div>
 
