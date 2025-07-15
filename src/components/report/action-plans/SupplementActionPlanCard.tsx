@@ -64,17 +64,20 @@ export const SupplementActionPlanCard: React.FC<SupplementActionPlanCardProps> =
   }
 
   const getPriorityBadge = (priority: string) => {
-    const styles = {
-      high: 'bg-healz-orange text-white',
-      medium: 'bg-healz-yellow text-healz-blue',
-      low: 'bg-healz-green/20 text-healz-green'
+    const variants = {
+      high: 'priority-high' as const,
+      medium: 'priority-medium' as const,
+      low: 'priority-low' as const
     };
     const labels = {
-      high: 'Alta Prioridad',
-      medium: 'Media Prioridad',
-      low: 'Baja Prioridad'
+      high: 'Alta',
+      medium: 'Media',
+      low: 'Baja'
     };
-    return { style: styles[priority as keyof typeof styles], label: labels[priority as keyof typeof labels] };
+    return { 
+      variant: variants[priority as keyof typeof variants], 
+      label: labels[priority as keyof typeof labels] 
+    };
   };
 
   return (
@@ -115,7 +118,7 @@ export const SupplementActionPlanCard: React.FC<SupplementActionPlanCardProps> =
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2">
                     <h4 className="font-medium text-healz-blue">{supplement.supplement_name}</h4>
-                    <Badge className={priorityBadge.style}>
+                    <Badge variant={priorityBadge.variant}>
                       {priorityBadge.label}
                     </Badge>
                   </div>
