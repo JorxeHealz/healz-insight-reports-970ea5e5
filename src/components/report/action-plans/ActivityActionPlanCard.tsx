@@ -1,9 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Badge } from '../../ui/badge';
-import { Button } from '../../ui/button';
-import { Card, CardContent } from '../../ui/card';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../../ui/collapsible';
-import { ChevronDown, ChevronUp, Edit2, Trash2, Dumbbell, Clock, Zap, Target, AlertTriangle } from 'lucide-react';
+import { Dumbbell, Zap, Target, AlertTriangle, Clock } from 'lucide-react';
+import { EnhancedActionPlanCard } from './EnhancedActionPlanCard';
 
 type ActivityActionPlanCardProps = {
   item: any;
@@ -12,208 +10,201 @@ type ActivityActionPlanCardProps = {
 };
 
 export const ActivityActionPlanCard: React.FC<ActivityActionPlanCardProps> = ({ item, onEdit, onDelete }) => {
-  const [isExpanded, setIsExpanded] = useState(false);
-
-  const getPriorityStyle = (priority: string) => {
-    switch (priority) {
-      case 'high': return 'bg-healz-red/20 text-healz-red border-healz-red/30';
-      case 'medium': return 'bg-healz-yellow/20 text-healz-orange border-healz-orange/30';
-      default: return 'bg-healz-green/20 text-healz-green border-healz-green/30';
-    }
+  
+  // Extract essential information for preview
+  const getEssentialTags = () => {
+    const tags = [];
+    if (item.frequency_per_week) tags.push(`${item.frequency_per_week}/semana`);
+    if (item.session_duration) tags.push(item.session_duration);
+    if (item.intensity_level) tags.push(`Intensidad ${item.intensity_level}`);
+    if (item.specific_exercises?.length > 0) tags.push(`${item.specific_exercises.length} ejercicios`);
+    return tags.slice(0, 3);
   };
 
-  const getPriorityText = (priority: string) => {
-    switch (priority) {
-      case 'high': return 'Alta';
-      case 'medium': return 'Media';
-      default: return 'Baja';
-    }
+  const getTimeframe = () => {
+    if (item.phase1_duration) return item.phase1_duration;
+    if (item.immediate_start) return "Iniciar esta semana";
+    return "Programa estructurado";
   };
 
-  return (
-    <Card className="bg-healz-cream/30 border-healz-brown/10">
-      <CardContent className="p-4">
-        <div className="flex items-start justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <Dumbbell className="h-4 w-4 text-healz-teal" />
-            <h4 className="font-semibold text-sm text-healz-brown">
-              {item.activity_type || 'Plan de Actividad'}
-            </h4>
-          </div>
-          <div className="flex items-center gap-1">
-            <Badge className={`text-xs ${getPriorityStyle(item.priority)}`}>
-              {getPriorityText(item.priority)}
-            </Badge>
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={onEdit}
-              className="h-6 w-6 p-0"
-            >
-              <Edit2 className="h-3 w-3" />
-            </Button>
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => onDelete(item.id)}
-              className="h-6 w-6 p-0 text-healz-red hover:text-healz-red"
-            >
-              <Trash2 className="h-3 w-3" />
-            </Button>
-          </div>
+  // Preview content - most important information always visible
+  const previewContent = (
+    <div className="space-y-3">
+      {/* Current capacity assessment */}
+      {item.current_capacity && (
+        <div className="bg-healz-teal/10 p-3 rounded-lg border border-healz-teal/20">
+          <h5 className="text-sm font-semibold text-healz-teal mb-1 flex items-center gap-2">
+            📊 Evaluación Actual
+          </h5>
+          <p className="text-sm text-healz-brown/90">{item.current_capacity}</p>
         </div>
+      )}
 
-        {/* Current Capacity Assessment */}
-        {item.current_capacity && (
-          <div className="bg-healz-blue/10 p-3 rounded-lg mb-3 border border-healz-teal/20">
-            <h5 className="text-xs font-semibold text-healz-teal mb-1 flex items-center gap-1">
-              📊 Evaluación Actual
-            </h5>
-            <p className="text-xs text-healz-brown/80">{item.current_capacity}</p>
+      {/* Phase 1 focus */}
+      {item.phase1_focus && (
+        <div className="bg-healz-green/10 p-3 rounded-lg border-l-4 border-healz-green">
+          <h5 className="text-sm font-semibold text-healz-green mb-1 flex items-center gap-2">
+            🎯 Fase Inicial
+          </h5>
+          <p className="text-sm text-healz-brown/90">{item.phase1_focus}</p>
+        </div>
+      )}
+
+      {/* Essential program info */}
+      <div className="bg-healz-cream/40 p-3 rounded-lg border border-healz-brown/10">
+        <h5 className="text-sm font-semibold text-healz-brown mb-2">Programa Base</h5>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="flex flex-col">
+            <span className="font-medium text-healz-brown/70 text-xs">Frecuencia:</span>
+            <span className="text-healz-brown font-semibold text-base">{item.frequency_per_week || 'No especificado'}/semana</span>
           </div>
-        )}
-
-        {/* Phase 1 Program */}
-        {item.phase1_focus && (
-          <div className="bg-healz-green/10 p-3 rounded-lg mb-3 border-l-4 border-healz-green">
-            <h5 className="text-xs font-semibold text-healz-green mb-1 flex items-center gap-1">
-              🎯 Fase 1 - {item.phase1_duration || 'Inicial'}
-            </h5>
-            <p className="text-xs text-healz-brown/80">{item.phase1_focus}</p>
-          </div>
-        )}
-
-        {/* Essential Program Info */}
-        <div className="bg-healz-cream/50 p-3 rounded-lg mb-3">
-          <h5 className="text-xs font-semibold text-healz-brown mb-2">Programa Base</h5>
-          <div className="grid grid-cols-2 gap-3">
+          {item.session_duration && (
             <div className="flex flex-col">
-              <span className="font-medium text-healz-brown/70 text-xs">Frecuencia:</span>
-              <span className="text-healz-brown font-semibold text-sm">{item.frequency_per_week}/semana</span>
-            </div>
-            {item.session_duration && (
-              <div className="flex flex-col">
-                <span className="font-medium text-healz-brown/70 text-xs">Duración:</span>
-                <span className="text-healz-brown text-sm">{item.session_duration}</span>
-              </div>
-            )}
-          </div>
-          
-          {item.intensity_level && (
-            <div className="flex items-center gap-1 mt-2 pt-2 border-t border-healz-cream">
-              <Zap className="h-3 w-3 text-healz-orange" />
-              <span className="text-xs text-healz-brown/80"><strong>Intensidad:</strong> {item.intensity_level}</span>
+              <span className="font-medium text-healz-brown/70 text-xs">Duración:</span>
+              <span className="text-healz-brown text-base font-medium">{item.session_duration}</span>
             </div>
           )}
         </div>
+        
+        {item.intensity_level && (
+          <div className="flex items-center gap-2 mt-3 pt-2 border-t border-healz-cream">
+            <Zap className="h-4 w-4 text-healz-orange" />
+            <span className="text-sm text-healz-brown/90">
+              <span className="font-medium">Intensidad:</span> {item.intensity_level}
+            </span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
 
-        {/* Contenido expandible */}
-        <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
-          <CollapsibleTrigger asChild>
-            <Button variant="ghost" size="sm" className="w-full justify-between p-2 h-8">
-              <span className="text-xs">Ver detalles completos</span>
-              {isExpanded ? (
-                <ChevronUp className="h-3 w-3" />
-              ) : (
-                <ChevronDown className="h-3 w-3" />
-              )}
-            </Button>
-          </CollapsibleTrigger>
-          
-          <CollapsibleContent className="mt-3 space-y-3">
-            {/* Ejercicios específicos */}
-            {item.specific_exercises && Array.isArray(item.specific_exercises) && item.specific_exercises.length > 0 && (
-              <div>
-                <h5 className="text-xs font-medium text-healz-teal mb-1 flex items-center gap-1">
-                  <Target className="h-3 w-3" />
-                  Ejercicios específicos:
-                </h5>
-                <div className="flex flex-wrap gap-1">
-                  {item.specific_exercises.map((exercise: string, index: number) => (
-                    <Badge key={index} variant="outline" className="text-xs bg-healz-teal/10 text-healz-teal">
-                      {exercise}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-            )}
+  // Expanded content - detailed information
+  const expandedContent = (
+    <div className="space-y-4">
+      {/* Specific exercises */}
+      {item.specific_exercises && Array.isArray(item.specific_exercises) && item.specific_exercises.length > 0 && (
+        <div>
+          <h5 className="text-sm font-semibold text-healz-teal mb-2 flex items-center gap-2">
+            <Target className="h-4 w-4" />
+            Ejercicios Específicos
+          </h5>
+          <div className="flex flex-wrap gap-2">
+            {item.specific_exercises.map((exercise: string, index: number) => (
+              <Badge key={index} className="text-xs bg-healz-teal/10 text-healz-teal border border-healz-teal/30">
+                {exercise}
+              </Badge>
+            ))}
+          </div>
+        </div>
+      )}
 
-            {/* Equipamiento necesario */}
-            {item.equipment_needed && Array.isArray(item.equipment_needed) && item.equipment_needed.length > 0 && (
-              <div>
-                <h5 className="text-xs font-medium text-healz-brown mb-1">Equipamiento necesario:</h5>
-                <div className="flex flex-wrap gap-1">
-                  {item.equipment_needed.map((equipment: string, index: number) => (
-                    <Badge key={index} variant="outline" className="text-xs bg-healz-brown/10 text-healz-brown">
-                      {equipment}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-            )}
+      {/* Equipment needed */}
+      {item.equipment_needed && Array.isArray(item.equipment_needed) && item.equipment_needed.length > 0 && (
+        <div>
+          <h5 className="text-sm font-semibold text-healz-brown mb-2">Equipamiento Necesario</h5>
+          <div className="flex flex-wrap gap-2">
+            {item.equipment_needed.map((equipment: string, index: number) => (
+              <Badge key={index} className="text-xs bg-healz-brown/10 text-healz-brown border border-healz-brown/30">
+                {equipment}
+              </Badge>
+            ))}
+          </div>
+        </div>
+      )}
 
-            {/* Fase 1 */}
-            {(item.phase1_duration || item.phase1_focus) && (
-              <div>
-                <h5 className="text-xs font-medium text-healz-green mb-1">Fase inicial:</h5>
-                {item.phase1_duration && (
-                  <p className="text-xs text-healz-brown/70">
-                    <strong>Duración:</strong> {item.phase1_duration}
-                  </p>
-                )}
-                {item.phase1_focus && (
-                  <p className="text-xs text-healz-brown/70">
-                    <strong>Enfoque:</strong> {item.phase1_focus}
-                  </p>
-                )}
-              </div>
-            )}
+      {/* Progression plan */}
+      {item.progression_plan && (
+        <div>
+          <h5 className="text-sm font-semibold text-healz-blue mb-2">Plan de Progresión</h5>
+          <div className="bg-blue-50/50 p-3 rounded-lg border border-blue-200/50">
+            <p className="text-sm text-healz-brown/80 leading-relaxed">{item.progression_plan}</p>
+          </div>
+        </div>
+      )}
 
-            {/* Plan de progresión */}
-            {item.progression_plan && (
-              <div>
-                <h5 className="text-xs font-medium text-healz-blue mb-1">Plan de progresión:</h5>
-                <p className="text-xs text-healz-brown/70">{item.progression_plan}</p>
-              </div>
-            )}
+      {/* Rest periods */}
+      {item.rest_periods && (
+        <div>
+          <h5 className="text-sm font-semibold text-healz-brown mb-2 flex items-center gap-2">
+            <Clock className="h-4 w-4" />
+            Períodos de Descanso
+          </h5>
+          <div className="bg-healz-cream/30 p-3 rounded-lg">
+            <p className="text-sm text-healz-brown/80 leading-relaxed">{item.rest_periods}</p>
+          </div>
+        </div>
+      )}
 
-            {/* Períodos de descanso */}
-            {item.rest_periods && (
-              <div>
-                <h5 className="text-xs font-medium text-healz-brown mb-1">Períodos de descanso:</h5>
-                <p className="text-xs text-healz-brown/70">{item.rest_periods}</p>
-              </div>
-            )}
+      {/* Monitoring signals */}
+      {item.monitoring_signals && Array.isArray(item.monitoring_signals) && item.monitoring_signals.length > 0 && (
+        <div>
+          <h5 className="text-sm font-semibold text-healz-blue mb-2">Señales de Monitoreo</h5>
+          <div className="bg-blue-50/30 p-3 rounded-lg border border-blue-200/30">
+            <ul className="space-y-1">
+              {item.monitoring_signals.map((signal: string, index: number) => (
+                <li key={index} className="text-sm text-healz-brown/80 flex items-start gap-2">
+                  <span className="text-healz-blue text-xs mt-1">•</span>
+                  {signal}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      )}
 
-            {/* Señales de monitoreo */}
-            {item.monitoring_signals && Array.isArray(item.monitoring_signals) && item.monitoring_signals.length > 0 && (
-              <div>
-                <h5 className="text-xs font-medium text-healz-blue mb-1">Señales de monitoreo:</h5>
-                <ul className="space-y-1">
-                  {item.monitoring_signals.map((signal: string, index: number) => (
-                    <li key={index} className="text-xs text-healz-brown/70">• {signal}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
+      {/* Restrictions */}
+      {item.restrictions && Array.isArray(item.restrictions) && item.restrictions.length > 0 && (
+        <div>
+          <h5 className="text-sm font-semibold text-healz-red mb-2 flex items-center gap-2">
+            <AlertTriangle className="h-4 w-4" />
+            Restricciones Importantes
+          </h5>
+          <div className="bg-red-50/50 p-3 rounded-lg border border-red-200/50">
+            <ul className="space-y-1">
+              {item.restrictions.map((restriction: string, index: number) => (
+                <li key={index} className="text-sm text-healz-red/90 flex items-start gap-2">
+                  <span className="text-healz-red text-xs mt-1">⚠️</span>
+                  {restriction}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      )}
 
-            {/* Restricciones */}
-            {item.restrictions && Array.isArray(item.restrictions) && item.restrictions.length > 0 && (
-              <div>
-                <h5 className="text-xs font-medium text-healz-red mb-1 flex items-center gap-1">
-                  <AlertTriangle className="h-3 w-3" />
-                  Restricciones:
-                </h5>
-                <ul className="space-y-1">
-                  {item.restrictions.map((restriction: string, index: number) => (
-                    <li key={index} className="text-xs text-healz-red/80">• {restriction}</li>
-                  ))}
-                </ul>
-              </div>
+      {/* Phase details */}
+      {(item.phase1_duration || item.phase1_focus) && (
+        <div>
+          <h5 className="text-sm font-semibold text-healz-green mb-2">Detalles de Fase Inicial</h5>
+          <div className="bg-healz-green/5 p-3 rounded-lg border border-healz-green/20">
+            {item.phase1_duration && (
+              <p className="text-sm text-healz-brown/80 mb-1">
+                <span className="font-medium">Duración:</span> {item.phase1_duration}
+              </p>
             )}
-          </CollapsibleContent>
-        </Collapsible>
-      </CardContent>
-    </Card>
+            {item.phase1_focus && (
+              <p className="text-sm text-healz-brown/80">
+                <span className="font-medium">Enfoque:</span> {item.phase1_focus}
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+
+  return (
+    <EnhancedActionPlanCard
+      item={item}
+      onEdit={onEdit}
+      onDelete={onDelete}
+      categoryIcon={Dumbbell}
+      categoryColor="text-healz-teal"
+      title={item.activity_type || 'Plan de Actividad'}
+      previewContent={previewContent}
+      expandedContent={expandedContent}
+      timeframe={getTimeframe()}
+      essentialTags={getEssentialTags()}
+    />
   );
 };
