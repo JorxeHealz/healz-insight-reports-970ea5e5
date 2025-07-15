@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Card, CardContent, CardHeader } from "../../ui/card";
 import { Badge } from "../../ui/badge";
 import { Button } from "../../ui/button";
-import { Pencil, Trash2, Plus, Apple, Target, Check, X, Utensils, AlertTriangle, ChevronDown, ChevronUp } from "lucide-react";
+import { Pencil, Trash2, Plus, Apple, Target, Check, X, Utensils, AlertTriangle } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../../ui/accordion";
 
 interface FoodPlan {
@@ -33,7 +33,6 @@ export const FoodActionPlanCard: React.FC<FoodActionPlanCardProps> = ({
   onAdd,
   isEditable = true
 }) => {
-  const [showDetails, setShowDetails] = useState<Record<string, boolean>>({});
   if (!foodPlans || foodPlans.length === 0) {
     return (
       <Card className="w-full">
@@ -62,9 +61,9 @@ export const FoodActionPlanCard: React.FC<FoodActionPlanCardProps> = ({
 
   const getPriorityBadge = (priority: string) => {
     const styles = {
-      high: 'bg-healz-red text-white',
-      medium: 'bg-healz-orange text-white',
-      low: 'bg-healz-green text-white'
+      high: 'bg-healz-orange text-white',
+      medium: 'bg-healz-yellow text-healz-blue',
+      low: 'bg-healz-green/20 text-healz-green'
     };
     const labels = {
       high: 'Alta Prioridad',
@@ -96,29 +95,18 @@ export const FoodActionPlanCard: React.FC<FoodActionPlanCardProps> = ({
 
       {foodPlans.map((plan) => {
         const priorityBadge = getPriorityBadge(plan.priority);
-        const isExpanded = showDetails[plan.id] || false;
-        
-        const getPriorityCardClass = (priority: string) => {
-          const classes = {
-            high: 'bg-healz-red/5 border-l-4 border-healz-red',
-            medium: 'bg-healz-orange/5 border-l-4 border-healz-orange', 
-            low: 'bg-healz-green/5 border-l-4 border-healz-green'
-          };
-          return classes[priority as keyof typeof classes] || classes.low;
-        };
         
         return (
-          <Card key={plan.id} className={`w-full border border-healz-brown/10 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 ${getPriorityCardClass(plan.priority)}`}>
+          <Card key={plan.id} className="w-full">
             <CardHeader className="pb-3">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2">
-                    <Apple className="w-4 h-4 text-healz-green" />
-                    <h4 className="font-medium text-healz-blue">Plan Alimentario</h4>
                     <Badge className={priorityBadge.style}>
                       {priorityBadge.label}
                     </Badge>
                   </div>
+                  <h4 className="font-medium text-healz-blue mb-2">Plan Alimentario</h4>
                   {plan.dietary_pattern && (
                     <p className="text-sm text-gray-600 leading-relaxed">
                       {plan.dietary_pattern}
@@ -151,162 +139,139 @@ export const FoodActionPlanCard: React.FC<FoodActionPlanCardProps> = ({
             </CardHeader>
 
             <CardContent className="pt-0">
-              <div className="flex justify-center mb-3">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowDetails(prev => ({ ...prev, [plan.id]: !prev[plan.id] }))}
-                  className="text-healz-blue hover:text-healz-blue/80"
-                >
-                  {isExpanded ? (
-                    <>
-                      <ChevronUp className="w-4 h-4 mr-1" />
-                      Ver menos
-                    </>
-                  ) : (
-                    <>
-                      <ChevronDown className="w-4 h-4 mr-1" />
-                      Ver más
-                    </>
-                  )}
-                </Button>
-              </div>
+              <Accordion type="multiple" className="w-full">
+                {/* Objetivos Principales */}
+                {plan.main_goals && plan.main_goals.length > 0 && (
+                  <AccordionItem value="main-goals">
+                    <AccordionTrigger className="text-sm font-medium text-healz-blue">
+                      <div className="flex items-center gap-2">
+                        <Target className="w-4 h-4 text-healz-green" />
+                        Objetivos Principales
+                        <Badge variant="secondary" className="ml-2">
+                          {plan.main_goals.length}
+                        </Badge>
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      <div className="space-y-2">
+                        {plan.main_goals.map((goal, index) => (
+                          <div key={index} className="flex items-start gap-2 p-2 bg-healz-cream/30 rounded-lg">
+                            <span className="text-healz-green font-medium">{index + 1}.</span>
+                            <span className="text-sm text-gray-700">{goal}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                )}
 
-              {isExpanded && (
-                <Accordion type="multiple" className="w-full">
-                  {/* Objetivos Principales */}
-                  {plan.main_goals && plan.main_goals.length > 0 && (
-                    <AccordionItem value="main-goals">
-                      <AccordionTrigger className="text-sm font-medium text-healz-blue">
-                        <div className="flex items-center gap-2">
-                          <Target className="w-4 h-4 text-healz-green" />
-                          Objetivos Principales
-                          <Badge variant="secondary" className="ml-2">
-                            {plan.main_goals.length}
-                          </Badge>
-                        </div>
-                      </AccordionTrigger>
-                      <AccordionContent>
-                        <div className="space-y-2">
-                          {plan.main_goals.map((goal, index) => (
-                            <div key={index} className="flex items-start gap-2 p-2 bg-healz-cream/30 rounded-lg">
-                              <span className="text-healz-green font-medium">{index + 1}.</span>
-                              <span className="text-sm text-gray-700">{goal}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </AccordionContent>
-                    </AccordionItem>
-                  )}
+                {/* Alimentos a Incluir */}
+                {plan.foods_to_include && plan.foods_to_include.length > 0 && (
+                  <AccordionItem value="foods-include">
+                    <AccordionTrigger className="text-sm font-medium text-healz-blue">
+                      <div className="flex items-center gap-2">
+                        <Check className="w-4 h-4 text-healz-green" />
+                        Alimentos a Incluir
+                        <Badge variant="secondary" className="ml-2">
+                          {plan.foods_to_include.length}
+                        </Badge>
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                        {plan.foods_to_include.map((food, index) => (
+                          <div key={index} className="flex items-center gap-2 p-2 bg-green-50 rounded-lg border border-green-200">
+                            <span className="text-green-600">+</span>
+                            <span className="text-sm text-gray-700">{food}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                )}
 
-                  {/* Alimentos a Incluir */}
-                  {plan.foods_to_include && plan.foods_to_include.length > 0 && (
-                    <AccordionItem value="foods-include">
-                      <AccordionTrigger className="text-sm font-medium text-healz-blue">
-                        <div className="flex items-center gap-2">
-                          <Check className="w-4 h-4 text-healz-green" />
-                          Alimentos a Incluir
-                          <Badge variant="secondary" className="ml-2">
-                            {plan.foods_to_include.length}
-                          </Badge>
-                        </div>
-                      </AccordionTrigger>
-                      <AccordionContent>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                          {plan.foods_to_include.map((food, index) => (
-                            <div key={index} className="flex items-center gap-2 p-2 bg-green-50 rounded-lg border border-green-200">
-                              <span className="text-green-600">+</span>
-                              <span className="text-sm text-gray-700">{food}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </AccordionContent>
-                    </AccordionItem>
-                  )}
+                {/* Alimentos a Evitar */}
+                {plan.foods_to_avoid && plan.foods_to_avoid.length > 0 && (
+                  <AccordionItem value="foods-avoid">
+                    <AccordionTrigger className="text-sm font-medium text-healz-blue">
+                      <div className="flex items-center gap-2">
+                        <X className="w-4 h-4 text-red-500" />
+                        Alimentos a Evitar
+                        <Badge variant="secondary" className="ml-2">
+                          {plan.foods_to_avoid.length}
+                        </Badge>
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                        {plan.foods_to_avoid.map((food, index) => (
+                          <div key={index} className="flex items-center gap-2 p-2 bg-red-50 rounded-lg border border-red-200">
+                            <span className="text-red-500">−</span>
+                            <span className="text-sm text-gray-700">{food}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                )}
 
-                  {/* Alimentos a Evitar */}
-                  {plan.foods_to_avoid && plan.foods_to_avoid.length > 0 && (
-                    <AccordionItem value="foods-avoid">
-                      <AccordionTrigger className="text-sm font-medium text-healz-blue">
-                        <div className="flex items-center gap-2">
-                          <X className="w-4 h-4 text-red-500" />
-                          Alimentos a Evitar
-                          <Badge variant="secondary" className="ml-2">
-                            {plan.foods_to_avoid.length}
-                          </Badge>
-                        </div>
-                      </AccordionTrigger>
-                      <AccordionContent>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                          {plan.foods_to_avoid.map((food, index) => (
-                            <div key={index} className="flex items-center gap-2 p-2 bg-red-50 rounded-lg border border-red-200">
-                              <span className="text-red-500">−</span>
-                              <span className="text-sm text-gray-700">{food}</span>
+                {/* Ejemplos de Comidas (España) */}
+                {plan.meal_examples && Object.keys(plan.meal_examples).length > 0 && (
+                  <AccordionItem value="meal-examples">
+                    <AccordionTrigger className="text-sm font-medium text-healz-blue">
+                      <div className="flex items-center gap-2">
+                        <Utensils className="w-4 h-4 text-healz-orange" />
+                        Ejemplos de Comidas (España)
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      <div className="space-y-4">
+                        {Object.entries(plan.meal_examples).map(([mealType, examples]) => (
+                          <div key={mealType} className="border border-gray-200 rounded-lg p-3">
+                            <h4 className="font-medium text-healz-blue mb-2 capitalize">
+                              {mealType.replace('_', ' ')}
+                            </h4>
+                            <div className="space-y-1">
+                              {Array.isArray(examples) ? examples.map((example, index) => (
+                                <div key={index} className="text-sm text-gray-600 flex items-start gap-2">
+                                  <span className="text-healz-orange">•</span>
+                                  {example}
+                                </div>
+                              )) : (
+                                <div className="text-sm text-gray-600 flex items-start gap-2">
+                                  <span className="text-healz-orange">•</span>
+                                  {examples}
+                                </div>
+                              )}
                             </div>
-                          ))}
-                        </div>
-                      </AccordionContent>
-                    </AccordionItem>
-                  )}
+                          </div>
+                        ))}
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                )}
 
-                  {/* Ejemplos de Comidas (España) */}
-                  {plan.meal_examples && Object.keys(plan.meal_examples).length > 0 && (
-                    <AccordionItem value="meal-examples">
-                      <AccordionTrigger className="text-sm font-medium text-healz-blue">
-                        <div className="flex items-center gap-2">
-                          <Utensils className="w-4 h-4 text-healz-orange" />
-                          Ejemplos de Comidas (España)
-                        </div>
-                      </AccordionTrigger>
-                      <AccordionContent>
-                        <div className="space-y-4">
-                          {Object.entries(plan.meal_examples).map(([mealType, examples]) => (
-                            <div key={mealType} className="border border-gray-200 rounded-lg p-3">
-                              <h4 className="font-medium text-healz-blue mb-2 capitalize">
-                                {mealType.replace('_', ' ')}
-                              </h4>
-                              <div className="space-y-1">
-                                {Array.isArray(examples) ? examples.map((example, index) => (
-                                  <div key={index} className="text-sm text-gray-600 flex items-start gap-2">
-                                    <span className="text-healz-orange">•</span>
-                                    {example}
-                                  </div>
-                                )) : (
-                                  <div className="text-sm text-gray-600 flex items-start gap-2">
-                                    <span className="text-healz-orange">•</span>
-                                    {examples}
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </AccordionContent>
-                    </AccordionItem>
-                  )}
-
-                  {/* Consideraciones Especiales */}
-                  {plan.special_considerations && plan.special_considerations.length > 0 && (
-                    <AccordionItem value="special-considerations">
-                      <AccordionTrigger className="text-sm font-medium text-healz-blue">
-                        <div className="flex items-center gap-2">
-                          <AlertTriangle className="w-4 h-4 text-healz-brown" />
-                          Consideraciones Especiales
-                        </div>
-                      </AccordionTrigger>
-                      <AccordionContent>
-                        <div className="space-y-2">
-                          {plan.special_considerations.map((consideration, index) => (
-                            <div key={index} className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
-                              <p className="text-sm text-gray-700">{consideration}</p>
-                            </div>
-                          ))}
-                        </div>
-                      </AccordionContent>
-                    </AccordionItem>
-                  )}
-                </Accordion>
-              )}
+                {/* Consideraciones Especiales */}
+                {plan.special_considerations && plan.special_considerations.length > 0 && (
+                  <AccordionItem value="special-considerations">
+                    <AccordionTrigger className="text-sm font-medium text-healz-blue">
+                      <div className="flex items-center gap-2">
+                        <AlertTriangle className="w-4 h-4 text-healz-brown" />
+                        Consideraciones Especiales
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      <div className="space-y-2">
+                        {plan.special_considerations.map((consideration, index) => (
+                          <div key={index} className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                            <p className="text-sm text-gray-700">{consideration}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                )}
+              </Accordion>
             </CardContent>
           </Card>
         );

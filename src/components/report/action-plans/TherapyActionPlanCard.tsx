@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Card, CardContent, CardHeader } from "../../ui/card";
 import { Badge } from "../../ui/badge";
 import { Button } from "../../ui/button";
-import { Pencil, Trash2, Plus, Stethoscope, Activity, Zap, MapPin, Hand, Heart, ClipboardList, Clock, Target, BarChart3, AlertTriangle, ChevronDown, ChevronUp } from "lucide-react";
+import { Pencil, Trash2, Plus, Stethoscope, Activity, Zap, MapPin, Hand, Heart, ClipboardList, Clock, Target, BarChart3, AlertTriangle } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../../ui/accordion";
 
 interface Therapy {
@@ -35,8 +35,6 @@ export const TherapyActionPlanCard: React.FC<TherapyActionPlanCardProps> = ({
   onAdd,
   isEditable = true
 }) => {
-  const [showDetails, setShowDetails] = useState<Record<string, boolean>>({});
-
   if (!therapyPlans || therapyPlans.length === 0) {
     return (
       <Card className="w-full">
@@ -65,9 +63,9 @@ export const TherapyActionPlanCard: React.FC<TherapyActionPlanCardProps> = ({
 
   const getPriorityBadge = (priority: string) => {
     const styles = {
-      high: 'bg-healz-red text-white',
-      medium: 'bg-healz-orange text-white',
-      low: 'bg-healz-green text-white'
+      high: 'bg-healz-orange text-white',
+      medium: 'bg-healz-yellow text-healz-blue',
+      low: 'bg-healz-green/20 text-healz-green'
     };
     const labels = {
       high: 'Alta Prioridad',
@@ -115,19 +113,9 @@ export const TherapyActionPlanCard: React.FC<TherapyActionPlanCardProps> = ({
       {therapyPlans.map((therapy) => {
         const priorityBadge = getPriorityBadge(therapy.priority);
         const therapyIcon = getTherapyIcon(therapy.therapy_type);
-        const isExpanded = showDetails[therapy.id] || false;
-        
-        const getPriorityCardClass = (priority: string) => {
-          const classes = {
-            high: 'bg-healz-red/5 border-l-4 border-healz-red',
-            medium: 'bg-healz-orange/5 border-l-4 border-healz-orange', 
-            low: 'bg-healz-green/5 border-l-4 border-healz-green'
-          };
-          return classes[priority as keyof typeof classes] || classes.low;
-        };
         
         return (
-          <Card key={therapy.id} className={`w-full border border-healz-brown/10 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 ${getPriorityCardClass(therapy.priority)}`}>
+          <Card key={therapy.id} className="w-full">
             <CardHeader className="pb-3">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
@@ -175,155 +163,132 @@ export const TherapyActionPlanCard: React.FC<TherapyActionPlanCardProps> = ({
             </CardHeader>
 
             <CardContent className="pt-0">
-              <div className="flex justify-center mb-3">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowDetails(prev => ({ ...prev, [therapy.id]: !prev[therapy.id] }))}
-                  className="text-healz-blue hover:text-healz-blue/80"
-                >
-                  {isExpanded ? (
-                    <>
-                      <ChevronUp className="w-4 h-4 mr-1" />
-                      Ver menos
-                    </>
-                  ) : (
-                    <>
-                      <ChevronDown className="w-4 h-4 mr-1" />
-                      Ver más
-                    </>
-                  )}
-                </Button>
-              </div>
-
-              {isExpanded && (
-                <Accordion type="multiple" className="w-full">
-                  {/* Protocolo de Tratamiento */}
-                  {therapy.protocol && (
-                    <AccordionItem value="protocol">
-                      <AccordionTrigger className="text-sm font-medium text-healz-blue">
-                        <div className="flex items-center gap-2">
-                          <ClipboardList className="w-4 h-4 text-healz-blue" />
-                          Protocolo de Tratamiento
-                        </div>
-                      </AccordionTrigger>
-                      <AccordionContent>
-                        <div className="p-3 bg-healz-cream/30 rounded-lg">
-                          <p className="text-sm text-gray-700 leading-relaxed">
-                            {therapy.protocol}
-                          </p>
-                        </div>
-                      </AccordionContent>
-                    </AccordionItem>
-                  )}
-
-                  {/* Programación */}
-                  <AccordionItem value="scheduling">
+              <Accordion type="multiple" className="w-full">
+                {/* Protocolo de Tratamiento */}
+                {therapy.protocol && (
+                  <AccordionItem value="protocol">
                     <AccordionTrigger className="text-sm font-medium text-healz-blue">
                       <div className="flex items-center gap-2">
-                        <Clock className="w-4 h-4 text-healz-purple" />
-                        Programación
+                        <ClipboardList className="w-4 h-4 text-healz-blue" />
+                        Protocolo de Tratamiento
                       </div>
                     </AccordionTrigger>
                     <AccordionContent>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="p-3 bg-purple-50 rounded-lg border border-purple-200">
-                          <p className="text-sm">
-                            <span className="font-semibold text-healz-blue">Frecuencia:</span><br />
-                            {therapy.frequency || 'No especificada'}
-                          </p>
-                        </div>
-                        <div className="p-3 bg-purple-50 rounded-lg border border-purple-200">
-                          <p className="text-sm">
-                            <span className="font-semibold text-healz-blue">Duración Total:</span><br />
-                            {therapy.duration || 'No especificada'}
-                          </p>
-                        </div>
-                        {therapy.provider_type && (
-                          <div className="p-3 bg-purple-50 rounded-lg border border-purple-200 md:col-span-2">
-                            <p className="text-sm">
-                              <span className="font-semibold text-healz-blue">Tipo de Proveedor:</span><br />
-                              {therapy.provider_type}
-                            </p>
-                          </div>
-                        )}
+                      <div className="p-3 bg-healz-cream/30 rounded-lg">
+                        <p className="text-sm text-gray-700 leading-relaxed">
+                          {therapy.protocol}
+                        </p>
                       </div>
                     </AccordionContent>
                   </AccordionItem>
+                )}
 
-                  {/* Resultados Esperados */}
-                  {therapy.expected_outcomes && therapy.expected_outcomes.length > 0 && (
-                    <AccordionItem value="outcomes">
-                      <AccordionTrigger className="text-sm font-medium text-healz-blue">
-                        <div className="flex items-center gap-2">
-                          <Target className="w-4 h-4 text-healz-green" />
-                          Resultados Esperados
-                          <Badge variant="secondary" className="ml-2">
-                            {therapy.expected_outcomes.length}
-                          </Badge>
+                {/* Programación */}
+                <AccordionItem value="scheduling">
+                  <AccordionTrigger className="text-sm font-medium text-healz-blue">
+                    <div className="flex items-center gap-2">
+                      <Clock className="w-4 h-4 text-healz-purple" />
+                      Programación
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="p-3 bg-purple-50 rounded-lg border border-purple-200">
+                        <p className="text-sm">
+                          <span className="font-semibold text-healz-blue">Frecuencia:</span><br />
+                          {therapy.frequency || 'No especificada'}
+                        </p>
+                      </div>
+                      <div className="p-3 bg-purple-50 rounded-lg border border-purple-200">
+                        <p className="text-sm">
+                          <span className="font-semibold text-healz-blue">Duración Total:</span><br />
+                          {therapy.duration || 'No especificada'}
+                        </p>
+                      </div>
+                      {therapy.provider_type && (
+                        <div className="p-3 bg-purple-50 rounded-lg border border-purple-200 md:col-span-2">
+                          <p className="text-sm">
+                            <span className="font-semibold text-healz-blue">Tipo de Proveedor:</span><br />
+                            {therapy.provider_type}
+                          </p>
                         </div>
-                      </AccordionTrigger>
-                      <AccordionContent>
-                        <div className="space-y-2">
-                          {therapy.expected_outcomes.map((outcome, index) => (
-                            <div key={index} className="p-3 bg-green-50 rounded-lg border border-green-200">
-                              <div className="flex items-start gap-2">
-                                <span className="text-healz-green font-medium">{index + 1}.</span>
-                                <p className="text-sm text-gray-700">{outcome}</p>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </AccordionContent>
-                    </AccordionItem>
-                  )}
+                      )}
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
 
-                  {/* Monitoreo Requerido */}
-                  {therapy.monitoring_requirements && therapy.monitoring_requirements.length > 0 && (
-                    <AccordionItem value="monitoring">
-                      <AccordionTrigger className="text-sm font-medium text-healz-blue">
-                        <div className="flex items-center gap-2">
-                          <BarChart3 className="w-4 h-4 text-healz-teal" />
-                          Monitoreo Requerido
-                          <Badge variant="secondary" className="ml-2">
-                            {therapy.monitoring_requirements.length}
-                          </Badge>
-                        </div>
-                      </AccordionTrigger>
-                      <AccordionContent>
-                        <div className="space-y-2">
-                          {therapy.monitoring_requirements.map((requirement, index) => (
-                            <div key={index} className="p-3 bg-teal-50 rounded-lg border border-teal-200">
-                              <p className="text-sm text-gray-700">{requirement}</p>
+                {/* Resultados Esperados */}
+                {therapy.expected_outcomes && therapy.expected_outcomes.length > 0 && (
+                  <AccordionItem value="outcomes">
+                    <AccordionTrigger className="text-sm font-medium text-healz-blue">
+                      <div className="flex items-center gap-2">
+                        <Target className="w-4 h-4 text-healz-green" />
+                        Resultados Esperados
+                        <Badge variant="secondary" className="ml-2">
+                          {therapy.expected_outcomes.length}
+                        </Badge>
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      <div className="space-y-2">
+                        {therapy.expected_outcomes.map((outcome, index) => (
+                          <div key={index} className="p-3 bg-green-50 rounded-lg border border-green-200">
+                            <div className="flex items-start gap-2">
+                              <span className="text-healz-green font-medium">{index + 1}.</span>
+                              <p className="text-sm text-gray-700">{outcome}</p>
                             </div>
-                          ))}
-                        </div>
-                      </AccordionContent>
-                    </AccordionItem>
-                  )}
+                          </div>
+                        ))}
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                )}
 
-                  {/* Precauciones */}
-                  {therapy.precautions && therapy.precautions.length > 0 && (
-                    <AccordionItem value="precautions">
-                      <AccordionTrigger className="text-sm font-medium text-healz-blue">
-                        <div className="flex items-center gap-2">
-                          <AlertTriangle className="w-4 h-4 text-red-500" />
-                          Precauciones
-                        </div>
-                      </AccordionTrigger>
-                      <AccordionContent>
-                        <div className="space-y-2">
-                          {therapy.precautions.map((precaution, index) => (
-                            <div key={index} className="p-3 bg-red-50 border border-red-200 rounded-lg">
-                              <p className="text-sm text-gray-700">{precaution}</p>
-                            </div>
-                          ))}
-                        </div>
-                      </AccordionContent>
-                    </AccordionItem>
-                  )}
-                </Accordion>
-              )}
+                {/* Monitoreo Requerido */}
+                {therapy.monitoring_requirements && therapy.monitoring_requirements.length > 0 && (
+                  <AccordionItem value="monitoring">
+                    <AccordionTrigger className="text-sm font-medium text-healz-blue">
+                      <div className="flex items-center gap-2">
+                        <BarChart3 className="w-4 h-4 text-healz-teal" />
+                        Monitoreo Requerido
+                        <Badge variant="secondary" className="ml-2">
+                          {therapy.monitoring_requirements.length}
+                        </Badge>
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      <div className="space-y-2">
+                        {therapy.monitoring_requirements.map((requirement, index) => (
+                          <div key={index} className="p-3 bg-teal-50 rounded-lg border border-teal-200">
+                            <p className="text-sm text-gray-700">{requirement}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                )}
+
+                {/* Precauciones */}
+                {therapy.precautions && therapy.precautions.length > 0 && (
+                  <AccordionItem value="precautions">
+                    <AccordionTrigger className="text-sm font-medium text-healz-blue">
+                      <div className="flex items-center gap-2">
+                        <AlertTriangle className="w-4 h-4 text-red-500" />
+                        Precauciones
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      <div className="space-y-2">
+                        {therapy.precautions.map((precaution, index) => (
+                          <div key={index} className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                            <p className="text-sm text-gray-700">{precaution}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                )}
+              </Accordion>
             </CardContent>
           </Card>
         );
