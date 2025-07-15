@@ -38,9 +38,49 @@ const NewReport = () => {
     setCurrentStep('data');
   };
 
-  const handleDataNext = (analyticsId: string) => {
-    setAnalyticsId(analyticsId);
-    setCurrentStep('generation');
+  const handleDataNext = async (analyticsId: string) => {
+    if (!selectedPatient) return;
+    
+    try {
+      // Create initial report immediately in processing state
+      const reportData: any = {
+        patient_id: selectedPatient.id,
+        status: 'processing',
+        diagnosis: {},
+      };
+
+      // Include form_id if selected
+      if (selectedForm) {
+        reportData.form_id = selectedForm.id;
+      }
+
+      // Include analytics_id if provided
+      if (analyticsId) {
+        reportData.analytics_id = analyticsId;
+      }
+
+      const { data: report, error } = await supabase
+        .from('reports')
+        .insert(reportData)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setAnalyticsId(analyticsId);
+      setCurrentStep('generation');
+      
+      // Store the report ID for later use
+      localStorage.setItem('currentReportId', report.id);
+      
+    } catch (error) {
+      console.error('Error creating initial report:', error);
+      toast({
+        title: "Error",
+        description: "No se pudo crear el informe inicial",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleGenerationComplete = (reportId: string) => {

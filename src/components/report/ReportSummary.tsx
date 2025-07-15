@@ -3,7 +3,7 @@ import React from 'react';
 import { VitalityScoreCard } from './VitalityScoreCard';
 import { QualityOfLifeStars } from './QualityOfLifeStars';
 import { RiskBars } from './RiskBars';
-import { BiologicalAgeCard } from './BiologicalAgeCard';
+import { AverageRiskCard } from './AverageRiskCard';
 import { BiomarkerStatus } from './BiomarkerStatus';
 import { SymptomsList } from './SymptomsList';
 import { RecentBiomarkers } from './RecentBiomarkers';
@@ -27,7 +27,9 @@ export const ReportSummary: React.FC<ReportSummaryProps> = ({ report }) => {
         formId={report.form_id}
         sectionType="general_summary"
         title="Resumen General"
-        content={summarySections.general_summary?.content || report.summary}
+        content={summarySections.general_summary?.content || 
+                (typeof report.summary === 'object' && report.summary?.summary ? report.summary.summary :
+                 typeof report.summary === 'string' ? report.summary : '') || ''}
         icon={<FileText className="h-4 w-4" />}
         className="col-span-full"
       />
@@ -62,9 +64,8 @@ export const ReportSummary: React.FC<ReportSummaryProps> = ({ report }) => {
         </div>
         
         <div className="space-y-6">
-          <BiologicalAgeCard 
-            biologicalAge={report.biologicalAge} 
-            chronologicalAge={report.chronologicalAge} 
+          <AverageRiskCard 
+            averageRisk={report.average_risk || 0} 
           />
           
           <BiomarkerStatus 

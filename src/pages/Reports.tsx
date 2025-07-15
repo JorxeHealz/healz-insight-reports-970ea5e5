@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { Report } from '../types/supabase';
 import { Input } from '@/components/ui/input';
+import { ReportStatusBadge } from '../components/reports/ReportStatusBadge';
 
 const formatDate = (dateString: string) => {
   return new Date(dateString).toLocaleDateString();
@@ -26,7 +27,8 @@ const Reports = () => {
       
       if (error) throw error;
       return data;
-    }
+    },
+    refetchInterval: 5000, // Poll every 5 seconds for status updates
   });
 
   const filteredReports = reports?.filter(report => 
@@ -95,6 +97,9 @@ const Reports = () => {
                   Fecha
                 </th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-healz-brown uppercase tracking-wider">
+                  Estado
+                </th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-healz-brown uppercase tracking-wider">
                   Vitality Score
                 </th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-healz-brown uppercase tracking-wider">
@@ -116,13 +121,16 @@ const Reports = () => {
                     {formatDate(report.created_at)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
+                    <ReportStatusBadge status={report.status || 'completed'} />
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
                     <div className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-healz-green/20 text-healz-green">
-                      {report.diagnosis.vitalityScore}%
+                      {report.vitality_score || 0}%
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-healz-red/20 text-healz-red">
-                      {report.diagnosis.riskScore}%
+                      {report.average_risk || 0}%
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">

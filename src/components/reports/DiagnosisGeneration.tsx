@@ -147,7 +147,10 @@ export const DiagnosisGeneration = ({ patient, diagnosis, onBack, onNext }: Diag
         </CardHeader>
         <CardContent>
           <div className="text-healz-brown">
-            {diagnosis.summary.split('\n').map((line, i) => (
+            {(typeof diagnosis.summary === 'object' && diagnosis.summary && 'summary' in diagnosis.summary
+              ? (diagnosis.summary as any).summary 
+              : diagnosis.summary || ''
+            ).split('\n').map((line, i) => (
               <p key={i} className="mb-2">{line}</p>
             ))}
           </div>

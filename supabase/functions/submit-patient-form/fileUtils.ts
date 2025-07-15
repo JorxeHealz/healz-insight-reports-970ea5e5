@@ -71,16 +71,17 @@ export function updateAnswersWithFiles(
   uploadedFiles: UploadedFile[]
 ): Record<string, any> {
   const updatedAnswers = { ...answers };
-  let fileIndex = 0;
-
-  for (const [questionId, fileData] of Object.entries(files_data)) {
-    if (uploadedFiles[fileIndex]) {
-      updatedAnswers[questionId] = uploadedFiles[fileIndex].url;
+  
+  // Create a map of file data to uploaded files by order
+  const fileQuestions = Object.keys(files_data);
+  
+  fileQuestions.forEach((questionId, index) => {
+    if (uploadedFiles[index]) {
+      updatedAnswers[questionId] = uploadedFiles[index].url;
     } else {
-      updatedAnswers[questionId] = `Error al subir: ${fileData.name}`;
+      updatedAnswers[questionId] = `Error al subir: ${files_data[questionId].name}`;
     }
-    fileIndex++;
-  }
+  });
 
   return updatedAnswers;
 }

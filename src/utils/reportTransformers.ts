@@ -40,18 +40,34 @@ export const calculateBiomarkerSummary = (reportBiomarkers: any[]) => {
 };
 
 export const buildRiskProfile = (riskProfiles: any[]) => {
+  // Mapeo de categorías de la BD a las esperadas por el componente
+  const categoryMapping: Record<string, string> = {
+    'Hormonas': 'hormonas',
+    'Vitalidad': 'vitalidad', 
+    'Riesgo Cardíaco': 'riesgo_cardiaco',
+    'Pérdida de Peso': 'perdida_peso',
+    'Fuerza': 'fuerza',
+    'Salud Cerebral': 'salud_cerebral',
+    'Salud Sexual': 'salud_sexual',
+    'Longevidad': 'longevidad'
+  };
+
   const risks = riskProfiles.reduce((acc, profile) => {
-    acc[profile.category] = profile.percentage || getRiskPercentage(profile.risk_level);
+    const mappedCategory = categoryMapping[profile.category] || profile.category.toLowerCase().replace(/\s+/g, '_');
+    acc[mappedCategory] = profile.percentage || getRiskPercentage(profile.risk_level);
     return acc;
   }, {} as Record<string, number>);
 
+  // Valores por defecto para categorías faltantes
   const defaultRisks = {
-    cardio: 25,
-    mental: 30,
-    adrenal: 20,
-    oncologic: 15,
-    metabolic: 35,
-    inflammatory: 25
+    hormonas: 50,
+    vitalidad: 50,
+    riesgo_cardiaco: 50,
+    perdida_peso: 50,
+    fuerza: 50,
+    salud_cerebral: 50,
+    salud_sexual: 50,
+    longevidad: 50
   };
 
   return { ...defaultRisks, ...risks };
@@ -66,14 +82,15 @@ function shouldReportSymptom(answer: string): boolean {
     'sí', 'si', 'yes', 'true', 
     'frecuentemente', 'siempre', 'always', 'frequently',
     'moderadamente', 'severamente', 'mucho', 'bastante',
-    'a veces', 'ocasionalmente', 'sometimes', 'occasionally'
+    'a veces', 'ocasionalmente', 'sometimes', 'occasionally',
+    'rara vez', 'rarely'
   ];
   
   // Respuestas que indican ausencia del síntoma
   const negativeAnswers = [
     'no', 'never', 'nunca', 'false',
     'información no disponible', 'n/a', 'na',
-    'rara vez', 'rarely', 'poco', 'nada'
+    'poco', 'nada'
   ];
   
   // Verificar respuestas positivas
@@ -162,22 +179,29 @@ function extractSymptomFromQuestion(questionText: string): string | null {
   return null;
 }
 
-// Función para determinar la severidad basada en la respuesta
-function getSeverityFromAnswer(answer: string): 'low' | 'med' | 'high' {
+// Función para determinar la etiqueta exacta de frecuencia
+function getFrequencyLabel(answer: string): string {
   const lowerAnswer = answer.toLowerCase().trim();
   
-  if (lowerAnswer.includes('siempre') || lowerAnswer.includes('always') || 
-      lowerAnswer.includes('severamente') || lowerAnswer.includes('mucho')) {
-    return 'high';
+  if (lowerAnswer.includes('siempre') || lowerAnswer.includes('always')) {
+    return 'Siempre';
   }
   
-  if (lowerAnswer.includes('frecuentemente') || lowerAnswer.includes('frequently') || 
-      lowerAnswer.includes('moderadamente') || lowerAnswer.includes('bastante')) {
-    return 'med';
+  if (lowerAnswer.includes('frecuentemente') || lowerAnswer.includes('frequently')) {
+    return 'Frecuentemente';
   }
   
-  // "A veces", "ocasionalmente", etc.
-  return 'low';
+  if (lowerAnswer.includes('a veces') || lowerAnswer.includes('sometimes') || 
+      lowerAnswer.includes('ocasionalmente') || lowerAnswer.includes('occasionally')) {
+    return 'A veces';
+  }
+  
+  if (lowerAnswer.includes('rara vez') || lowerAnswer.includes('rarely')) {
+    return 'Rara vez';
+  }
+  
+  // Para respuestas que no coinciden exactamente, usar la respuesta original capitalizada
+  return answer.charAt(0).toUpperCase() + answer.slice(1).toLowerCase();
 }
 
 export const transformSymptoms = (symptoms: any[]) => {
@@ -197,7 +221,7 @@ export const transformSymptoms = (symptoms: any[]) => {
       
       return {
         name: symptomName,
-        severity: getSeverityFromAnswer(symptom.answer)
+        severity: getFrequencyLabel(symptom.answer)
       };
     })
     .slice(0, 5); // Limitar a 5 síntomas principales
@@ -219,6 +243,12 @@ export const transformClinicalNotes = (clinicalNotes: any[]) => {
     evaluation_score: note.evaluation_score,
     criticality_level: note.criticality_level,
     is_auto_generated: note.is_auto_generated,
+    // Additional clinical fields from report_comments
+    technical_details: note.technical_details,
+    patient_friendly_content: note.patient_friendly_content,
+    warning_signs: note.warning_signs,
+    action_steps: note.action_steps,
+    expected_timeline: note.expected_timeline,
     // Legacy properties for backward compatibility
     type: note.category,
     summary: note.content,
@@ -291,14 +321,18 @@ export const buildTransformedReport = (
   transformedActionPlan: any,
   summarySections: any = {}
 ) => {
-  return {
+  console.log('🔄 buildTransformedReport: Input reportData:', reportData);
+  console.log('🔄 buildTransformedReport: reportData.diagnosis:', reportData.diagnosis);
+  console.log('🔄 buildTransformedReport: reportData.diagnosis type:', typeof reportData.diagnosis);
+
+  const transformedReport = {
     id: reportData.id,
     form_id: reportData.form_id,
     patient: patient,
     createdAt: reportData.created_at,
-    vitalityScore: reportData.diagnosis?.vitalityScore || 45,
-    qualityOfLife: Math.min(5, Math.max(1, Math.round((reportData.diagnosis?.vitalityScore || 45) / 20))) as 1 | 2 | 3 | 4 | 5,
-    biologicalAge: calculateBiologicalAge(patient?.date_of_birth, reportData.diagnosis?.vitalityScore || 45),
+    vitalityScore: reportData.diagnosis?.vitalityScore || reportData.vitality_score || 45,
+    qualityOfLife: Math.min(5, Math.max(1, Math.round((reportData.diagnosis?.vitalityScore || reportData.vitality_score || 45) / 20))) as 1 | 2 | 3 | 4 | 5,
+    biologicalAge: calculateBiologicalAge(patient?.date_of_birth, reportData.diagnosis?.vitalityScore || reportData.vitality_score || 45),
     chronologicalAge: calculateChronologicalAge(patient?.date_of_birth),
     risks: finalRisks,
     biomarkerSummary,
@@ -306,13 +340,28 @@ export const buildTransformedReport = (
     recentBiomarkers,
     // Use clinical_notes instead of clinicalNotes to match component expectations
     clinical_notes: transformedClinicalNotes,
-    summary: reportData.diagnosis || generateSummary(patient, finalRisks, biomarkerSummary),
+    summary: typeof reportData.diagnosis === 'string' ? reportData.diagnosis : 
+             (typeof reportData.diagnosis?.summary === 'string' ? reportData.diagnosis.summary : 
+              generateSummary(patient, finalRisks, biomarkerSummary)),
     manualNotes: reportData.manual_notes,
     // Cambiar de actionPlan a actionPlans para usar el array completo
     actionPlans: transformedActionPlan,
     summarySections: summarySections,
-    keyFindings: [] // This will be populated in useReportData
+    keyFindings: [], // This will be populated in useReportData
+    // Additional diagnostic fields from reports table
+    risk_score: reportData.average_risk, // Using average_risk as the correct field
+    average_risk: reportData.average_risk,
+    personalized_insights: reportData.personalized_insights || {},
+    critical_biomarkers: reportData.critical_biomarkers || [],
+    diagnosis_date: reportData.diagnosis_date || reportData.created_at,
+    // IMPORTANT: Pass through the raw diagnosis field
+    diagnosis: reportData.diagnosis
   };
+
+  console.log('✅ buildTransformedReport: Final transformedReport.diagnosis:', transformedReport.diagnosis);
+  console.log('✅ buildTransformedReport: Final transformedReport.summary:', transformedReport.summary);
+  
+  return transformedReport;
 };
 
 function generateSummary(patient: any, risks: Record<string, number>, biomarkerSummary: any) {

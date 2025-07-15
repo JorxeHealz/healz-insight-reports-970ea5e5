@@ -1,8 +1,8 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-import { processFormData } from './formProcessor.ts'
-import { uploadFiles } from './fileUtils.ts'
+import { prepareAnswersForInsertion, saveFileRecords } from './formProcessor.ts'
+import { processFiles, updateAnswersWithFiles } from './fileUtils.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -23,8 +23,10 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
     console.log('✅ Supabase client created successfully')
 
-    const formData = await req.formData()
-    const formToken = formData.get('form_token') as string
+    const body = await req.json()
+    console.log('📥 Received data:', Object.keys(body))
+    
+    const { form_token: formToken, answers, files_data } = body
     
     if (!formToken) {
       throw new Error('Form token is required')
@@ -48,18 +50,47 @@ serve(async (req) => {
     const patient = Array.isArray(formRecord.patients) ? formRecord.patients[0] : formRecord.patients
     console.log('👤 Found patient:', patient.first_name, patient.last_name)
 
-    // Process form responses
-    const responses = await processFormData(formData, formRecord.id, patient.id, supabase)
-    console.log(`✅ Processed ${responses.length} form responses`)
-
-    // Handle file uploads if any
-    const files = formData.getAll('files') as File[]
+    // Process file uploads if any
     let uploadedFiles: any[] = []
-    
-    if (files && files.length > 0) {
-      console.log(`📎 Processing ${files.length} files`)
-      uploadedFiles = await uploadFiles(files, formRecord.id, patient.id, supabase)
+    if (files_data && Object.keys(files_data).length > 0) {
+      console.log(`📎 Processing ${Object.keys(files_data).length} files`)
+      uploadedFiles = await processFiles(supabase, files_data, formRecord.id)
       console.log(`✅ Uploaded ${uploadedFiles.length} files`)
+      
+      // Save file records to database
+      await saveFileRecords(supabase, uploadedFiles, formRecord)
+    }
+
+    // Update answers with file URLs
+    const updatedAnswers = updateAnswersWithFiles(answers, files_data || {}, uploadedFiles)
+    
+    // Get all active questions for validation
+    const { data: questions, error: questionsError } = await supabase
+      .from('form_questions')
+      .select('*')
+      .eq('is_active', true)
+    
+    if (questionsError) {
+      console.error('❌ Error fetching questions:', questionsError)
+      throw new Error('Error fetching form questions')
+    }
+    
+    // Process form responses  
+    const answerRecords = prepareAnswersForInsertion(updatedAnswers, questions, formRecord)
+    console.log(`📝 Prepared ${answerRecords.length} answer records`)
+    
+    // Insert answers into database
+    if (answerRecords.length > 0) {
+      const { error: answersError } = await supabase
+        .from('questionnaire_answers')
+        .insert(answerRecords)
+        
+      if (answersError) {
+        console.error('❌ Error inserting answers:', answersError)
+        throw new Error('Error saving form responses')
+      }
+      
+      console.log(`✅ Saved ${answerRecords.length} form responses`)
     }
 
     // Mark form as completed
@@ -84,7 +115,7 @@ serve(async (req) => {
         success: true,
         message: 'Formulario enviado correctamente',
         form_id: formRecord.id,
-        responses_count: responses.length,
+        responses_count: answerRecords?.length || 0,
         files_count: uploadedFiles.length
       }),
       { 

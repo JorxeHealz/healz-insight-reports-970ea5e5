@@ -4,32 +4,52 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 interface SymptomsListProps {
   symptoms: {
     name: string;
-    severity: 'low' | 'med' | 'high';
+    severity: string;
   }[];
 }
 
 export const SymptomsList: React.FC<SymptomsListProps> = ({ symptoms }) => {
-  const getSeverityBadge = (severity: 'low' | 'med' | 'high') => {
-    switch (severity) {
-      case 'high':
-        return (
-          <span className="px-3 py-1 text-xs bg-healz-red/20 text-healz-red rounded-md">
-            Alto
-          </span>
-        );
-      case 'med':
-        return (
-          <span className="px-3 py-1 text-xs bg-healz-orange/20 text-healz-orange rounded-md">
-            Medio
-          </span>
-        );
-      case 'low':
-        return (
-          <span className="px-3 py-1 text-xs bg-healz-yellow/20 text-healz-yellow rounded-md">
-            Bajo
-          </span>
-        );
+  const getSeverityBadge = (severity: string) => {
+    const lowerSeverity = severity.toLowerCase();
+    
+    if (lowerSeverity.includes('siempre')) {
+      return (
+        <span className="px-3 py-1 text-xs bg-healz-red/20 text-healz-red rounded-md">
+          {severity}
+        </span>
+      );
     }
+    
+    if (lowerSeverity.includes('frecuentemente')) {
+      return (
+        <span className="px-3 py-1 text-xs bg-healz-orange/20 text-healz-orange rounded-md">
+          {severity}
+        </span>
+      );
+    }
+    
+    if (lowerSeverity.includes('a veces')) {
+      return (
+        <span className="px-3 py-1 text-xs bg-healz-yellow/20 text-healz-yellow rounded-md">
+          {severity}
+        </span>
+      );
+    }
+    
+    if (lowerSeverity.includes('rara vez')) {
+      return (
+        <span className="px-3 py-1 text-xs bg-healz-green/20 text-healz-green rounded-md">
+          {severity}
+        </span>
+      );
+    }
+    
+    // Fallback para respuestas no categorizadas
+    return (
+      <span className="px-3 py-1 text-xs bg-healz-cream text-healz-brown rounded-md">
+        {severity}
+      </span>
+    );
   };
   
   return (

@@ -1,15 +1,24 @@
-
 import { supabase } from '../lib/supabase';
 
 export const fetchReportData = async (reportId: string) => {
+  console.log('🔍 fetchReportData: Fetching report with ID:', reportId);
+  
   const { data: reportData, error: reportError } = await supabase
     .from('reports')
     .select(`
       id,
       created_at,
       diagnosis,
+      diagnosis_date,
+      vitality_score,
+      risk_score,
+      average_risk,
+      personalized_insights,
+      critical_biomarkers,
       manual_notes,
       form_id,
+      patient_id,
+      analytics_id,
       patients!inner (
         id,
         first_name,
@@ -23,14 +32,19 @@ export const fetchReportData = async (reportId: string) => {
     .single();
 
   if (reportError) {
-    console.error('Error fetching report:', reportError);
+    console.error('❌ fetchReportData error:', reportError);
     throw reportError;
   }
 
   if (!reportData) {
+    console.error('❌ fetchReportData: No data found for report ID:', reportId);
     throw new Error('Report not found');
   }
 
+  console.log('✅ fetchReportData: Raw data from database:', reportData);
+  console.log('🔍 fetchReportData: Diagnosis field:', reportData.diagnosis);
+  console.log('🔍 fetchReportData: Diagnosis type:', typeof reportData.diagnosis);
+  
   return reportData;
 };
 
@@ -51,10 +65,18 @@ export const fetchReportRiskProfiles = async (reportId: string, formId: string) 
   const { data } = await supabase
     .from('report_risk_profiles')
     .select('*')
-    .eq('report_id', reportId)
-    .eq('form_id', formId);
+    .eq('form_id', formId)
+    .order('created_at', { ascending: false });
 
-  return data || [];
+  // Get the latest entry for each category
+  const latestByCategory = data?.reduce((acc: any[], profile: any) => {
+    if (!acc.find(p => p.category === profile.category)) {
+      acc.push(profile);
+    }
+    return acc;
+  }, []);
+
+  return latestByCategory || [];
 };
 
 export const fetchReportActionPlans = async (reportId: string, formId: string) => {
@@ -80,13 +102,46 @@ export const fetchReportActionPlans = async (reportId: string, formId: string) =
 };
 
 export const fetchReportComments = async (reportId: string, formId: string) => {
-  const { data } = await supabase
+  console.log('Fetching report comments for:', { reportId, formId });
+  
+  const { data, error } = await supabase
     .from('report_comments')
-    .select('*')
-    .eq('report_id', reportId)
+    .select(`
+      id,
+      report_id,
+      form_id,
+      patient_id,
+      title,
+      content,
+      category,
+      priority,
+      author,
+      date,
+      created_at,
+      evaluation_type,
+      target_id,
+      evaluation_score,
+      criticality_level,
+      recommendations,
+      is_auto_generated,
+      comment_type,
+      panel_affected,
+      technical_details,
+      patient_friendly_content,
+      action_steps,
+      warning_signs,
+      expected_timeline,
+      order_index
+    `)
     .eq('form_id', formId)
     .order('created_at', { ascending: false });
 
+  if (error) {
+    console.error('Error fetching report comments:', error);
+    throw error;
+  }
+
+  console.log('Report comments fetched:', data);
   return data || [];
 };
 
@@ -100,7 +155,8 @@ export const fetchReportSymptoms = async (formId: string) => {
         question_text
       )
     `)
-    .eq('form_id', formId);
+    .eq('form_id', formId)
+    .eq('form_questions.category', 'current_symptoms');
 
   return data || [];
 };
@@ -109,7 +165,6 @@ export const fetchReportSummarySections = async (reportId: string, formId: strin
   const { data } = await supabase
     .from('report_summary_sections')
     .select('*')
-    .eq('report_id', reportId)
     .eq('form_id', formId);
 
   return data || [];
@@ -124,4 +179,3 @@ export const fetchReportKeyFindings = async (reportId: string, formId: string) =
 
   return data || [];
 };
-

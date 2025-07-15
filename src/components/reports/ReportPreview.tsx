@@ -250,7 +250,10 @@ export const ReportPreview = ({
                 <div className="bg-healz-cream/30 p-4 rounded-md border border-healz-brown/10">
                   <h3 className="font-semibold text-healz-brown mb-2">Resumen General</h3>
                   <div className="text-healz-brown space-y-2">
-                    {diagnosis.summary.split('\n').map((line, i) => (
+                    {(typeof diagnosis.summary === 'object' && diagnosis.summary && 'summary' in diagnosis.summary
+                      ? (diagnosis.summary as any).summary 
+                      : diagnosis.summary || ''
+                    ).split('\n').map((line, i) => (
                       <p key={i}>{line}</p>
                     ))}
                   </div>
