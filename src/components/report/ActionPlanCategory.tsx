@@ -4,6 +4,12 @@ import { Button } from '../ui/button';
 import { Plus } from 'lucide-react';
 import { EditableActionItem } from './EditableActionItem';
 import { AddActionForm } from './AddActionForm';
+import { FoodActionPlanCard } from './action-plans/FoodActionPlanCard';
+import { SupplementActionPlanCard } from './action-plans/SupplementActionPlanCard';
+import { ActivityActionPlanCard } from './action-plans/ActivityActionPlanCard';
+import { LifestyleActionPlanCard } from './action-plans/LifestyleActionPlanCard';
+import { TherapyActionPlanCard } from './action-plans/TherapyActionPlanCard';
+import { FollowupActionPlanCard } from './action-plans/FollowupActionPlanCard';
 
 type ActionPlanCategoryProps = {
   category: {
@@ -31,6 +37,83 @@ export const ActionPlanCategory: React.FC<ActionPlanCategoryProps> = ({
 }) => {
   const Icon = category.icon;
 
+  // Function to render the appropriate specialized component
+  const renderSpecializedCard = (item: any) => {
+    const handleEdit = () => {
+      // For now, we'll keep the existing edit functionality
+      // This could be expanded later with specialized edit forms
+      console.log('Edit action:', item.id);
+    };
+
+    switch (category.id) {
+      case 'foods':
+        return (
+          <FoodActionPlanCard
+            key={item.id}
+            item={item}
+            onEdit={handleEdit}
+            onDelete={onDeleteAction}
+          />
+        );
+      case 'supplements':
+        return (
+          <SupplementActionPlanCard
+            key={item.id}
+            item={item}
+            onEdit={handleEdit}
+            onDelete={onDeleteAction}
+          />
+        );
+      case 'activity':
+        return (
+          <ActivityActionPlanCard
+            key={item.id}
+            item={item}
+            onEdit={handleEdit}
+            onDelete={onDeleteAction}
+          />
+        );
+      case 'lifestyle':
+        return (
+          <LifestyleActionPlanCard
+            key={item.id}
+            item={item}
+            onEdit={handleEdit}
+            onDelete={onDeleteAction}
+          />
+        );
+      case 'therapy':
+        return (
+          <TherapyActionPlanCard
+            key={item.id}
+            item={item}
+            onEdit={handleEdit}
+            onDelete={onDeleteAction}
+          />
+        );
+      case 'followup':
+        return (
+          <FollowupActionPlanCard
+            key={item.id}
+            item={item}
+            onEdit={handleEdit}
+            onDelete={onDeleteAction}
+          />
+        );
+      default:
+        // Fallback to the original EditableActionItem for unknown categories
+        return (
+          <EditableActionItem
+            key={item.id}
+            item={item}
+            reportId={reportId}
+            supportsDosage={category.supportsDosage}
+            onDelete={onDeleteAction}
+          />
+        );
+    }
+  };
+
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
@@ -51,17 +134,9 @@ export const ActionPlanCategory: React.FC<ActionPlanCategoryProps> = ({
         </Button>
       </div>
       
-      <div className="space-y-2">
+      <div className="space-y-3">
         {category.items.length > 0 ? (
-          category.items.map((item: any) => (
-            <EditableActionItem
-              key={item.id}
-              item={item}
-              reportId={reportId}
-              supportsDosage={category.supportsDosage}
-              onDelete={onDeleteAction}
-            />
-          ))
+          category.items.map((item: any) => renderSpecializedCard(item))
         ) : (
           <p className="text-sm text-healz-brown/60 italic">
             No hay recomendaciones específicas en esta categoría
