@@ -143,7 +143,7 @@ export const ActivityActionPlanCard: React.FC<ActivityActionPlanCardProps> = ({
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => onEdit(activity.id)}
+                        onClick={() => onEdit(activity)}
                       >
                         <Pencil className="w-4 h-4" />
                       </Button>

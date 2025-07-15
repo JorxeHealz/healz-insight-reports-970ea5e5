@@ -34,7 +34,7 @@ export const FollowupActionPlanCard: React.FC<FollowupActionPlanCardProps> = ({
   onAdd,
   isEditable = true
 }) => {
-  if (!followups || followups.length === 0) {
+  if (!followupPlans || followupPlans.length === 0) {
     return (
       <Card className="w-full">
         <CardHeader className="pb-3">
@@ -95,7 +95,7 @@ export const FollowupActionPlanCard: React.FC<FollowupActionPlanCardProps> = ({
           </div>
           <div>
             <h3 className="font-medium text-healz-blue">Seguimiento</h3>
-            <p className="text-sm text-gray-500">{followups.length} recomendaciones</p>
+            <p className="text-sm text-gray-500">{followupPlans.length} recomendaciones</p>
           </div>
         </div>
         {isEditable && onAdd && (
@@ -106,7 +106,7 @@ export const FollowupActionPlanCard: React.FC<FollowupActionPlanCardProps> = ({
         )}
       </div>
 
-      {followups.map((followup) => {
+      {followupPlans.map((followup) => {
         const priorityBadge = getPriorityBadge(followup.priority);
         const followupIcon = getFollowupIcon(followup.followup_type);
         
@@ -138,7 +138,7 @@ export const FollowupActionPlanCard: React.FC<FollowupActionPlanCardProps> = ({
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => onEdit(followup.id)}
+                        onClick={() => onEdit(followup)}
                       >
                         <Pencil className="w-4 h-4" />
                       </Button>

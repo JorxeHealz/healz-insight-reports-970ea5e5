@@ -35,7 +35,7 @@ export const TherapyActionPlanCard: React.FC<TherapyActionPlanCardProps> = ({
   onAdd,
   isEditable = true
 }) => {
-  if (!therapies || therapies.length === 0) {
+  if (!therapyPlans || therapyPlans.length === 0) {
     return (
       <Card className="w-full">
         <CardHeader className="pb-3">
@@ -98,7 +98,7 @@ export const TherapyActionPlanCard: React.FC<TherapyActionPlanCardProps> = ({
           </div>
           <div>
             <h3 className="font-medium text-healz-blue">Terapia</h3>
-            <p className="text-sm text-gray-500">{therapies.length} recomendaciones</p>
+            <p className="text-sm text-gray-500">{therapyPlans.length} recomendaciones</p>
           </div>
         </div>
         {isEditable && onAdd && (
@@ -109,7 +109,7 @@ export const TherapyActionPlanCard: React.FC<TherapyActionPlanCardProps> = ({
         )}
       </div>
 
-      {therapies.map((therapy) => {
+      {therapyPlans.map((therapy) => {
         const priorityBadge = getPriorityBadge(therapy.priority);
         const therapyIcon = getTherapyIcon(therapy.therapy_type);
         
@@ -142,7 +142,7 @@ export const TherapyActionPlanCard: React.FC<TherapyActionPlanCardProps> = ({
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => onEdit(therapy.id)}
+                        onClick={() => onEdit(therapy)}
                       >
                         <Pencil className="w-4 h-4" />
                       </Button>

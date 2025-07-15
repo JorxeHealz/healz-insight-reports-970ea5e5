@@ -123,7 +123,7 @@ export const SupplementActionPlanCard: React.FC<SupplementActionPlanCardProps> =
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => onEdit(supplement.id)}
+                        onClick={() => onEdit(supplement)}
                       >
                         <Pencil className="w-4 h-4" />
                       </Button>

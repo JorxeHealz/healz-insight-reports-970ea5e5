@@ -123,7 +123,7 @@ export const LifestyleActionPlanCard: React.FC<LifestyleActionPlanCardProps> = (
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => onEdit(plan.id)}
+                        onClick={() => onEdit(plan)}
                       >
                         <Pencil className="w-4 h-4" />
                       </Button>
