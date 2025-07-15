@@ -60,7 +60,7 @@ export const ActionPlan: React.FC<ActionPlanProps> = ({ report }) => {
       title: 'Estilo de Vida',
       icon: Heart,
       items: actionsByCategory.lifestyle,
-      color: 'bg-healz-blue/20 text-healz-teal',
+      color: 'bg-healz-blue/20 text-healz-blue',
       supportsDosage: false
     },
     {
@@ -84,7 +84,7 @@ export const ActionPlan: React.FC<ActionPlanProps> = ({ report }) => {
       title: 'Seguimiento',
       icon: Calendar,
       items: actionsByCategory.followup,
-      color: 'bg-healz-yellow/20 text-healz-orange',
+      color: 'bg-healz-yellow/20 text-healz-yellow',
       supportsDosage: false
     }
   ];
@@ -105,7 +105,7 @@ export const ActionPlan: React.FC<ActionPlanProps> = ({ report }) => {
       <Card>
         <ActionPlanHeader />
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 space-y-6">
             {actionCategories.map((category) => (
               <ActionPlanCategory
                 key={category.id}

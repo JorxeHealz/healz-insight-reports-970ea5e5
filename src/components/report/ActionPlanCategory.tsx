@@ -148,12 +148,12 @@ export const ActionPlanCategory: React.FC<ActionPlanCategoryProps> = ({
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className={`w-8 h-8 rounded-full ${category.color} flex items-center justify-center`}>
+                <div className={`w-8 h-8 rounded-lg ${category.color} flex items-center justify-center`}>
                   <Icon className="h-4 w-4" />
                 </div>
                 <div>
-                  <h3 className="font-medium text-healz-blue">{category.title}</h3>
-                  <p className="text-sm text-gray-500">
+                  <h3 className="font-medium text-healz-brown">{category.title}</h3>
+                  <p className="text-sm text-healz-brown/60">
                     {category.items.length} acción{category.items.length !== 1 ? 'es' : ''}
                   </p>
                 </div>
@@ -170,7 +170,7 @@ export const ActionPlanCategory: React.FC<ActionPlanCategoryProps> = ({
             </div>
 
             {category.items.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
+              <div className="text-center py-8 text-healz-brown/60">
                 <AlertTriangle className="h-8 w-8 mx-auto mb-2 opacity-50" />
                 <p>No hay acciones en esta categoría</p>
                 <Button 
