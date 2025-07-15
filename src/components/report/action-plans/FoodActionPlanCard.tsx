@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Badge } from '../../ui/badge';
-import { Apple, Target, Plus, Minus, Clock, AlertTriangle, Droplets } from 'lucide-react';
-import { EnhancedActionPlanCard } from './EnhancedActionPlanCard';
+import { Button } from '../../ui/button';
+import { Card, CardContent } from '../../ui/card';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../../ui/collapsible';
+import { ChevronDown, ChevronUp, Edit2, Trash2, Apple, Target, Plus, Minus, Clock, Utensils, AlertCircle } from 'lucide-react';
 
 type FoodActionPlanCardProps = {
   item: any;
@@ -10,251 +12,218 @@ type FoodActionPlanCardProps = {
 };
 
 export const FoodActionPlanCard: React.FC<FoodActionPlanCardProps> = ({ item, onEdit, onDelete }) => {
-  
-  // Extract essential information for preview using new schema
-  const getEssentialTags = () => {
-    const tags = [];
-    if (item.primary_focus) tags.push(item.primary_focus);
-    if (item.recommended_foods?.length > 0) tags.push(`${item.recommended_foods.length} alimentos +`);
-    if (item.foods_to_eliminate?.length > 0) tags.push(`${item.foods_to_eliminate.length} alimentos -`);
-    if (item.hydration_goals) tags.push('Hidratación incluida');
-    return tags.slice(0, 3);
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  const getPriorityStyle = (priority: string) => {
+    switch (priority) {
+      case 'high': return 'bg-healz-red/20 text-healz-red border-healz-red/30';
+      case 'medium': return 'bg-healz-yellow/20 text-healz-orange border-healz-orange/30';
+      default: return 'bg-healz-green/20 text-healz-green border-healz-green/30';
+    }
   };
 
-  const getTimeframe = () => {
-    if (item.implementation_timeline === 'inmediato') return "Iniciar inmediatamente";
-    if (item.implementation_timeline === 'gradual') return "Implementación gradual";
-    if (item.implementation_timeline === 'por_fases') return "Por fases";
-    return item.implementation_timeline || "Implementación flexible";
+  const getPriorityText = (priority: string) => {
+    switch (priority) {
+      case 'high': return 'Alta';
+      case 'medium': return 'Media';
+      default: return 'Baja';
+    }
   };
-
-  // NUEVA ESTRUCTURA - OBJETIVOS PRINCIPALES SIEMPRE VISIBLES
-  const previewContent = (
-    <div className="space-y-4">
-      {/* SECCIÓN FIJA: OBJETIVOS PRINCIPALES */}
-      <div className="bg-gradient-to-r from-healz-green/10 to-healz-teal/10 p-4 rounded-xl border border-healz-green/30">
-        <h4 className="text-base font-bold text-healz-green mb-3 flex items-center gap-2">
-          <Target className="h-5 w-5" />
-          Objetivos Principales del Plan
-        </h4>
-        {item.main_objectives && Array.isArray(item.main_objectives) && item.main_objectives.length > 0 ? (
-          <div className="space-y-2">
-            {item.main_objectives.slice(0, 3).map((goal: string, index: number) => (
-              <div key={index} className="flex items-start gap-3">
-                <div className="w-6 h-6 bg-healz-green text-white rounded-full flex items-center justify-center text-xs font-bold mt-0.5">
-                  {index + 1}
-                </div>
-                <p className="text-sm text-healz-brown font-medium leading-relaxed">{goal}</p>
-              </div>
-            ))}
-            {item.main_objectives.length > 3 && (
-              <p className="text-xs text-healz-green/70 ml-9 font-medium">
-                +{item.main_objectives.length - 3} objetivos adicionales
-              </p>
-            )}
-          </div>
-        ) : (
-          <p className="text-sm text-healz-brown/70 italic">Objetivos por definir</p>
-        )}
-      </div>
-
-      {/* RESUMEN RÁPIDO */}
-      <div className="grid grid-cols-2 gap-3">
-        <div className="bg-healz-cream/40 p-3 rounded-lg border border-healz-brown/10">
-          <h5 className="text-xs font-semibold text-healz-brown/70 mb-1">Enfoque Principal</h5>
-          <p className="text-sm text-healz-brown font-semibold">{item.primary_focus || 'Por definir'}</p>
-        </div>
-        
-        {item.hydration_goals && (
-          <div className="bg-healz-teal/10 p-3 rounded-lg border border-healz-teal/20 flex items-center gap-2">
-            <Droplets className="h-4 w-4 text-healz-teal" />
-            <div>
-              <h5 className="text-xs font-semibold text-healz-teal/70">Hidratación</h5>
-              <p className="text-xs text-healz-brown/80 font-medium">{item.hydration_goals}</p>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* CONTADORES RÁPIDOS */}
-      <div className="flex justify-between items-center pt-2 border-t border-healz-cream">
-        <div className="flex items-center gap-1">
-          <Plus className="h-4 w-4 text-healz-green" />
-          <span className="text-sm font-medium text-healz-green">
-            {item.recommended_foods?.length || 0} recomendados
-          </span>
-        </div>
-        <div className="flex items-center gap-1">
-          <Minus className="h-4 w-4 text-healz-red" />
-          <span className="text-sm font-medium text-healz-red">
-            {item.foods_to_eliminate?.length || 0} a evitar
-          </span>
-        </div>
-      </div>
-    </div>
-  );
-
-  // CONTENIDO EXPANDIDO - NUEVA ORGANIZACIÓN POR SECCIONES
-  const expandedContent = (
-    <div className="space-y-6">
-      
-      {/* SECCIÓN 1: ALIMENTOS RECOMENDADOS */}
-      {item.recommended_foods && Array.isArray(item.recommended_foods) && item.recommended_foods.length > 0 && (
-        <div className="bg-healz-green/5 p-4 rounded-xl border border-healz-green/20">
-          <h5 className="text-base font-bold text-healz-green mb-3 flex items-center gap-2">
-            <Plus className="h-5 w-5" />
-            Alimentos a Incluir
-          </h5>
-          <div className="flex flex-wrap gap-2">
-            {item.recommended_foods.map((food: string, index: number) => (
-              <Badge key={index} className="text-sm bg-healz-green/10 text-healz-green border border-healz-green/30 px-3 py-1">
-                {food}
-              </Badge>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* SECCIÓN 2: ALIMENTOS A EVITAR */}
-      {item.foods_to_eliminate && Array.isArray(item.foods_to_eliminate) && item.foods_to_eliminate.length > 0 && (
-        <div className="bg-healz-red/5 p-4 rounded-xl border border-healz-red/20">
-          <h5 className="text-base font-bold text-healz-red mb-3 flex items-center gap-2">
-            <Minus className="h-5 w-5" />
-            Alimentos a Evitar
-          </h5>
-          <div className="flex flex-wrap gap-2">
-            {item.foods_to_eliminate.map((food: string, index: number) => (
-              <Badge key={index} className="text-sm bg-healz-red/10 text-healz-red border border-healz-red/30 px-3 py-1">
-                {food}
-              </Badge>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* SECCIÓN 2.5: ALIMENTOS A MODERAR (NUEVA) */}
-      {item.foods_to_moderate && Array.isArray(item.foods_to_moderate) && item.foods_to_moderate.length > 0 && (
-        <div className="bg-healz-orange/5 p-4 rounded-xl border border-healz-orange/20">
-          <h5 className="text-base font-bold text-healz-orange mb-3 flex items-center gap-2">
-            <AlertTriangle className="h-5 w-5" />
-            Alimentos a Moderar
-          </h5>
-          <div className="flex flex-wrap gap-2">
-            {item.foods_to_moderate.map((food: string, index: number) => (
-              <Badge key={index} className="text-sm bg-healz-orange/10 text-healz-orange border border-healz-orange/30 px-3 py-1">
-                {food}
-              </Badge>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* SECCIÓN 3: EJEMPLOS DE COMIDAS ESPAÑOLAS */}
-      {item.spanish_meal_examples && typeof item.spanish_meal_examples === 'object' && Object.keys(item.spanish_meal_examples).length > 0 && (
-        <div className="bg-healz-blue/5 p-4 rounded-xl border border-healz-blue/20">
-          <h5 className="text-base font-bold text-healz-blue mb-3 flex items-center gap-2">
-            <Clock className="h-5 w-5" />
-            Ejemplos de Comidas Españolas
-          </h5>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {Object.entries(item.spanish_meal_examples).map(([mealTime, example]) => {
-              // Mapeo de nombres de comidas españolas
-              const spanishMealNames: Record<string, string> = {
-                'desayuno': 'Desayuno',
-                'almuerzo': 'Almuerzo',
-                'comida': 'Comida',
-                'merienda': 'Merienda',
-                'cena': 'Cena',
-                'media_manana': 'Media Mañana',
-                'media_tarde': 'Media Tarde'
-              };
-              
-              const displayName = spanishMealNames[mealTime.toLowerCase()] || mealTime;
-              
-              return (
-                <div key={mealTime} className="bg-white p-3 rounded-lg border border-healz-blue/20">
-                  <h6 className="text-sm font-semibold text-healz-blue mb-2">{displayName}</h6>
-                  <p className="text-sm text-healz-brown/80 leading-relaxed">{example as string}</p>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* SECCIÓN 4: CONSIDERACIONES ESPECIALES */}
-      {item.special_instructions && Array.isArray(item.special_instructions) && item.special_instructions.length > 0 && (
-        <div className="bg-amber-50/70 p-4 rounded-xl border border-amber-200/50">
-          <h5 className="text-base font-bold text-amber-700 mb-3 flex items-center gap-2">
-            <AlertTriangle className="h-5 w-5" />
-            Consideraciones Especiales
-          </h5>
-          <div className="space-y-2">
-            {item.special_instructions.map((instruction: string, index: number) => (
-              <div key={index} className="flex items-start gap-2">
-                <span className="text-amber-600 text-sm mt-1">⚠️</span>
-                <p className="text-sm text-amber-800/90 leading-relaxed">{instruction}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* SECCIÓN 5: INFORMACIÓN ADICIONAL */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Horarios de comida */}
-        {item.meal_timing_preferences && (
-          <div className="bg-healz-teal/5 p-4 rounded-lg border border-healz-teal/20">
-            <h6 className="text-sm font-semibold text-healz-teal mb-2">Horarios Recomendados</h6>
-            <p className="text-sm text-healz-brown/80 leading-relaxed">{item.meal_timing_preferences}</p>
-          </div>
-        )}
-
-        {/* Guía de porciones */}
-        {item.portion_size_guide && (
-          <div className="bg-healz-purple/5 p-4 rounded-lg border border-healz-purple/20">
-            <h6 className="text-sm font-semibold text-healz-purple mb-2">Guía de Porciones</h6>
-            <p className="text-sm text-healz-brown/80 leading-relaxed">{item.portion_size_guide}</p>
-          </div>
-        )}
-
-        {/* Métodos de cocción */}
-        {item.cooking_methods && Array.isArray(item.cooking_methods) && item.cooking_methods.length > 0 && (
-          <div className="bg-healz-green/5 p-4 rounded-lg border border-healz-green/20">
-            <h6 className="text-sm font-semibold text-healz-green mb-2">Métodos de Cocción</h6>
-            <div className="flex flex-wrap gap-1">
-              {item.cooking_methods.map((method: string, index: number) => (
-                <Badge key={index} className="text-xs bg-healz-green/10 text-healz-green">
-                  {method}
-                </Badge>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Notas de adaptación */}
-        {item.adaptation_notes && (
-          <div className="bg-healz-blue/5 p-4 rounded-lg border border-healz-blue/20">
-            <h6 className="text-sm font-semibold text-healz-blue mb-2">Notas de Adaptación</h6>
-            <p className="text-sm text-healz-brown/80 leading-relaxed">{item.adaptation_notes}</p>
-          </div>
-        )}
-      </div>
-    </div>
-  );
 
   return (
-    <EnhancedActionPlanCard
-      item={item}
-      onEdit={onEdit}
-      onDelete={onDelete}
-      categoryIcon={Apple}
-      categoryColor="text-healz-green"
-      title={item.plan_title || item.diet_type || 'Plan Alimentario'}
-      previewContent={previewContent}
-      expandedContent={expandedContent}
-      timeframe={getTimeframe()}
-      essentialTags={getEssentialTags()}
-    />
+    <Card className="bg-healz-cream/30 border-healz-brown/10">
+      <CardContent className="p-4">
+        <div className="flex items-start justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <Apple className="h-4 w-4 text-healz-green" />
+            <h4 className="font-semibold text-sm text-healz-brown">
+              {item.diet_type || 'Plan Alimentario'}
+            </h4>
+          </div>
+          <div className="flex items-center gap-1">
+            <Badge className={`text-xs ${getPriorityStyle(item.priority)}`}>
+              {getPriorityText(item.priority)}
+            </Badge>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={onEdit}
+              className="h-6 w-6 p-0"
+            >
+              <Edit2 className="h-3 w-3" />
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => onDelete(item.id)}
+              className="h-6 w-6 p-0 text-healz-red hover:text-healz-red"
+            >
+              <Trash2 className="h-3 w-3" />
+            </Button>
+          </div>
+        </div>
+
+        {/* Objetivos principales - siempre visibles */}
+        {item.main_goals && Array.isArray(item.main_goals) && item.main_goals.length > 0 && (
+          <div className="bg-healz-green/10 p-3 rounded-lg mb-3">
+            <h5 className="text-xs font-semibold text-healz-green mb-2 flex items-center gap-1">
+              <Target className="h-3 w-3" />
+              Objetivos Principales
+            </h5>
+            <div className="space-y-1">
+              {item.main_goals.slice(0, 2).map((goal: string, index: number) => (
+                <p key={index} className="text-xs text-healz-brown/80 flex items-start gap-1">
+                  <span className="text-healz-green">•</span> {goal}
+                </p>
+              ))}
+              {item.main_goals.length > 2 && (
+                <p className="text-xs text-healz-green/70 italic">
+                  +{item.main_goals.length - 2} objetivos más
+                </p>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Resumen rápido */}
+        <div className="grid grid-cols-2 gap-2 mb-3">
+          {item.foods_to_include?.length > 0 && (
+            <div className="flex items-center gap-1 text-xs">
+              <Plus className="h-3 w-3 text-healz-green" />
+              <span className="text-healz-brown/70">{item.foods_to_include.length} alimentos recomendados</span>
+            </div>
+          )}
+          {item.foods_to_avoid?.length > 0 && (
+            <div className="flex items-center gap-1 text-xs">
+              <Minus className="h-3 w-3 text-healz-red" />
+              <span className="text-healz-brown/70">{item.foods_to_avoid.length} a evitar</span>
+            </div>
+          )}
+        </div>
+
+        {/* Botón para expandir detalles */}
+        <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
+          <CollapsibleTrigger asChild>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full h-7 text-xs font-medium hover:bg-healz-brown/5"
+            >
+              {isExpanded ? (
+                <>
+                  <ChevronUp className="h-3 w-3 mr-1" />
+                  Ocultar detalles
+                </>
+              ) : (
+                <>
+                  <ChevronDown className="h-3 w-3 mr-1" />
+                  Ver plan completo
+                </>
+              )}
+            </Button>
+          </CollapsibleTrigger>
+
+          <CollapsibleContent className="mt-3 space-y-3">
+            {/* Alimentos recomendados */}
+            {item.foods_to_include && Array.isArray(item.foods_to_include) && item.foods_to_include.length > 0 && (
+              <div className="bg-healz-green/5 p-3 rounded-lg">
+                <h5 className="text-xs font-semibold text-healz-green mb-2 flex items-center gap-1">
+                  <Plus className="h-3 w-3" />
+                  Alimentos a Incluir
+                </h5>
+                <div className="flex flex-wrap gap-1">
+                  {item.foods_to_include.map((food: string, index: number) => (
+                    <Badge key={index} variant="outline" className="text-xs bg-healz-green/10 text-healz-green">
+                      {food}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Alimentos a evitar */}
+            {item.foods_to_avoid && Array.isArray(item.foods_to_avoid) && item.foods_to_avoid.length > 0 && (
+              <div className="bg-healz-red/5 p-3 rounded-lg">
+                <h5 className="text-xs font-semibold text-healz-red mb-2 flex items-center gap-1">
+                  <Minus className="h-3 w-3" />
+                  Alimentos a Evitar
+                </h5>
+                <div className="flex flex-wrap gap-1">
+                  {item.foods_to_avoid.map((food: string, index: number) => (
+                    <Badge key={index} variant="outline" className="text-xs bg-healz-red/10 text-healz-red">
+                      {food}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Ejemplos de comidas españolas */}
+            {item.meal_examples && Array.isArray(item.meal_examples) && item.meal_examples.length > 0 && (
+              <div className="bg-healz-cream/50 p-3 rounded-lg">
+                <h5 className="text-xs font-semibold text-healz-brown mb-2 flex items-center gap-1">
+                  <Utensils className="h-3 w-3" />
+                  Ejemplos de Comidas (España)
+                </h5>
+                <div className="space-y-2">
+                  {item.meal_examples.map((meal: any, index: number) => (
+                    <div key={index} className="text-xs text-healz-brown/80">
+                      {typeof meal === 'string' ? (
+                        <p>• {meal}</p>
+                      ) : (
+                        <div>
+                          <p className="font-medium text-healz-brown">{meal.type || `Comida ${index + 1}`}:</p>
+                          <p className="ml-2">{meal.description || meal}</p>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Horarios y pautas */}
+            {item.meal_timing && (
+              <div className="bg-healz-orange/5 p-3 rounded-lg">
+                <h5 className="text-xs font-semibold text-healz-orange mb-1 flex items-center gap-1">
+                  <Clock className="h-3 w-3" />
+                  Horarios Recomendados
+                </h5>
+                <p className="text-xs text-healz-brown/80">{item.meal_timing}</p>
+              </div>
+            )}
+
+            {/* Porciones */}
+            {item.portion_guidelines && (
+              <div>
+                <h5 className="text-xs font-semibold text-healz-brown mb-1">Guía de Porciones:</h5>
+                <p className="text-xs text-healz-brown/70">{item.portion_guidelines}</p>
+              </div>
+            )}
+
+            {/* Consideraciones especiales */}
+            {(item.special_considerations || item.additional_notes) && (
+              <div className="bg-healz-blue/5 p-3 rounded-lg">
+                <h5 className="text-xs font-semibold text-healz-blue mb-1 flex items-center gap-1">
+                  <AlertCircle className="h-3 w-3" />
+                  Consideraciones Especiales
+                </h5>
+                <p className="text-xs text-healz-brown/80">
+                  {item.special_considerations || item.additional_notes}
+                </p>
+              </div>
+            )}
+
+            {/* Suplementación */}
+            {item.supplementation_notes && (
+              <div>
+                <h5 className="text-xs font-semibold text-healz-purple mb-1">Suplementación:</h5>
+                <p className="text-xs text-healz-brown/70">{item.supplementation_notes}</p>
+              </div>
+            )}
+          </CollapsibleContent>
+        </Collapsible>
+      </CardContent>
+    </Card>
   );
 };
