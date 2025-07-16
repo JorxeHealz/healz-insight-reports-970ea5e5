@@ -61,7 +61,7 @@ export const useFormByToken = (token: string) => {
     queryKey: ['form-by-token', token],
     queryFn: async () => {
       if (!token) {
-        throw new Error('Token is required');
+        throw new Error('Se requiere un token');
       }
 
       console.log('Fetching form by token:', token);
@@ -77,7 +77,7 @@ export const useFormByToken = (token: string) => {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to fetch form data');
+        throw new Error(errorData.error || 'Error al obtener los datos del formulario');
       }
 
       const result = await response.json();
