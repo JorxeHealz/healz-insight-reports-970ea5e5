@@ -17,6 +17,8 @@ interface ProcessingCompleteRequest {
     date?: string;
   }>;
   error_message?: string;
+  extracted_data?: any;
+  processing_time_ms?: number;
 }
 
 serve(async (req) => {
@@ -24,8 +26,11 @@ serve(async (req) => {
     return new Response('ok', { headers: corsHeaders })
   }
 
+  const startTime = new Date().toISOString()
+  let analytics_id = 'unknown'
+
   try {
-    console.log('🚀 Starting analytics-processing-complete function')
+    console.log('🎯 Analytics processing completion callback received at', startTime)
     
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
@@ -33,30 +38,85 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
     console.log('✅ Supabase client created successfully')
 
-    const { analytics_id, status, biomarkers, error_message }: ProcessingCompleteRequest = await req.json()
+    const { 
+      analytics_id: reqAnalyticsId, 
+      status, 
+      biomarkers, 
+      error_message,
+      extracted_data,
+      processing_time_ms 
+    }: ProcessingCompleteRequest = await req.json()
+    
+    analytics_id = reqAnalyticsId
     
     if (!analytics_id) {
       throw new Error('Analytics ID is required')
     }
 
-    console.log('🔍 Processing completion for analytics:', analytics_id, 'Status:', status)
+    console.log('📊 Processing completion for analytics:', analytics_id)
+    console.log('📈 New status:', status)
+    
+    if (error_message) {
+      console.log('❌ Error message:', error_message)
+    }
+    
+    if (biomarkers && biomarkers.length > 0) {
+      console.log('🧬 Biomarkers to process:', biomarkers.length)
+    }
 
-    // Get analytics record
+    if (processing_time_ms) {
+      console.log('⏱️ Processing time:', processing_time_ms, 'ms')
+    }
+
+    // Verify the analytics record exists and is in processing state
     const { data: analyticsData, error: analyticsError } = await supabase
       .from('patient_analytics')
-      .select('*, patient:patients(*)')
+      .select('id, status, patient_id, patient:patients(*)')
       .eq('id', analytics_id)
       .single()
 
     if (analyticsError || !analyticsData) {
-      console.error('❌ Analytics not found:', analyticsError)
+      console.error('❌ Analytics record not found:', analyticsError)
       throw new Error('Analytics record not found')
+    }
+
+    console.log('📋 Current analytics status:', analyticsData.status)
+
+    // Only update if currently processing to prevent race conditions
+    if (analyticsData.status !== 'processing') {
+      console.log('⚠️ Analytics is not in processing state, current status:', analyticsData.status)
+      return new Response(
+        JSON.stringify({
+          success: false,
+          message: 'Analytics is not in processing state',
+          analytics_id: analytics_id,
+          current_status: analyticsData.status
+        }),
+        { 
+          headers: { 
+            ...corsHeaders, 
+            'Content-Type': 'application/json' 
+          } 
+        }
+      )
+    }
+
+    // Prepare update data
+    const updateData: any = {
+      status: status,
+      updated_at: new Date().toISOString()
+    }
+
+    // Store extracted data if provided
+    if (extracted_data) {
+      updateData.extract_pdf = JSON.stringify(extracted_data)
+      console.log('💾 Storing extracted data')
     }
 
     // Update analytics status
     const { error: updateError } = await supabase
       .from('patient_analytics')
-      .update({ status })
+      .update(updateData)
       .eq('id', analytics_id)
 
     if (updateError) {
@@ -64,7 +124,7 @@ serve(async (req) => {
       throw updateError
     }
 
-    console.log('✅ Analytics status updated to:', status)
+    console.log('✅ Analytics status updated to', status)
 
     // If processing was successful and we have biomarkers, insert them
     if (status === 'processed' && biomarkers && biomarkers.length > 0) {
@@ -164,13 +224,20 @@ serve(async (req) => {
       console.log('🎯 All biomarkers processed successfully')
     }
 
+    const endTime = new Date().toISOString()
+    const callbackTime = new Date(endTime).getTime() - new Date(startTime).getTime()
+    console.log('🎯 Analytics processing callback completed in', callbackTime, 'ms')
+
     return new Response(
       JSON.stringify({
         success: true,
-        message: 'Processing completion handled successfully',
-        analytics_id,
-        status,
-        biomarkers_processed: biomarkers?.length || 0
+        message: `Analytics processing ${status}`,
+        analytics_id: analytics_id,
+        previous_status: 'processing',
+        new_status: status,
+        biomarkers_processed: biomarkers?.length || 0,
+        callback_time_ms: callbackTime,
+        processing_time_ms: processing_time_ms
       }),
       { 
         headers: { 
@@ -181,10 +248,16 @@ serve(async (req) => {
     )
 
   } catch (error) {
-    console.error('❌ Error in analytics-processing-complete:', error)
+    const errorTime = new Date().toISOString()
+    console.error('❌ Error in analytics-processing-complete at', errorTime, ':', error)
+    console.error('❌ Error stack:', error.stack)
+    console.error('❌ Analytics ID:', analytics_id)
+    
     return new Response(
       JSON.stringify({ 
-        error: error.message || 'Error handling processing completion'
+        error: error.message || 'Error handling processing completion',
+        analytics_id: analytics_id,
+        timestamp: errorTime
       }),
       { 
         status: 400, 

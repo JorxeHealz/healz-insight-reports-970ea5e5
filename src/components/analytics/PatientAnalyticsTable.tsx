@@ -27,19 +27,25 @@ export const PatientAnalyticsTable = ({
   onProcessClick,
   processingIds
 }: PatientAnalyticsTableProps) => {
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (status: string, analytics?: PatientAnalytics) => {
     const statusConfig = {
-      uploaded: { label: 'Subida', color: 'bg-blue-100 text-blue-800' },
-      processing: { label: 'Procesando', color: 'bg-yellow-100 text-yellow-800' },
-      processed: { label: 'Procesada', color: 'bg-green-100 text-green-800' },
-      failed: { label: 'Error', color: 'bg-red-100 text-red-800' }
+      uploaded: { label: 'Subida', color: 'bg-blue-100 text-blue-800', icon: null },
+      processing: { label: 'Procesando', color: 'bg-yellow-100 text-yellow-800', icon: <Loader2 className="w-3 h-3 animate-spin" /> },
+      processed: { label: 'Procesada', color: 'bg-green-100 text-green-800', icon: null },
+      failed: { label: 'Error', color: 'bg-red-100 text-red-800', icon: null }
     };
 
     const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.uploaded;
     
     return (
-      <Badge className={config.color}>
+      <Badge className={`${config.color} flex items-center gap-1`}>
+        {config.icon}
         {config.label}
+        {status === 'processing' && analytics && (
+          <span className="text-xs ml-1">
+            ({formatDistanceToNow(new Date(analytics.updated_at), { locale: es, addSuffix: false })})
+          </span>
+        )}
       </Badge>
     );
   };
@@ -140,7 +146,7 @@ export const PatientAnalyticsTable = ({
                           </div>
                         </TableCell>
                         <TableCell>
-                          {getStatusBadge(analytic.status)}
+                          {getStatusBadge(analytic.status, analytic)}
                         </TableCell>
                         <TableCell className="text-sm text-gray-500">
                           {formatDistanceToNow(new Date(analytic.upload_date), { 

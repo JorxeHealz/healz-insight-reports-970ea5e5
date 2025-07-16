@@ -1904,6 +1904,12 @@ export type Database = {
         Args: { user_uuid: string }
         Returns: boolean
       }
+      reset_stuck_analytics: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          reset_count: number
+        }[]
+      }
       update_patient_biomarker_value: {
         Args: { p_id: string; p_value: number }
         Returns: boolean
