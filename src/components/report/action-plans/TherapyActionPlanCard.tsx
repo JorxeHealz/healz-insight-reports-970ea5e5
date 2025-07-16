@@ -121,7 +121,7 @@ export const TherapyActionPlanCard: React.FC<TherapyActionPlanCardProps> = ({
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2">
                     <span className="text-healz-blue">{therapyIcon}</span>
-                    <h4 className="font-medium text-healz-blue">
+                    <h4 className="font-medium text-healz-brown">
                       {therapy.therapy_type}
                     </h4>
                     <Badge className={priorityBadge.style}>

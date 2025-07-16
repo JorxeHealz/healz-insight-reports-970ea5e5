@@ -123,7 +123,7 @@ export const ActivityActionPlanCard: React.FC<ActivityActionPlanCardProps> = ({
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2">
                     <span className="text-lg">{activityIcon}</span>
-                    <h4 className="font-medium text-healz-blue">
+                    <h4 className="font-medium text-healz-brown">
                       {activity.activity_type || 'Actividad Física'}
                     </h4>
                     <Badge className={priorityBadge.style}>

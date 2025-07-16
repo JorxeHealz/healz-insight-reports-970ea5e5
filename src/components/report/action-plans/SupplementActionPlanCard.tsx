@@ -102,7 +102,7 @@ export const SupplementActionPlanCard: React.FC<SupplementActionPlanCardProps> =
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2">
-                    <h4 className="font-medium text-healz-blue">{supplement.supplement_name}</h4>
+                    <h4 className="font-medium text-healz-brown">{supplement.supplement_name}</h4>
                     <Badge variant={priorityBadge.variant}>
                       {priorityBadge.label}
                     </Badge>

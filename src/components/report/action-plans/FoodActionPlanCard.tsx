@@ -95,7 +95,7 @@ export const FoodActionPlanCard: React.FC<FoodActionPlanCardProps> = ({
                       {priorityBadge.label}
                     </Badge>
                   </div>
-                  <h4 className="font-medium mb-2 text-inherit">Plan Alimentario</h4>
+                  <h4 className="font-medium mb-2 text-healz-brown">Plan Alimentario</h4>
                   {plan.dietary_pattern && <p className="text-sm text-gray-600 leading-relaxed">
                       {plan.dietary_pattern}
                     </p>}

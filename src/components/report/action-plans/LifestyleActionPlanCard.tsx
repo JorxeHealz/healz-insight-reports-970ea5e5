@@ -104,7 +104,7 @@ export const LifestyleActionPlanCard: React.FC<LifestyleActionPlanCardProps> = (
                       {priorityBadge.label}
                     </Badge>
                   </div>
-                  <h4 className="font-medium text-healz-blue mb-2">Plan de Estilo de Vida</h4>
+                  <h4 className="font-medium text-healz-brown mb-2">Plan de Estilo de Vida</h4>
                   
                   {/* Objetivo de sueño fijo si existe */}
                   {plan.sleep_target_hours && (
