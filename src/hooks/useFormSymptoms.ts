@@ -112,8 +112,39 @@ export const useFormSymptoms = (formId: string | undefined) => {
 function extractSymptomFromQuestion(questionText: string): string | null {
   const lowerText = questionText.toLowerCase();
   
-  // Mapeo de palabras clave a síntomas
-  const symptomKeywords: Record<string, string> = {
+  // Mapeo directo y específico de preguntas del formulario a síntomas de paneles
+  const directMappings: Record<string, string> = {
+    'fatiga constante': 'Energía baja',
+    'sensación de "niebla mental"': 'Niebla mental',
+    'niebla mental': 'Niebla mental',
+    'lentitud cognitiva': 'Niebla mental',
+    'aumento o pérdida de peso inexplicable': 'Cambios de peso',
+    'hambre constante o antojos de azúcar': 'Antojos de comida',
+    'problemas para dormir': 'Sueño deficiente',
+    'baja libido': 'Libido bajo',
+    'disfunción sexual': 'Libido bajo',
+    'pérdida de cabello': 'Pérdida de cabello',
+    'intolerancia al frío': 'Intolerancia al calor o frío',
+    'intolerancia al calor': 'Intolerancia al calor o frío',
+    'cambios de humor': 'Cambios de humor',
+    'falta de concentración': 'Dificultad para concentrarse',
+    'dificultad para concentrarse': 'Dificultad para concentrarse',
+    'problemas de memoria': 'Pérdida de memoria',
+    'distensión abdominal': 'Hinchazón',
+    'reflujo o acidez': 'Reflujo',
+    'estreñimiento': 'Problemas digestivos',
+    'diarrea frecuente': 'Problemas digestivos',
+    'dolor articular': 'Dolor articular',
+    'dolor muscular': 'Dolor muscular',
+    'fatiga después de ejercicio': 'Poca tolerancia al ejercicio',
+    'resistencia disminuida': 'Resistencia disminuida',
+    'falta de motivación': 'Falta de motivación',
+    'enfermedades frecuentes': 'Enfermedades frecuentes',
+    'inmunidad disminuida': 'Enfermedades frecuentes'
+  };
+
+  // Mapeo de palabras clave flexibles
+  const keywordMappings: Record<string, string> = {
     'energía baja': 'Energía baja',
     'cansancio': 'Energía baja',
     'fatiga': 'Energía baja',
@@ -124,7 +155,7 @@ function extractSymptomFromQuestion(questionText: string): string | null {
     'peso': 'Cambios de peso',
     'cabello': 'Pérdida de cabello',
     'concentra': 'Dificultad para concentrarse',
-    'niebla mental': 'Niebla mental',
+    'niebla': 'Niebla mental',
     'memoria': 'Pérdida de memoria',
     'humor': 'Cambios de humor',
     'ánimo': 'Cambios de humor',
@@ -132,9 +163,12 @@ function extractSymptomFromQuestion(questionText: string): string | null {
     'calor': 'Intolerancia al calor o frío',
     'frío': 'Intolerancia al calor o frío',
     'antojos': 'Antojos de comida',
+    'azúcar': 'Antojos de comida',
+    'hambre': 'Antojos de comida',
     'resistencia': 'Resistencia disminuida',
     'motivación': 'Falta de motivación',
     'enfermedad': 'Enfermedades frecuentes',
+    'inmunidad': 'Enfermedades frecuentes',
     'dolor pecho': 'Dolor en el pecho',
     'falta aire': 'Falta de aliento',
     'mareo': 'Mareos',
@@ -159,11 +193,23 @@ function extractSymptomFromQuestion(questionText: string): string | null {
     'dolor relaciones': 'Dolor durante las relaciones',
     'infertilidad': 'Infertilidad',
     'fragilidad': 'Fragilidad',
-    'deterioro cognitivo': 'Deterioro cognitivo'
+    'deterioro cognitivo': 'Deterioro cognitivo',
+    'distensión': 'Hinchazón',
+    'reflujo': 'Reflujo',
+    'acidez': 'Reflujo',
+    'estreñimiento': 'Problemas digestivos',
+    'diarrea': 'Problemas digestivos'
   };
 
-  // Buscar coincidencias de palabras clave
-  for (const [keyword, symptom] of Object.entries(symptomKeywords)) {
+  // Primero buscar coincidencias directas (más específicas)
+  for (const [exactText, symptom] of Object.entries(directMappings)) {
+    if (lowerText.includes(exactText)) {
+      return symptom;
+    }
+  }
+
+  // Luego buscar coincidencias por palabras clave (más flexibles)
+  for (const [keyword, symptom] of Object.entries(keywordMappings)) {
     if (lowerText.includes(keyword)) {
       return symptom;
     }
@@ -175,64 +221,102 @@ function extractSymptomFromQuestion(questionText: string): string | null {
 // Nueva función para mapear síntomas basado en question_id
 function extractSymptomFromQuestionId(questionId: string, answer: string): string | null {
   const lowerQuestionId = questionId.toLowerCase();
-  const lowerAnswer = answer.toLowerCase();
   
-  // Mapeo directo basado en question_id
+  // Mapeo directo basado en question_id comunes
   const questionIdToSymptom: Record<string, string> = {
-    'fatiga_cronica': 'Fatiga crónica',
+    'fatiga_cronica': 'Energía baja',
+    'fatiga_constante': 'Energía baja',
     'energia_baja': 'Energía baja',
     'libido_bajo': 'Libido bajo',
+    'disfuncion_sexual': 'Libido bajo',
     'sueño_deficiente': 'Sueño deficiente',
+    'problemas_dormir': 'Sueño deficiente',
     'cambios_peso': 'Cambios de peso',
+    'peso_inexplicable': 'Cambios de peso',
     'perdida_cabello': 'Pérdida de cabello',
+    'caida_cabello': 'Pérdida de cabello',
     'sofocos': 'Sofocos',
     'cambios_humor': 'Cambios de humor',
+    'humor_variable': 'Cambios de humor',
     'niebla_mental': 'Niebla mental',
+    'lentitud_cognitiva': 'Niebla mental',
     'dolor_pecho': 'Dolor en el pecho',
     'falta_aliento': 'Falta de aliento',
     'mareos': 'Mareos',
     'resistencia_disminuida': 'Resistencia disminuida',
     'motivacion_baja': 'Falta de motivación',
     'enfermedades_frecuentes': 'Enfermedades frecuentes',
+    'inmunidad_baja': 'Enfermedades frecuentes',
     'dolor_articular': 'Dolor articular',
+    'dolor_muscular': 'Dolor muscular',
     'memoria_perdida': 'Pérdida de memoria',
+    'problemas_memoria': 'Pérdida de memoria',
     'concentracion_dificil': 'Dificultad para concentrarse',
-    'intolerancia_temperatura': 'Intolerancia al calor o frío'
+    'falta_concentracion': 'Dificultad para concentrarse',
+    'intolerancia_temperatura': 'Intolerancia al calor o frío',
+    'intolerancia_frio': 'Intolerancia al calor o frío',
+    'intolerancia_calor': 'Intolerancia al calor o frío',
+    'antojos_azucar': 'Antojos de comida',
+    'hambre_constante': 'Antojos de comida',
+    'distension_abdominal': 'Hinchazón',
+    'reflujo_acidez': 'Reflujo',
+    'estreñimiento': 'Problemas digestivos',
+    'diarrea_frecuente': 'Problemas digestivos'
   };
 
   // Buscar coincidencia directa por question_id
   for (const [qId, symptom] of Object.entries(questionIdToSymptom)) {
     if (lowerQuestionId.includes(qId)) {
-      // Verificar que la respuesta indique presencia del síntoma
       if (shouldReportSymptom(answer)) {
         return symptom;
       }
     }
   }
 
-  // Búsqueda por palabras clave en question_id
-  const keywordMappings: Record<string, string> = {
-    'fatiga': 'Fatiga crónica',
+  // Búsqueda por palabras clave flexibles en question_id
+  const flexibleKeywords: Record<string, string> = {
+    'fatiga': 'Energía baja',
+    'cansancio': 'Energía baja',
     'energia': 'Energía baja',
-    'libido': 'Libido bajo', 
+    'libido': 'Libido bajo',
+    'sexual': 'Libido bajo',
     'sueño': 'Sueño deficiente',
+    'dormir': 'Sueño deficiente',
     'peso': 'Cambios de peso',
     'cabello': 'Pérdida de cabello',
     'sofocos': 'Sofocos',
     'humor': 'Cambios de humor',
+    'animo': 'Cambios de humor',
     'niebla': 'Niebla mental',
+    'mental': 'Niebla mental',
+    'cognitiva': 'Niebla mental',
     'pecho': 'Dolor en el pecho',
     'aliento': 'Falta de aliento',
+    'respiracion': 'Falta de aliento',
     'mareo': 'Mareos',
     'resistencia': 'Resistencia disminuida',
     'motivacion': 'Falta de motivación',
     'enfermedad': 'Enfermedades frecuentes',
+    'inmunidad': 'Enfermedades frecuentes',
     'articular': 'Dolor articular',
+    'muscular': 'Dolor muscular',
     'memoria': 'Pérdida de memoria',
-    'concentra': 'Dificultad para concentrarse'
+    'concentra': 'Dificultad para concentrarse',
+    'atencion': 'Dificultad para concentrarse',
+    'frio': 'Intolerancia al calor o frío',
+    'calor': 'Intolerancia al calor o frío',
+    'temperatura': 'Intolerancia al calor o frío',
+    'antojos': 'Antojos de comida',
+    'azucar': 'Antojos de comida',
+    'hambre': 'Antojos de comida',
+    'distension': 'Hinchazón',
+    'reflujo': 'Reflujo',
+    'acidez': 'Reflujo',
+    'estreñimiento': 'Problemas digestivos',
+    'diarrea': 'Problemas digestivos'
   };
 
-  for (const [keyword, symptom] of Object.entries(keywordMappings)) {
+  for (const [keyword, symptom] of Object.entries(flexibleKeywords)) {
     if (lowerQuestionId.includes(keyword)) {
       if (shouldReportSymptom(answer)) {
         return symptom;
@@ -251,17 +335,20 @@ function shouldReportSymptom(answer: string): boolean {
   const positiveAnswers = [
     'sí', 'si', 'yes', 'true', 
     'frecuentemente', 'siempre', 'always', 'frequently',
-    'moderadamente', 'severamente', 'mucho', 'bastante'
+    'moderadamente', 'severamente', 'mucho', 'bastante',
+    'a menudo', 'regularmente', 'muy frecuentemente',
+    'constantemente', 'a veces' // incluir "a veces" como positivo
   ];
   
   // Respuestas que indican ausencia del síntoma
   const negativeAnswers = [
     'no', 'never', 'nunca', 'false',
     'información no disponible', 'n/a', 'na',
-    'rara vez', 'rarely', 'poco', 'nada'
+    'rara vez', 'rarely', 'poco', 'nada',
+    'casi nunca', 'ninguna vez', 'jamás'
   ];
   
-  // Verificar respuestas positivas
+  // Verificar respuestas positivas primero
   if (positiveAnswers.some(pos => lowerAnswer.includes(pos))) {
     return true;
   }
@@ -271,12 +358,27 @@ function shouldReportSymptom(answer: string): boolean {
     return false;
   }
   
-  // Para respuestas numéricas (escalas), considerar >= 3 como positivo
+  // Para respuestas numéricas (escalas), considerar >= 2 como positivo (más sensible)
   const numericValue = parseInt(lowerAnswer);
   if (!isNaN(numericValue)) {
-    return numericValue >= 3;
+    return numericValue >= 2;
   }
   
-  // Para respuestas no categorizadas, considerar como positiva si no está vacía
-  return lowerAnswer.length > 0 && lowerAnswer !== '0';
+  // Para rangos de escalas como "2-3", tomar el primer número
+  const rangeMatch = lowerAnswer.match(/(\d+)-\d+/);
+  if (rangeMatch) {
+    const firstValue = parseInt(rangeMatch[1]);
+    return firstValue >= 2;
+  }
+  
+  // Para respuestas no categorizadas que no estén vacías, considerar como positiva
+  // siempre que no contengan palabras claramente negativas
+  if (lowerAnswer.length > 0 && lowerAnswer !== '0') {
+    // Excluir respuestas que claramente indican ausencia
+    const clearlyNegative = ['ninguno', 'ninguna', 'nada', 'no aplica', 'no aplicable'];
+    const isClearlyNegative = clearlyNegative.some(neg => lowerAnswer.includes(neg));
+    return !isClearlyNegative;
+  }
+  
+  return false;
 }

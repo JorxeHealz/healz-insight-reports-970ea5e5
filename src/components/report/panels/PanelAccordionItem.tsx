@@ -39,16 +39,52 @@ export const PanelAccordionItem: React.FC<PanelAccordionItemProps> = ({
         return true;
       }
       
-      // Coincidencia parcial (una palabra clave importante)
+      // Mapeo de sinónimos y variaciones comunes
+      const synonymMappings: Record<string, string[]> = {
+        'energía baja': ['fatiga', 'cansancio', 'fatiga constante', 'energía baja'],
+        'niebla mental': ['niebla mental', 'sensación de niebla mental', 'lentitud cognitiva', 'confusión mental'],
+        'cambios de peso': ['aumento de peso', 'pérdida de peso', 'peso inexplicable', 'cambios de peso'],
+        'antojos de comida': ['antojos de azúcar', 'hambre constante', 'antojos de comida', 'antojos'],
+        'sueño deficiente': ['problemas para dormir', 'insomnio', 'sueño deficiente', 'mal sueño'],
+        'libido bajo': ['baja libido', 'disfunción sexual', 'libido bajo', 'deseo sexual bajo'],
+        'dificultad para concentrarse': ['falta de concentración', 'problemas de concentración', 'concentración difícil'],
+        'pérdida de memoria': ['problemas de memoria', 'memoria deficiente', 'olvidos frecuentes'],
+        'cambios de humor': ['humor variable', 'estados de ánimo', 'irritabilidad'],
+        'intolerancia al calor o frío': ['intolerancia al frío', 'intolerancia al calor', 'sensibilidad temperatura'],
+        'problemas digestivos': ['estreñimiento', 'diarrea frecuente', 'distensión abdominal'],
+        'hinchazón': ['distensión abdominal', 'inflamación', 'hinchazón'],
+        'reflujo': ['reflujo o acidez', 'acidez estomacal', 'reflujo gastroesofágico'],
+        'enfermedades frecuentes': ['inmunidad baja', 'infecciones recurrentes', 'resfríos frecuentes']
+      };
+      
+      // Buscar coincidencias usando sinónimos
+      for (const [panelSymptom, synonyms] of Object.entries(synonymMappings)) {
+        if (normalizedSymptom.includes(panelSymptom)) {
+          if (synonyms.some(synonym => normalizedReported.includes(synonym))) {
+            return true;
+          }
+        }
+      }
+      
+      // Coincidencia parcial mejorada - buscar palabras clave importantes
       const keywordsReported = normalizedReported.split(/\s+/);
       const keywordsSymptom = normalizedSymptom.split(/\s+/);
       
-      // Buscar palabras clave importantes
+      // Buscar palabras clave importantes (excluyendo artículos y preposiciones)
+      const stopWords = ['de', 'del', 'la', 'el', 'en', 'con', 'para', 'por', 'y', 'o', 'a', 'al'];
+      
       for (const keywordReported of keywordsReported) {
-        if (keywordReported.length >= 4) { // Solo palabras de 4+ caracteres
+        if (keywordReported.length >= 4 && !stopWords.includes(keywordReported)) {
           for (const keywordSymptom of keywordsSymptom) {
-            if (keywordSymptom.includes(keywordReported) || keywordReported.includes(keywordSymptom)) {
-              return true;
+            if (keywordSymptom.length >= 4 && !stopWords.includes(keywordSymptom)) {
+              // Coincidencia parcial más flexible
+              if (keywordSymptom.includes(keywordReported) || keywordReported.includes(keywordSymptom)) {
+                return true;
+              }
+              // Coincidencia de raíces de palabras
+              if (keywordReported.substring(0, 4) === keywordSymptom.substring(0, 4)) {
+                return true;
+              }
             }
           }
         }
