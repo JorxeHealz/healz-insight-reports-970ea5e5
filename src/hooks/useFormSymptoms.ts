@@ -121,9 +121,11 @@ function extractSymptomFromQuestion(questionText: string): string | null {
     'aumento o pérdida de peso inexplicable': 'Cambios de peso',
     'hambre constante o antojos de azúcar': 'Antojos de comida',
     'problemas para dormir': 'Sueño deficiente',
+    'duermes al menos 7 horas': 'Sueño deficiente', // pregunta inversa
     'baja libido': 'Libido bajo',
     'disfunción sexual': 'Libido bajo',
     'pérdida de cabello': 'Pérdida de cabello',
+    'caída del cabello': 'Pérdida de cabello',
     'intolerancia al frío': 'Intolerancia al calor o frío',
     'intolerancia al calor': 'Intolerancia al calor o frío',
     'cambios de humor': 'Cambios de humor',
@@ -135,12 +137,14 @@ function extractSymptomFromQuestion(questionText: string): string | null {
     'estreñimiento': 'Problemas digestivos',
     'diarrea frecuente': 'Problemas digestivos',
     'dolor articular': 'Dolor articular',
+    'dolor en articulaciones': 'Dolor articular',
     'dolor muscular': 'Dolor muscular',
     'fatiga después de ejercicio': 'Poca tolerancia al ejercicio',
     'resistencia disminuida': 'Resistencia disminuida',
     'falta de motivación': 'Falta de motivación',
     'enfermedades frecuentes': 'Enfermedades frecuentes',
-    'inmunidad disminuida': 'Enfermedades frecuentes'
+    'inmunidad disminuida': 'Enfermedades frecuentes',
+    'ansiedad': 'Ansiedad'
   };
 
   // Mapeo de palabras clave flexibles
@@ -222,8 +226,15 @@ function extractSymptomFromQuestion(questionText: string): string | null {
 function extractSymptomFromQuestionId(questionId: string, answer: string): string | null {
   const lowerQuestionId = questionId.toLowerCase();
   
-  // Mapeo directo basado en question_id comunes
+  // Mapeo directo basado en question_id específicos encontrados en la base de datos
   const questionIdToSymptom: Record<string, string> = {
+    // IDs específicos encontrados en la base de datos
+    '1011009a-80c7-4c74-ad7b-5b79fcf5e0fb': 'Ansiedad',
+    'cb6a7723-bfd9-4772-b381-5e1855d57e27': 'Dolor articular',
+    'e8541354-877e-4d3d-82a0-caa6e02a5781': 'Pérdida de cabello',
+    '57ea4c0f-25b2-4848-a9b9-d6f70fb078ce': 'Sueño deficiente',
+    
+    // Mapeos genéricos por palabras clave en ID
     'fatiga_cronica': 'Energía baja',
     'fatiga_constante': 'Energía baja',
     'energia_baja': 'Energía baja',
@@ -261,7 +272,8 @@ function extractSymptomFromQuestionId(questionId: string, answer: string): strin
     'distension_abdominal': 'Hinchazón',
     'reflujo_acidez': 'Reflujo',
     'estreñimiento': 'Problemas digestivos',
-    'diarrea_frecuente': 'Problemas digestivos'
+    'diarrea_frecuente': 'Problemas digestivos',
+    'ansiedad': 'Ansiedad'
   };
 
   // Buscar coincidencia directa por question_id
@@ -299,6 +311,7 @@ function extractSymptomFromQuestionId(questionId: string, answer: string): strin
     'enfermedad': 'Enfermedades frecuentes',
     'inmunidad': 'Enfermedades frecuentes',
     'articular': 'Dolor articular',
+    'articulaciones': 'Dolor articular',
     'muscular': 'Dolor muscular',
     'memoria': 'Pérdida de memoria',
     'concentra': 'Dificultad para concentrarse',
@@ -313,7 +326,10 @@ function extractSymptomFromQuestionId(questionId: string, answer: string): strin
     'reflujo': 'Reflujo',
     'acidez': 'Reflujo',
     'estreñimiento': 'Problemas digestivos',
-    'diarrea': 'Problemas digestivos'
+    'diarrea': 'Problemas digestivos',
+    'ansiedad': 'Ansiedad',
+    'ansioso': 'Ansiedad',
+    'nervioso': 'Ansiedad'
   };
 
   for (const [keyword, symptom] of Object.entries(flexibleKeywords)) {
@@ -334,10 +350,11 @@ function shouldReportSymptom(answer: string): boolean {
   // Respuestas que indican presencia del síntoma
   const positiveAnswers = [
     'sí', 'si', 'yes', 'true', 
-    'frecuentemente', 'siempre', 'always', 'frequently',
+    'frecuentemente', 'frequently', 'siempre', 'always',
     'moderadamente', 'severamente', 'mucho', 'bastante',
     'a menudo', 'regularmente', 'muy frecuentemente',
-    'constantemente', 'a veces' // incluir "a veces" como positivo
+    'constantemente', 'a veces', 'sometimes', 'ocasionalmente',
+    'most of the time', 'la mayoría del tiempo', 'casi siempre'
   ];
   
   // Respuestas que indican ausencia del síntoma

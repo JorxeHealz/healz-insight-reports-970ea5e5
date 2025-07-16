@@ -28,7 +28,8 @@ export const panelDefinitions = {
       'Cambios de humor',
       'Sofocos',
       'Empeoramiento del SPM',
-      'Antojos de comida'
+      'Antojos de comida',
+      'Ansiedad'
     ]
   },
   'Vitalidad': {
@@ -181,7 +182,8 @@ export const panelDefinitions = {
       'Problemas de lenguaje',
       'Coordinación deficiente',
       'Energía baja',
-      'Cambios en el comportamiento'
+      'Cambios en el comportamiento',
+      'Ansiedad'
     ]
   },
   'Salud Sexual': {

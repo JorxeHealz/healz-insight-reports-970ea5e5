@@ -49,12 +49,15 @@ export const PanelAccordionItem: React.FC<PanelAccordionItemProps> = ({
         'libido bajo': ['baja libido', 'disfunción sexual', 'libido bajo', 'deseo sexual bajo'],
         'dificultad para concentrarse': ['falta de concentración', 'problemas de concentración', 'concentración difícil'],
         'pérdida de memoria': ['problemas de memoria', 'memoria deficiente', 'olvidos frecuentes'],
-        'cambios de humor': ['humor variable', 'estados de ánimo', 'irritabilidad'],
+        'cambios de humor': ['humor variable', 'estados de ánimo', 'irritabilidad', 'ansiedad'],
         'intolerancia al calor o frío': ['intolerancia al frío', 'intolerancia al calor', 'sensibilidad temperatura'],
         'problemas digestivos': ['estreñimiento', 'diarrea frecuente', 'distensión abdominal'],
         'hinchazón': ['distensión abdominal', 'inflamación', 'hinchazón'],
         'reflujo': ['reflujo o acidez', 'acidez estomacal', 'reflujo gastroesofágico'],
-        'enfermedades frecuentes': ['inmunidad baja', 'infecciones recurrentes', 'resfríos frecuentes']
+        'enfermedades frecuentes': ['inmunidad baja', 'infecciones recurrentes', 'resfríos frecuentes'],
+        'ansiedad': ['ansiedad', 'nerviosismo', 'estrés', 'preocupación'],
+        'pérdida de cabello': ['caída del cabello', 'alopecia', 'cabello débil'],
+        'dolor articular': ['dolor en articulaciones', 'artritis', 'rigidez articular']
       };
       
       // Buscar coincidencias usando sinónimos
