@@ -21,7 +21,7 @@ interface DataReviewProps {
   patient: Patient;
   selectedForm: PatientForm | null | undefined;
   onBack: () => void;
-  onNext: (analyticsId: string) => void;
+  onNext: (analyticsId?: string) => void;
   isLoading: boolean;
 }
 
@@ -75,7 +75,6 @@ export const DataReview = ({ patient, selectedForm, onBack, onNext, isLoading }:
   const [biomarkers, setBiomarkers] = useState<BiomarkerData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [analyticsId, setAnalyticsId] = useState<string | null>(null);
   const [analyticsDate, setAnalyticsDate] = useState<string>('');
   const [editingBiomarker, setEditingBiomarker] = useState<BiomarkerData | null>(null);
   const [deletingBiomarker, setDeletingBiomarker] = useState<BiomarkerData | null>(null);
@@ -83,28 +82,19 @@ export const DataReview = ({ patient, selectedForm, onBack, onNext, isLoading }:
   const { deleteBiomarker } = useBiomarkerCRUD();
 
   const handleGenerateDiagnosis = async () => {
-    if (!analyticsId) {
-      toast({
-        title: "Error",
-        description: "No se ha encontrado el ID de analítica. Espere a que se carguen los datos.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Pass analytics_id to the next step for diagnosis generation
-    onNext(analyticsId);
+    // No longer need to validate analytics_id here - it will be auto-detected
+    // Just proceed to the next step
+    onNext(); // Remove analytics_id parameter - it will be auto-detected
   };
 
   useEffect(() => {
     const fetchBiomarkerData = async () => {
       try {
-        console.log('=== DEBUGGING BIOMARKERS FOR JORGE RUIZ ===');
-        console.log('Patient ID received:', patient.id);
-        console.log('Patient name:', patient.first_name, patient.last_name);
+        console.log('=== DataReview: Loading biomarker data for patient ===');
+        console.log('Patient ID:', patient.id);
+        console.log('Selected form:', selectedForm?.id);
         
-        // First, get the most recent analytics_id for this patient
-        console.log('Step 1: Fetching recent analytics...');
+        // Get the most recent analytics_id for this patient
         const { data: recentAnalytics, error: analyticsError } = await supabase
           .from('patient_biomarkers')
           .select('analytics_id, date')
@@ -113,157 +103,101 @@ export const DataReview = ({ patient, selectedForm, onBack, onNext, isLoading }:
           .order('date', { ascending: false })
           .limit(1);
 
-        console.log('Analytics query result:', { data: recentAnalytics, error: analyticsError });
-
         if (analyticsError) {
-          console.error('ERROR in analytics query:', analyticsError);
+          console.error('Error fetching analytics:', analyticsError);
           throw analyticsError;
         }
 
         if (!recentAnalytics || recentAnalytics.length === 0) {
-          console.log('❌ NO ANALYTICS DATA FOUND - This might be the issue!');
-          console.log('Checking all patient_biomarkers for this patient...');
-          
-          // Debug: Check if there are ANY biomarkers for this patient
-          const { data: allBiomarkers, error: allError } = await supabase
-            .from('patient_biomarkers')
-            .select('id, analytics_id, date')
-            .eq('patient_id', patient.id);
-            
-          console.log('All biomarkers for patient:', allBiomarkers);
-          console.log('Total count:', allBiomarkers?.length || 0);
-          
-          if (allBiomarkers && allBiomarkers.length > 0) {
-            console.log('Analytics IDs found:', [...new Set(allBiomarkers.map(b => b.analytics_id))]);
-          }
-          
+          console.log('No analytics data found for patient');
           setBiomarkers([]);
+          setError('No se encontraron analíticas para este paciente');
           return;
         }
 
         const mostRecentAnalyticsId = recentAnalytics[0].analytics_id;
         const mostRecentDate = recentAnalytics[0].date;
-        setAnalyticsId(mostRecentAnalyticsId);
         setAnalyticsDate(mostRecentDate);
-        console.log('✅ Most recent analytics_id:', mostRecentAnalyticsId);
-        console.log('✅ Most recent date:', mostRecentDate);
+        console.log('Using analytics_id:', mostRecentAnalyticsId, 'from date:', mostRecentDate);
 
-        // Use the database function to get biomarkers with proper JOIN
-        console.log('Step 2: Calling RPC function...');
+        // Get biomarkers using the database function
         const { data: biomarkerData, error: biomarkerError } = await supabase
           .rpc('get_patient_biomarkers_by_analytics', {
             p_patient_id: patient.id,
             p_analytics_id: mostRecentAnalyticsId
           });
 
-        console.log('RPC function result:', { 
-          dataLength: biomarkerData?.length || 0, 
-          error: biomarkerError,
-          firstRecord: biomarkerData?.[0] || null
-        });
-
         if (biomarkerError) {
-          console.error('ERROR in RPC function:', biomarkerError);
+          console.error('Error fetching biomarkers:', biomarkerError);
           throw biomarkerError;
         }
 
         if (!biomarkerData || biomarkerData.length === 0) {
-          console.log('❌ NO BIOMARKER DATA FROM RPC - This is the issue!');
-          console.log('Expected 62 records but got 0');
+          console.log('No biomarker data found');
           setBiomarkers([]);
+          setError('No se encontraron biomarcadores para la analítica más reciente');
           return;
         }
 
-        console.log('✅ Step 3: Processing', biomarkerData.length, 'biomarker records...');
+        console.log(`Processing ${biomarkerData.length} biomarker records`);
 
         // Transform data from database function result
-        let transformationErrors = 0;
-        const transformedBiomarkers: BiomarkerData[] = biomarkerData.map((pb, index) => {
-          console.log(`Processing record ${index + 1}:`, {
-            id: pb.id,
-            biomarker_name: pb.biomarker_name,
-            value: pb.value,
-            unit: pb.unit,
-            has_ranges: !!(pb.optimal_min && pb.optimal_max)
-          });
-
-          // The database function returns biomarker info directly in the row
-          if (!pb.biomarker_name) {
-            console.warn('❌ Missing biomarker_name for record:', pb.id);
-            transformationErrors++;
-            return null;
-          }
-
-          if (!pb.unit) {
-            console.warn('❌ Missing unit for record:', pb.biomarker_name);
-            transformationErrors++;
-            return null;
-          }
-
-          // Create biomarker row for evaluation
-          const biomarkerRow = {
-            id: pb.biomarker_id,
-            name: pb.biomarker_name,
-            unit: pb.unit,
-            optimal_min: pb.optimal_min,
-            optimal_max: pb.optimal_max,
-            conventional_min: pb.conventional_min,
-            conventional_max: pb.conventional_max,
-            description: pb.description,
-            category: pb.category || [],
-            created_at: pb.biomarker_created_at,
-            updated_at: pb.biomarker_updated_at
-          };
-          
-          console.log(`Evaluating status for ${pb.biomarker_name}:`, {
-            value: pb.value,
-            optimal_range: `${pb.optimal_min}-${pb.optimal_max}`,
-            conventional_range: `${pb.conventional_min}-${pb.conventional_max}`
-          });
-
-          const evaluation = evaluateBiomarkerStatus(pb.value, biomarkerRow);
-          console.log(`Status result:`, evaluation);
-
-          const result = {
-            id: pb.id,
-            name: pb.biomarker_name,
-            value: pb.value,
-            unit: pb.unit,
-            date: pb.date,
-            status: evaluation.status,
-            trend: null, // Simplified - no trend calculation for now
-            analytics_id: pb.analytics_id,
-            biomarker_data: {
-              optimal_min: pb.optimal_min,
-              optimal_max: pb.optimal_max,
-              conventional_min: pb.conventional_min,
-              conventional_max: pb.conventional_max
+        const transformedBiomarkers: BiomarkerData[] = biomarkerData
+          .filter(pb => pb.biomarker_name && pb.unit) // Filter out invalid records
+          .map((pb) => {
+            // Determine status based on optimal ranges
+            let status: 'optimal' | 'caution' | 'outOfRange' = 'optimal';
+            
+            if (pb.optimal_min !== null && pb.optimal_max !== null) {
+              if (pb.value < pb.optimal_min || pb.value > pb.optimal_max) {
+                status = 'outOfRange';
+              }
+            } else if (pb.conventional_min !== null && pb.conventional_max !== null) {
+              if (pb.value < pb.conventional_min || pb.value > pb.conventional_max) {
+                status = 'caution';
+              }
             }
-          } as BiomarkerData;
 
-          console.log(`✅ Successfully transformed:`, result.name);
-          return result;
-        }).filter(Boolean) as BiomarkerData[];
+            return {
+              id: pb.id,
+              name: pb.biomarker_name,
+              value: pb.value,
+              unit: pb.unit,
+              status,
+              date: pb.date,
+              notes: pb.notes,
+              biomarkerData: {
+                id: pb.biomarker_id,
+                name: pb.biomarker_name,
+                unit: pb.unit,
+                description: pb.description || '',
+                optimal_min: pb.optimal_min,
+                optimal_max: pb.optimal_max,
+                conventional_min: pb.conventional_min,
+                conventional_max: pb.conventional_max,
+                category: Array.isArray(pb.category) ? pb.category : [],
+                panel: Array.isArray(pb.panel) ? pb.panel : []
+              }
+            };
+          });
 
-        console.log('=== TRANSFORMATION SUMMARY ===');
-        console.log('Original records:', biomarkerData.length);
-        console.log('Transformation errors:', transformationErrors);
-        console.log('Successfully transformed:', transformedBiomarkers.length);
-        console.log('First few transformed records:', transformedBiomarkers.slice(0, 3));
+        const sorted = sortBiomarkersByStatus(transformedBiomarkers);
+        setBiomarkers(sorted);
+        console.log(`✅ Successfully loaded ${sorted.length} biomarkers`);
         
-        const sortedBiomarkers = sortBiomarkersByStatus(transformedBiomarkers);
-        setBiomarkers(sortedBiomarkers);
-        
-      } catch (err: any) {
-        console.error('Error fetching biomarker data:', err);
-        setError('No se pudieron cargar los datos del paciente: ' + (err.message || 'Error desconocido'));
+      } catch (error: any) {
+        console.error('Error in fetchBiomarkerData:', error);
+        setError(error.message || 'Error al cargar los biomarcadores');
+        setBiomarkers([]);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchBiomarkerData();
-  }, [patient.id]);
+    if (patient?.id) {
+      fetchBiomarkerData();
+    }
+  }, [patient?.id]);
 
   const refreshBiomarkers = () => {
     setLoading(true);
@@ -445,10 +379,10 @@ export const DataReview = ({ patient, selectedForm, onBack, onNext, isLoading }:
           <Card className="overflow-hidden">
             <CardHeader className="bg-healz-cream/20 py-3 flex flex-row items-center justify-between">
               <CardTitle className="text-md">Biomarcadores más recientes</CardTitle>
-              {analyticsId && analyticsDate && (
+              {analyticsDate && (
                 <AddBiomarkerDialog
                   patientId={patient.id}
-                  analyticsId={analyticsId}
+                  analyticsId={analyticsDate}
                   analyticsDate={analyticsDate}
                   onSuccess={refreshBiomarkers}
                 />
@@ -523,7 +457,7 @@ export const DataReview = ({ patient, selectedForm, onBack, onNext, isLoading }:
             </Button>
             <Button
               onClick={handleGenerateDiagnosis}
-              disabled={isLoading || !analyticsId}
+              disabled={isLoading || !analyticsDate}
             >
               {isLoading ? 'Generando diagnóstico...' : 'Generar diagnóstico'}
             </Button>

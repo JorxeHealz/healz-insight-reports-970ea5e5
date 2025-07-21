@@ -8,9 +8,13 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
-  // Handle CORS preflight requests
+  const corsHeaders = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  };
+
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response('ok', { headers: corsHeaders });
   }
 
   try {
@@ -21,26 +25,37 @@ serve(async (req) => {
 
     const { 
       queue_id, 
-      diagnosis, 
+      report_id, // New parameter from enhanced flow
+      patient_id,
       vitality_score, 
       risk_score, 
       risk_profile, 
-      action_plan, 
-      summary,
-      execution_id,
-      biomarkers,
-      symptoms,
-      clinical_notes
+      summary, 
+      biomarkers, 
+      action_plan,
+      clinical_notes,
+      key_findings
     } = await req.json();
+
+    console.log('📨 N8N Webhook Response received:', {
+      queue_id,
+      report_id, // Log the provided report_id
+      patient_id,
+      vitality_score,
+      has_biomarkers: biomarkers?.length || 0,
+      has_action_plan: !!action_plan,
+      has_clinical_notes: clinical_notes?.length || 0,
+      has_key_findings: key_findings?.length || 0
+    });
 
     if (!queue_id) {
       return new Response(
-        JSON.stringify({ error: 'queue_id is required' }),
+        JSON.stringify({ error: 'Missing queue_id' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Buscar la entrada en la cola de procesamiento
+    // Get the processing queue entry
     const { data: queueEntry, error: queueError } = await supabaseClient
       .from('processing_queue')
       .select('*')
@@ -48,13 +63,14 @@ serve(async (req) => {
       .single();
 
     if (queueError || !queueEntry) {
+      console.error('Queue entry not found:', queueError);
       return new Response(
         JSON.stringify({ error: 'Queue entry not found' }),
         { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Preparar datos de diagnóstico
+    // Prepare diagnosis data
     const diagnosisData = {
       vitalityScore: vitality_score || 0,
       riskScore: risk_score || 0,
@@ -62,48 +78,71 @@ serve(async (req) => {
       summary: summary || ''
     };
 
-    // Crear o actualizar el reporte
-    const { data: report, error: reportError } = await supabaseClient
-      .from('reports')
-      .upsert({
-        patient_id: queueEntry.patient_id,
-        form_id: queueEntry.form_id,
-        processing_queue_id: queue_id,
-        diagnosis: diagnosisData,
-        action_plan: action_plan || {},
-        n8n_generated_at: new Date().toISOString()
-      })
-      .select()
-      .single();
-
-    if (reportError) {
-      console.error('Error creating/updating report:', reportError);
-      
-      // Marcar cola como fallida
-      await supabaseClient
-        .from('processing_queue')
-        .update({ 
-          status: 'failed',
-          error_message: 'Failed to create report',
-          completed_at: new Date().toISOString()
+    // Update the existing report (instead of creating/upserting)
+    let report;
+    if (report_id) {
+      console.log('📝 Updating existing report:', report_id);
+      const { data: updatedReport, error: reportError } = await supabaseClient
+        .from('reports')
+        .update({
+          diagnosis: diagnosisData,
+          action_plan: action_plan || {},
+          vitality_score: vitality_score || null,
+          risk_score: risk_score || null,
+          average_risk: risk_score || null,
+          status: 'completed', // Mark as completed
+          n8n_generated_at: new Date().toISOString()
         })
-        .eq('id', queue_id);
+        .eq('id', report_id)
+        .select()
+        .single();
 
-      return new Response(
-        JSON.stringify({ error: 'Failed to create report' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      if (reportError) {
+        console.error('❌ Error updating report:', reportError);
+        throw reportError;
+      }
+      
+      report = updatedReport;
+      console.log('✅ Report updated successfully');
+    } else {
+      // Fallback: create report if report_id not provided (backward compatibility)
+      console.log('⚠️ No report_id provided, creating new report (fallback)');
+      const { data: newReport, error: reportError } = await supabaseClient
+        .from('reports')
+        .insert({
+          patient_id: queueEntry.patient_id,
+          form_id: queueEntry.form_id,
+          processing_queue_id: queue_id,
+          diagnosis: diagnosisData,
+          action_plan: action_plan || {},
+          vitality_score: vitality_score || null,
+          risk_score: risk_score || null,
+          average_risk: risk_score || null,
+          status: 'completed',
+          n8n_generated_at: new Date().toISOString()
+        })
+        .select()
+        .single();
+
+      if (reportError) {
+        console.error('❌ Error creating report:', reportError);
+        throw reportError;
+      }
+
+      report = newReport;
+      console.log('✅ Report created successfully');
     }
 
-    // Guardar biomarcadores del informe si están presentes (ahora con report_id)
+    // Update biomarkers with report_id if provided
     if (biomarkers && Array.isArray(biomarkers)) {
+      console.log(`📊 Processing ${biomarkers.length} biomarkers`);
       for (const biomarker of biomarkers) {
         await supabaseClient
           .from('patient_biomarkers')
           .insert({
             patient_id: queueEntry.patient_id,
             form_id: queueEntry.form_id,
-            report_id: report.id, // Nueva columna agregada
+            report_id: report.id,
             biomarker_id: biomarker.biomarker_id,
             value: biomarker.value,
             date: biomarker.date || new Date().toISOString(),
@@ -111,6 +150,7 @@ serve(async (req) => {
             notes: biomarker.notes
           });
       }
+      console.log('✅ Biomarkers processed successfully');
     }
 
     // Guardar perfil de riesgo detallado

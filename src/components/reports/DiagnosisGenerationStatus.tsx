@@ -6,11 +6,12 @@ import { CheckCircle, XCircle, Clock, AlertTriangle } from 'lucide-react';
 import { useReportGeneration } from '../../hooks/useReportGeneration';
 import { supabase } from '../../lib/supabase';
 import { useQuery } from '@tanstack/react-query';
+import { Patient } from '../../types/supabase';
+import { PatientForm } from '../../types/forms';
 
 interface DiagnosisGenerationStatusProps {
-  patient: any;
-  selectedForm: any;
-  analyticsId: string;
+  patient: Patient;
+  selectedForm: PatientForm | null | undefined;
   onBack: () => void;
   onComplete: (reportId: string) => void;
 }
@@ -18,66 +19,33 @@ interface DiagnosisGenerationStatusProps {
 export const DiagnosisGenerationStatus = ({
   patient,
   selectedForm,
-  analyticsId,
   onBack,
   onComplete
 }: DiagnosisGenerationStatusProps) => {
-  const { generationState, generateDiagnosis, isGenerating, resetGeneration, getLatestReport } = useReportGeneration();
-  const [currentReportId, setCurrentReportId] = useState<string | null>(null);
+  const { generationState, generateDiagnosis, isGenerating, resetGeneration } = useReportGeneration();
 
-  // Get the current report ID from localStorage
+  // Start generation when component mounts
   useEffect(() => {
-    const reportId = localStorage.getItem('currentReportId');
-    if (reportId) {
-      setCurrentReportId(reportId);
-    }
-  }, []);
-
-  // Poll for report status updates
-  const { data: currentReport } = useQuery({
-    queryKey: ['report-status', currentReportId],
-    queryFn: async () => {
-      if (!currentReportId) return null;
-      
-      const { data, error } = await supabase
-        .from('reports')
-        .select('*')
-        .eq('id', currentReportId)
-        .single();
-      
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!currentReportId,
-    refetchInterval: 3000, // Poll every 3 seconds
-  });
-
-  // Start generation when component mounts (only if no current report or report is processing)
-  useEffect(() => {
-    if (currentReport?.status === 'processing') {
-      // Report already exists and is processing, no need to start generation
-      return;
-    }
-    
-    if (generationState.status === 'idle' && currentReportId) {
+    if (generationState.status === 'idle') {
+      console.log('🚀 Starting diagnosis generation with enhanced flow');
       generateDiagnosis({
         patient_id: patient.id,
         form_id: selectedForm?.id,
-        analytics_id: analyticsId
+        // analytics_id will be auto-detected
       });
     }
-  }, [currentReport, currentReportId]);
+  }, [patient.id, selectedForm?.id, generationState.status, generateDiagnosis]);
 
-  // Handle completion based on report status
+  // Handle completion
   useEffect(() => {
-    if (currentReport?.status === 'completed') {
-      localStorage.removeItem('currentReportId');
-      onComplete(currentReport.id);
+    if (generationState.status === 'completed' && generationState.reportId) {
+      console.log('✅ Generation completed, navigating to report:', generationState.reportId);
+      onComplete(generationState.reportId);
     }
-  }, [currentReport?.status, currentReport?.id, onComplete]);
+  }, [generationState.status, generationState.reportId, onComplete]);
 
-  // Get status from current report or generation state
-  const currentStatus = currentReport?.status || generationState.status || 'processing';
+  // Get current status for display
+  const currentStatus = generationState.status;
 
   const getStatusIcon = () => {
     switch (currentStatus) {
@@ -202,7 +170,7 @@ export const DiagnosisGenerationStatus = ({
                     generateDiagnosis({
                       patient_id: patient.id,
                       form_id: selectedForm?.id,
-                      analytics_id: analyticsId
+                      // analytics_id will be auto-detected
                     });
                   }}
                 >
